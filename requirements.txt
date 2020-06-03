@@ -1,0 +1,6 @@
+Flask==1.1.1
+Flask-WTF==0.14.2
+gunicorn==19.9.0
+python-dotenv==0.10.3
+Werkzeug==0.15.6
+requests[security]>=2.19,<2.20

@@ -1,0 +1,11 @@
+version: "3.2"
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    volumes:
+      - ./client/src:/src/client/src
+      - ./static:/src/static
+    image: seamless-client
