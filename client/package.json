@@ -11,8 +11,8 @@
     "react-scripts": "3.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "parcel watch ./src/index.html --public-url=/static/ --out-dir='../static'",
+    "build": "parcel build ./src/index.html --public-url=/static/ --out-dir='../static",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
