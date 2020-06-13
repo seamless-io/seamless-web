@@ -1,5 +1,9 @@
-run-client:
-	docker-compose up --build client
+# The program used as the shell is taken from the variable `SHELL'.  If
+# this variable is not set in your makefile, the program `/bin/sh' is
+# used as the shell.
+# https://stackoverflow.com/questions/589276/how-can-i-use-bash-syntax-in-makefile-targets
+SHELL := /bin/bash
 
-run-web-dev:
-	docker-compose up --build web-dev
+watch:
+	rm -rf client/dist
+	pushd client && npm install && npm start

@@ -1,0 +1,69 @@
+service: seamless-cloud
+
+plugins:
+  - serverless-domain-manager
+  - serverless-plugin-aws-alerts
+  - serverless-plugin-create-deployment-bucket
+  - serverless-prune-plugin
+  - serverless-python-requirements
+  - serverless-wsgi
+  - serverless-finch
+
+custom:
+  stage: ${opt:stage, 'development'}
+  wsgi:
+    app: core.web.app
+    packRequirements: false
+  client:
+    distributionFolder: ./client/dist
+    bucketName: XXX
+    keyPrefix: XXX
+    manageResources: false
+    objectHeaders:
+      '*.png':
+        - name: "Content-Type"
+          value: "image/png"
+  pythonRequirements:
+    dockerizePip: non-linux
+    fileName: requirements.txt
+  config: ${file(config/${self:custom.stage}.yml)}
+  customDomain:
+    domainName: ${self:custom.config.domain}
+    basePath: ''
+    stage: ${self:custom.stage}
+    createRoute53Record: true
+  prune:
+    automatic: true
+    number: 3
+
+functions:
+  - app:
+      handler: wsgi.handler
+      events:
+        - http: ANY /
+        - http: ANY /{proxy+}
+
+provider:
+  name: aws
+  role: arn:aws:iam::XXX:role/XXX
+  profile: XXX
+  runtime: python3.8
+  stage: ${self:custom.stage}
+  timeout: 60
+  logRetentionInDays: 14
+  environment: ${self:custom.config.environment}
+  vpc:
+    securityGroupIds:
+      - sg-XXX
+    subnetIds:
+      - subnet-XXX
+  deploymentBucket:
+    name: XXX
+
+package:
+  exclude:
+    - .git/**
+    - .idea/**
+    - .pytest_cache/**
+    - client/**
+    - "!client/dist/index.html"

@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "Seamless",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -11,8 +11,8 @@
     "react-scripts": "3.4.1"
   },
   "scripts": {
-    "start": "parcel watch ./src/index.html --public-url=/static/ --out-dir='../static'",
-    "build": "parcel build ./src/index.html --public-url=/static/ --out-dir='../static",
+    "start": "parcel watch ./index.html --public-url=/static/",
+    "build": "parcel build index.html",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -26,9 +26,9 @@
       "not op_mini all"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      "last 2 chrome version",
+      "last 2 firefox version",
+      "last 2 safari version"
     ]
   }
 }
