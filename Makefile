@@ -4,6 +4,7 @@
 # https://stackoverflow.com/questions/589276/how-can-i-use-bash-syntax-in-makefile-targets
 SHELL := /bin/bash
 
+# React
 watch:
 	rm -rf client/dist
 	pushd client && npm install && npm start
