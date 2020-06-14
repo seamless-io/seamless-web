@@ -1,0 +1,33 @@
+version: "3.2"
+
+services:
+  # Alembic
+  core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ""
+    command: "bash"
+    env_file: .env
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/src
+    depends_on:
+      - postgres
+
+  # Main database
+  postgres:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_PASSWORD=root
+    volumes:
+      - ./postgres_healthcheck.sh:/src/postgres_healthcheck.sh
+      - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD", "bash", "src/postgres_healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
