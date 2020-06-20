@@ -1,5 +1,5 @@
 {
-  "name": "Seamless",
+  "name": "seamless",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -11,8 +11,8 @@
     "react-scripts": "3.4.1"
   },
   "scripts": {
-    "start": "parcel watch ./index.html --public-url=/static/",
-    "build": "parcel build index.html",
+    "start": "parcel watch ./index.html --public-url=/static/ --out-dir='../static'",
+    "build": "parcel build ./index.html --public-url=/static/ --out-dir='../static'",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

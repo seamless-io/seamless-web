@@ -1,11 +1,40 @@
 version: "3.2"
 
 services:
-  # Alembic
-  core:
+  # Server
+  server:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.server
+    volumes:
+      - .:/src
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: "gunicorn -w 4 -b 0.0.0.0:5000 \
+              --timeout 120 \
+              --log-level=info \
+              --capture-output \
+              --enable-stdio-inheritance \
+              application:app \
+              --reload"
+
+  # UI
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    volumes:
+      - ./client/src:/src/client/src
+      - ./static:/src/static
+    image: seamless-client
+
+  # Alembic
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
     entrypoint: ""
     command: "bash"
     env_file: .env
@@ -16,7 +45,7 @@ services:
     depends_on:
       - postgres
 
-  # Main database
+  # Database
   postgres:
     image: postgres:9.6
     environment:
@@ -26,22 +55,6 @@ services:
       - ./sql_scripts/db_seamless_init.sql:/docker-entrypoint-initdb.d/db_init.sql
     ports:
       - 5432:5432
-    healthcheck:
-      test: ["CMD", "bash", "src/postgres_healthcheck.sh"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Passwords database
-  postgres-passwords:
-    image: postgres:9.6
-    environment:
-      - POSTGRES_PASSWORD=root
-    volumes:
-      - ./postgres_healthcheck.sh:/src/postgres_healthcheck.sh
-      - ./sql_scripts/db_seamless_passwords_init.sql:/docker-entrypoint-initdb.d/db_init.sql
-    ports:
-      - 5433:5432
     healthcheck:
       test: ["CMD", "bash", "src/postgres_healthcheck.sh"]
       interval: 10s

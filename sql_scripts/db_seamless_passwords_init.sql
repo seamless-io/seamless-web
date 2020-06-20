@@ -1,1 +1,0 @@
-CREATE DATABASE seamless_passwords;

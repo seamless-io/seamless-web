@@ -3,16 +3,18 @@ import os
 import jinja2
 from flask import Flask, render_template
 
-import config
-
 API_VERSION = '/api/v1'
-APP_DIR = os.path.dirname(os.path.realpath(__file__))
-CLIENT_DIR = os.path.join(APP_DIR, '..', config.CLIENT_DIR)
+APP_DIR = os.path.join(os.path.realpath(__file__))
+TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
+CLIENT_DIR = os.path.join(APP_DIR, '../static/')
 
 
 def create_app():
+    print(APP_DIR)
+    print(TEMPLATES_DIR)
+    print(CLIENT_DIR)
     app = Flask(__name__, static_folder=CLIENT_DIR, static_url_path='/static')
-    app.jinja_loader = jinja2.FileSystemLoader([CLIENT_DIR])
+    app.jinja_loader = jinja2.FileSystemLoader(['/src/core/static'])
 
     from core.apis.tasks import tasks_bp
     app.register_blueprint(tasks_bp, url_prefix=API_VERSION)
@@ -23,6 +25,3 @@ def create_app():
         return render_template('index.html')
 
     return app
-
-
-app = create_app()
