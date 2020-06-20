@@ -23,9 +23,25 @@ services:
       - POSTGRES_PASSWORD=root
     volumes:
       - ./postgres_healthcheck.sh:/src/postgres_healthcheck.sh
-      - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+      - ./sql_scripts/db_seamless_init.sql:/docker-entrypoint-initdb.d/db_init.sql
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD", "bash", "src/postgres_healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Passwords database
+  postgres-passwords:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_PASSWORD=root
+    volumes:
+      - ./postgres_healthcheck.sh:/src/postgres_healthcheck.sh
+      - ./sql_scripts/db_seamless_passwords_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+    ports:
+      - 5433:5432
     healthcheck:
       test: ["CMD", "bash", "src/postgres_healthcheck.sh"]
       interval: 10s

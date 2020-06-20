@@ -11,15 +11,17 @@ shell:
 	docker-compose run --rm core bash
 
 revision:
-	docker-compose run --rm core alembic revision --autogenerate -m "$(msg)"
+	docker-compose run --rm core alembic -n $(shema) revision --autogenerate -m "$(msg)"
 
 migration:
-	docker-compose run --rm core alembic upgrade head
+	docker-compose run --rm core alembic -n $(shema) upgrade head
 
 setup:
 	docker-compose build postgres
+	docker-compose build postgres-passwords
 	docker-compose up -d postgres
-	docker-compose run --rm core alembic upgrade head
+	docker-compose up -d postgres-passwords
+	docker-compose run --rm core alembic -n passwords_db upgrade head
 	docker-compose stop core
 
 clean:

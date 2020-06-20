@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from core.db_client import get_sqlalchemy_url
-from core.db.models.base import base
+from core.db_passwords.models.base import base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -77,5 +77,5 @@ def run():
 
 
 if __name__ == 'env_py':
-    config.set_main_option('sqlalchemy.url', get_sqlalchemy_url('SEAMLESS'))
+    config.set_main_option('sqlalchemy.url', get_sqlalchemy_url('SEAMLESS_PASSWORDS'))
     run()
