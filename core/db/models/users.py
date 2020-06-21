@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from sqlalchemy import Column, Integer, String, DateTime
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from core.db import session_scope
 from core.db.models.base import base
 from core.web import login_manager
 
@@ -33,4 +34,5 @@ class User(UserMixin, base):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    with session_scope() as session:
+        return session.query(User).get(int(user_id))

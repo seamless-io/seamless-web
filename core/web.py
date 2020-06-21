@@ -1,10 +1,14 @@
 import os
 
 import jinja2
+from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_login import LoginManager
 
 from config import Config
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
+load_dotenv(dotenv_path)
 
 API_VERSION = '/api'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))

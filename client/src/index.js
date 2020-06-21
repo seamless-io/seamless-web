@@ -7,8 +7,8 @@ import {
   Link
 } from "react-router-dom";
 
-import { Login } from './Login';
-import { Tasks } from './Tasks';
+import LoginForm from './components/LoginForm';
+import { Tasks } from './components/Tasks';
 
 const Application = () => {
   return (
@@ -30,7 +30,7 @@ const Application = () => {
             <Tasks />
           </Route>
           <Route path="/login">
-            <Login />
+            <LoginForm />
           </Route>
         </Switch>
       </div>
