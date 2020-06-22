@@ -1,13 +1,16 @@
-version: "3.2"
+version: "3.8"
 
 services:
+
   # Server
   server:
     build:
       context: .
       dockerfile: Dockerfile.server
+    image: seamless-server
     volumes:
       - .:/src
+    mem_limit: 128m
     ports:
       - "5000:5000"
     environment:
@@ -25,23 +28,24 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.client
+    image: seamless-client
     volumes:
       - ./client/src:/src/client/src
       - ./static:/src/static
-    image: seamless-client
+    mem_limit: 128m
 
   # Alembic
   migration:
     build:
       context: .
       dockerfile: Dockerfile.migration
+    image: seamless-migration
     entrypoint: ""
     command: "bash"
     env_file: .env
-    ports:
-      - "5000:5000"
     volumes:
       - .:/src
+    mem_limit: 128m
     depends_on:
       - postgres
 
@@ -53,6 +57,7 @@ services:
     volumes:
       - ./postgres_healthcheck.sh:/src/postgres_healthcheck.sh
       - ./sql_scripts/db_seamless_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+    mem_limit: 128m
     ports:
       - 5432:5432
     healthcheck:
