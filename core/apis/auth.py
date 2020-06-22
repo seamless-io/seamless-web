@@ -33,7 +33,7 @@ def login():
                 next = request.args.get('next')
                 if next is None or not next.startswith('/'):
                     next = '/'
-                return redirect(next)
+                return redirect(next, code=302)
             return jsonify({'message': 'User is unauthorized.'}), 401
     except Exception as e:
         logging.exception(e)
