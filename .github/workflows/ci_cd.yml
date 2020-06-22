@@ -24,5 +24,5 @@ jobs:
         account_id: ${{ secrets.AWS_ACCOUNT_ID }}
         repo: my-web-app
         region: ${{ env.AWS_REGION_NAME }}
-        tags: ${{ github.sha }}
+        tags: web-server
         dockerfile: Dockerfile.server
