@@ -1,0 +1,135 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+        {
+            "essential": true,
+            "image": "seamless-client",
+            "memory": 128,
+            "mountPoints": [
+                {
+                    "containerPath": "/src/client/src",
+                    "sourceVolume": "_ClientSrc"
+                },
+                {
+                    "containerPath": "/src/static",
+                    "sourceVolume": "_Static"
+                }
+            ],
+            "name": "client"
+        },
+        {
+            "command": [
+                "bash"
+            ],
+            "essential": true,
+            "image": "seamless-migration",
+            "memory": 128,
+            "mountPoints": [
+                {
+                    "containerPath": "/src",
+                    "sourceVolume": "_"
+                }
+            ],
+            "name": "migration"
+        },
+        {
+            "environment": [
+                {
+                    "name": "POSTGRES_PASSWORD",
+                    "value": "root"
+                }
+            ],
+            "essential": true,
+            "image": "postgres:9.6",
+            "memory": 128,
+            "mountPoints": [
+                {
+                    "containerPath": "/src/postgres_healthcheck.sh",
+                    "sourceVolume": "_Postgres_Healthcheck_Sh"
+                },
+                {
+                    "containerPath": "/docker-entrypoint-initdb.d/db_init.sql",
+                    "sourceVolume": "_Sql_ScriptsDb_Seamless_Init_Sql"
+                }
+            ],
+            "name": "postgres",
+            "portMappings": [
+                {
+                    "containerPort": 5432,
+                    "hostPort": 5432
+                }
+            ]
+        },
+        {
+            "command": [
+                "gunicorn",
+                "-w",
+                "4",
+                "-b",
+                "0.0.0.0:5000",
+                "--timeout",
+                "120",
+                "--log-level=info",
+                "--capture-output",
+                "--enable-stdio-inheritance",
+                "application:app",
+                "--reload"
+            ],
+            "environment": [
+                {
+                    "name": "PYTHONUNBUFFERED",
+                    "value": "1"
+                }
+            ],
+            "essential": true,
+            "image": "seamless-server",
+            "memory": 128,
+            "mountPoints": [
+                {
+                    "containerPath": "/src",
+                    "sourceVolume": "_"
+                }
+            ],
+            "name": "server",
+            "portMappings": [
+                {
+                    "containerPort": 5000,
+                    "hostPort": 5000
+                }
+            ]
+        }
+    ],
+    "family": "",
+    "volumes": [
+        {
+            "host": {
+                "sourcePath": "."
+            },
+            "name": "_"
+        },
+        {
+            "host": {
+                "sourcePath": "./client/src"
+            },
+            "name": "_ClientSrc"
+        },
+        {
+            "host": {
+                "sourcePath": "./static"
+            },
+            "name": "_Static"
+        },
+        {
+            "host": {
+                "sourcePath": "/$(pwd)/postgres_healthcheck.sh"
+            },
+            "name": "_Postgres_Healthcheck_Sh"
+        },
+        {
+            "host": {
+                "sourcePath": "/$(pwd)/sql_scripts/db_seamless_init.sql"
+            },
+            "name": "_Sql_ScriptsDb_Seamless_Init_Sql"
+        }
+    ]
+}
