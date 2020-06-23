@@ -60,7 +60,7 @@ jobs:
       run: cd client && npm install -g parcel && npm install && npm run build
 
     - name: Create ZIP deployment package
-      run: zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git* -x __pycache__/\* -x .pytest_cache/\* -x *.mypy* -x tests/\* -x test_requirements.txt -x Dockerfile* -x client/
+      run: zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git* -x __pycache__/\* -x .pytest_cache/\* -x *.mypy* -x tests/\* -x test_requirements.txt -x Dockerfile* -x client/\*
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
