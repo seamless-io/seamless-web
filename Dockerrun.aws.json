@@ -23,7 +23,7 @@
                 }
             ],
             "essential": true,
-            "image": "202868668807.dkr.ecr.us-east-1.amazonaws.com/my-web-app:web-server",
+            "image": "202868668807.dkr.ecr.us-east-1.amazonaws.com/web-prod:web-prod-server",
             "memory": 128,
             "mountPoints": [
                 {
