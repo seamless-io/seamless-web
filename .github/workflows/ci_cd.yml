@@ -56,12 +56,13 @@ jobs:
       with:
         node-version: 12.x
 
-    - name: Migrate db
-      uses: actions/checkout@v2
+    - name: Set up db credentials
       with:
         SEAMLESS_DB_USER: root
         SEAMLESS_DB_PASSWORD: ${{ secrets.SEAMLESS_DB_PASSWORD }}
         SEAMLESS_DB_HOST: web-prod-rds.cfwcqupm4ywp.us-east-1.rds.amazonaws.com
+
+    - name: Migrate db
       run: pip install alembic && alembic upgrade head
 
     - name: Build client
