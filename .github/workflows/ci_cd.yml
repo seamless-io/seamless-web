@@ -67,6 +67,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install alembic
+        alembic upgrade head
 
     - name: Build client
       run: cd client && npm install -g parcel && npm install && npm run build
