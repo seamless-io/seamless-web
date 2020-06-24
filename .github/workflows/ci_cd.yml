@@ -57,6 +57,7 @@ jobs:
         node-version: 12.x
 
     - name: Migrate db
+      uses: actions/checkout@v2
       with:
         SEAMLESS_DB_USER: root
         SEAMLESS_DB_PASSWORD: ${{ secrets.SEAMLESS_DB_PASSWORD }}
