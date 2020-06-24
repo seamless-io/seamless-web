@@ -56,6 +56,11 @@ jobs:
       with:
         node-version: 12.x
 
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
     - name: Set up db credentials
       uses: allenevans/set-env@v1.0.0
       with:
