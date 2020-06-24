@@ -62,6 +62,7 @@ jobs:
         SEAMLESS_DB_USER: root
         SEAMLESS_DB_PASSWORD: ${{ secrets.SEAMLESS_DB_PASSWORD }}
         SEAMLESS_DB_HOST: web-prod-rds.cfwcqupm4ywp.us-east-1.rds.amazonaws.com
+        PYTHONPATH: . # alembic upgrade head won't be able to import core module without this
 
     - name: Migrate db
       run: |
