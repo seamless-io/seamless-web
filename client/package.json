@@ -14,7 +14,7 @@
   },
   "scripts": {
     "start": "parcel watch ./src/index.html --public-url=/static/ --out-dir='../static'",
-    "build": "parcel build ./src/index.html --public-url=/static/ --out-dir='../static' --bundle-node-modules --no-cache --no-content-hash",
+    "build": "parcel build ./src/index.html --public-url=/static/ --out-dir='../static'",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
