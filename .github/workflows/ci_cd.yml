@@ -13,45 +13,14 @@ on:
 
 jobs:
 
-#  tests:
-#
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#
-#    - uses: actions/checkout@v2
-#
-#    - name: Set up Python 3.7
-#      uses: actions/setup-python@v2
-#      with:
-#        python-version: 3.7
-#
-#    - name: Install dependencies
-#      run: |
-#        python -m pip install --upgrade pip
-#        pip install -r test_requirements.txt
-#
-#    - name: Lint with flake8
-#      run: |
-#        # stop the build if there are Python syntax errors or undefined names
-#        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-#        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-#        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-#
-#    - name: Check with mypy
-#      run: mypy core
-#
-#    - name: Test with pytest
-#      run: pytest
-
   ci_cd:
 
     runs-on: ubuntu-latest
-#    needs: [tests]
 
     steps:
 
     - uses: actions/checkout@v2
+      -
     - uses: actions/setup-node@v1
       with:
         node-version: 12.x
@@ -60,6 +29,30 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r test_requirements.txt
+
+    ### TESTS START ###
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Check with mypy
+      run: mypy core
+
+    - name: Test with pytest
+      run: pytest
+
+    ### TESTS END ###
+
+    ### DB MIGRATION START ###
 
     - name: Set up db credentials
       uses: allenevans/set-env@v1.0.0
@@ -71,16 +64,18 @@ jobs:
 
     - name: Migrate db
       run: |
-        python -m pip install --upgrade pip
-        pip install -r test_requirements.txt
         sudo apt install alembic
         alembic upgrade head
+
+    ### DB MIGRATION END ###
+
+    ### CREATING PACKAGE START ###
 
     - name: Build client
       run: cd client && npm install -g parcel && npm install && npm run build
 
     - name: Create ZIP deployment package
-      run: zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git* -x __pycache__/\* -x .pytest_cache/\* -x *.mypy* -x tests/\* -x test_requirements.txt -x Dockerfile*
+      run: zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git* -x __pycache__/\* -x .pytest_cache/\* -x *.mypy* -x tests/\* -x test_requirements.txt -x Dockerfile* -x client/\*
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -92,6 +87,10 @@ jobs:
     - name: Upload package to S3 bucket
       run: aws s3 cp ${{ env.DEPLOY_PACKAGE_NAME }} s3://${{ env.EB_PACKAGE_S3_BUCKET_NAME }}/
 
+    ### CREATING PACKAGE END ###
+
+    ### ACTUAL DEPLOY START ###
+
     - name: Create new ElasticBeanstalk Application Version
       run: |
         aws elasticbeanstalk create-application-version \
@@ -102,3 +101,5 @@ jobs:
 
     - name: Deploy new ElasticBeanstalk Application Version
       run: aws elasticbeanstalk update-environment --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "ver-${{ github.sha }}"
+
+    ### ACTUAL DEPLOY END ###
