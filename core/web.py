@@ -10,7 +10,7 @@ from config import Config
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
-API_VERSION = '/api'
+API_VERSION = '/api/v1'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
@@ -25,8 +25,8 @@ def create_app():
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
     login_manager.init_app(app)
 
-    from core.apis.tasks import tasks_bp
-    app.register_blueprint(tasks_bp, url_prefix=API_VERSION)
+    from core.apis.jobs import jobs_bp
+    app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
 
     from core.apis.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
