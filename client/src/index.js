@@ -7,9 +7,10 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
 
 import LoginForm from './components/LoginForm';
-import { Tasks } from './components/Tasks';
+import Jobs from './components/Jobs';
 
 const Application = () => {
   return (
@@ -18,7 +19,7 @@ const Application = () => {
         <nav>
           <ul>
             <li>
-              <Link to="/">Home</Link>
+              <Link to="/">Jobs</Link>
             </li>
             <li>
               <Link to="/login">Login</Link>
@@ -28,7 +29,7 @@ const Application = () => {
 
         <Switch>
           <Route exact path="/">
-            <Tasks />
+            <Jobs />
           </Route>
           <Route path="/login">
             <LoginForm />
