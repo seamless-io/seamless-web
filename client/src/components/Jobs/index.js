@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import JobsTable from "./JobsTable";
 
-const GET_JOBS_URL = 'http://0.0.0.0:5000/api/v1/jobs'
+const GET_JOBS_URL = '/api/v1/jobs'
 
 
 class Jobs extends Component {
