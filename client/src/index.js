@@ -11,6 +11,7 @@ import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
 
 import LoginForm from './components/LoginForm';
 import Jobs from './components/Jobs';
+import JobDetails from './components/Jobs/JobDetails';
 
 const Application = () => {
   return (
@@ -33,6 +34,8 @@ const Application = () => {
           </Route>
           <Route path="/login">
             <LoginForm />
+          </Route>
+          <Route path="/jobs/:id" component={JobDetails}>
           </Route>
         </Switch>
       </div>

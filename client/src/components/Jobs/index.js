@@ -9,31 +9,31 @@ class Jobs extends Component {
         super(props);
         this.state = {
             isFetching: false,
-            users: []
+            jobs: []
         };
     }
     render() {
         return (
             <div>
                 <h1>My Jobs:</h1>
-                <button className="btn btn-primary pull-right" onClick={this.fetchUsers}>
-                    <span className="glyphicon glyphicon-refresh"></span> Refresh
+                <button className="btn btn-primary pull-right" onClick={this.fetchJobs}>
+                    <span className="glyphicon glyphicon-refresh" /> Refresh
                 </button>
-                <JobsTable data={this.state.users}
+                <JobsTable data={this.state.jobs}
                            isFetching={this.state.isFetching}/>
             </div>
         )
     }
 
     componentDidMount() {
-        this.fetchUsers();
+        this.fetchJobs();
     }
-    fetchUsers = () => {
+    fetchJobs = () => {
         this.setState({...this.state, isFetching: true});
         fetch(GET_JOBS_URL)
             .then(response => response.json())
             .then(result => {
-                this.setState({users: result, isFetching: false})
+                this.setState({jobs: result, isFetching: false})
             })
             .catch(e => {
                 console.log(e);
