@@ -6,7 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from core.db import session_scope
 from core.db.models.base import base
-from core.web import login_manager
+
+# TODO remove this if we continue using Auth0
 
 
 class User(UserMixin, base):
@@ -32,7 +33,6 @@ class User(UserMixin, base):
         return '<User %r>' % self.email
 
 
-@login_manager.user_loader
 def load_user(user_id):
     with session_scope() as session:
         return session.query(User).get(int(user_id))
