@@ -31,9 +31,6 @@ const Application = () => {
           <Route exact path="/">
             <Jobs />
           </Route>
-          <Route path="/login">
-            <LoginForm />
-          </Route>
           <Route path="/jobs/:id" component={JobDetails}>
           </Route>
         </Switch>
