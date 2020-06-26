@@ -9,7 +9,6 @@ import {
 } from "react-router-dom";
 import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
 
-import LoginForm from './components/LoginForm';
 import Jobs from './components/Jobs';
 import JobDetails from './components/Jobs/JobDetails';
 
@@ -23,7 +22,7 @@ const Application = () => {
               <Link to="/">Jobs</Link>
             </li>
             <li>
-              <Link to="/login">Login</Link>
+              <a href={window.location.origin + "/logout"}> Logout </a>
             </li>
           </ul>
         </nav>

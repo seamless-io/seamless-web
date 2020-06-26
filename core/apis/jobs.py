@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
-from flask_login import login_required
+
+from core.web import requires_auth
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -32,12 +33,12 @@ JOBS_BY_ID = {
 
 
 @jobs_bp.route('/jobs', methods=['GET'])
-@login_required
+@requires_auth
 def get_jobs():
     return jsonify(list(JOBS_BY_ID.values())), 200
 
 
 @jobs_bp.route('/jobs/<job_id>', methods=['GET'])
-@login_required
+@requires_auth
 def get_job(job_id):
     return jsonify((JOBS_BY_ID[int(job_id)])), 200
