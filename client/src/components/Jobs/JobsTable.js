@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     Link
 } from "react-router-dom";
@@ -19,8 +19,24 @@ function nameFormat(cell, row) {
 }
 
 const JobsTable = (props) => {
+    const [apiKey, setApiKey] = useState('');
+
+    useEffect(() => {
+      loadMachineParameters(machine)
+        .then(payload => {
+          setApiKey(payload.api_key)
+        })
+        .catch(payload => {
+          alert(payload.message)
+        });
+    }, []);
     return (
         <div>
+            <div className="row">
+                <div className="col-md-12">
+                    Api key: {apiKey}
+                </div>
+            </div>
             <BootstrapTable data={props.data} striped hover condensed>
                 <TableHeaderColumn dataField='id' isKey hidden />
                 <TableHeaderColumn dataField='name' dataFormat={nameFormat}>Name</TableHeaderColumn>
