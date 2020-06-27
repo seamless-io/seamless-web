@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 
 from core.db import session_scope
 from core.db.models.base import base
+from core.api_key import API_KEY_LENGTH
 
 
 class User(base):
