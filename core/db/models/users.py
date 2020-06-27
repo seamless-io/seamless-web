@@ -1,16 +1,17 @@
 import datetime
 
-from flask_login import UserMixin
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 
 from core.db import session_scope
 from core.db.models.base import base
 
 
-class User(UserMixin, base):
+class User(base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
+    jobs = relationship("Job", back_populates="user")
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(20), unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now())
