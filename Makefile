@@ -19,6 +19,9 @@ revision:
 migration:
 	docker-compose run --rm migration alembic upgrade head
 
+down-migration:
+	docker-compose run --rm migration alembic downgrade -1
+
 setup-db:
 	docker-compose build postgres
 	docker-compose up -d postgres

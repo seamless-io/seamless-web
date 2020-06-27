@@ -7,11 +7,12 @@ from sqlalchemy.orm import relationship
 from core.db.models.base import base
 
 
+# IMPORTANT: use only this enum for populating Job.status column in the form of JobStatus.<status>.value
 class JobStatus(enum.Enum):
-    New = 1
-    Ok = 2
-    Failed = 3
-    Executing = 3
+    New = "New"
+    Ok = "Ok"
+    Failed = "Failed"
+    Executing = "Executing"
 
 
 class Job(base):
@@ -21,11 +22,12 @@ class Job(base):
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", back_populates="jobs")
 
-    name = Column(Text)
+    name = Column(Text, nullable=False)
+    # Alembic does not work very well with native postgres Enum type so the status column is Text
+    status = Column(Text, default=JobStatus.New.value, nullable=False)
     schedule = Column(Text)
     schedule_is_active = Column(Boolean)
-    status = Column(Enum(JobStatus))
-    created_at = Column(DateTime, default=datetime.datetime.now())
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.schedule)
