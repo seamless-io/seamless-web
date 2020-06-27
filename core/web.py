@@ -6,14 +6,17 @@ from urllib.parse import urlencode
 import jinja2
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
-from flask import Flask, render_template, session, url_for, redirect
+from flask import Flask, render_template, session, url_for, redirect, jsonify
 
-from config import Config
+from app_config import Config
+from core import config
+from core.apis.core.auth import CoreAuthError
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
 API_VERSION = '/api/v1'
+CORE_API = '/core'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
@@ -29,23 +32,16 @@ def requires_auth(f):
     return decorated
 
 
-def create_app():
-    app = Flask(__name__, static_folder=CLIENT_DIR, static_url_path='/static')
-    app.config.from_object(Config)
-    app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
-
-    from core.apis.jobs import jobs_bp
-    app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
-
+def _configure_client_auth(app: Flask):
     oauth = OAuth(app)
 
     auth0 = oauth.register(
         'auth0',
-        client_id=os.environ.get('AUTH0_CLIENT_ID'),
-        client_secret=os.environ.get('AUTH0_CLIENT_SECRET'),
-        api_base_url=os.environ.get('AUTH0_BASE_URL'),
-        access_token_url=os.environ.get('AUTH0_BASE_URL') + '/oauth/token',
-        authorize_url=os.environ.get('AUTH0_BASE_URL') + '/authorize',
+        client_id=config.AUTH0_CLIENT_ID,
+        client_secret=config.AUTH0_CLIENT_SECRET,
+        api_base_url=config.AUTH0_BASE_URL,
+        access_token_url=config.AUTH0_BASE_URL + '/oauth/token',
+        authorize_url=config.AUTH0_BASE_URL + '/authorize',
         client_kwargs={
             'scope': 'openid profile email',
         },
@@ -67,14 +63,35 @@ def create_app():
 
     @app.route('/login')
     def login():
-        return auth0.authorize_redirect(redirect_uri=os.environ.get('AUTH0_CALLBACK_URL', ),
+        return auth0.authorize_redirect(redirect_uri=config.AUTH0_CALLBACK_URL,
                                         audience=None)
 
     @app.route('/logout')
     def logout():
         session.clear()
-        params = {'returnTo': url_for('catch_all', _external=True), 'client_id': os.environ.get('AUTH0_CLIENT_ID')}
+        params = {'returnTo': url_for('catch_all', _external=True), 'client_id': config.AUTH0_CLIENT_ID}
         return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
+
+
+def _configure_core_auth(app: Flask):
+    # This handles auth errors on the API that core uses (/core)
+    @app.errorhandler(CoreAuthError)
+    def handle_auth_error(ex):
+        response = jsonify(ex.error)
+        response.status_code = ex.status_code
+        return response
+
+
+def create_app():
+    app = Flask(__name__, static_folder=CLIENT_DIR, static_url_path='/static')
+    app.config.from_object(Config)
+    app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
+
+    from core.apis.client.jobs import jobs_bp
+    app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
+
+    from core.apis.core.jobs import core_jobs_bp
+    app.register_blueprint(core_jobs_bp, url_prefix=CORE_API)
 
     @app.route('/', methods=['GET'])
     @app.route('/<path:path>', methods=['GET'])

@@ -1,7 +1,5 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
-from core.db import get_session, session_scope
-from core.db.models import Job
 from core.web import requires_auth
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -44,14 +42,3 @@ def get_jobs():
 @requires_auth
 def get_job(job_id):
     return jsonify((JOBS_BY_ID[int(job_id)])), 200
-
-
-@jobs_bp.route('/jobs', methods=['POST'])
-@requires_auth
-def create_job():
-    with session_scope() as session:
-        user_id = 1  # get from api key
-        job = Job(**request.json, user_id=user_id)
-        session.add(job)
-        session.commit()
-        return jsonify({'job_id': job.id}), 200
