@@ -32,7 +32,20 @@ def requires_auth(f):
     return decorated
 
 
-def _configure_client_auth(app: Flask):
+def create_app():
+    app = Flask(__name__, static_folder=CLIENT_DIR, static_url_path='/static')
+    app.config.from_object(Config)
+    app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
+
+    from core.apis.client.jobs import jobs_bp
+    app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
+
+    from core.apis.core.jobs import core_jobs_bp
+    app.register_blueprint(core_jobs_bp, url_prefix=CORE_API)
+
+    from core.apis.core.users import core_users_bp
+    app.register_blueprint(core_users_bp, url_prefix=CORE_API)
+
     oauth = OAuth(app)
 
     auth0 = oauth.register(
@@ -72,27 +85,14 @@ def _configure_client_auth(app: Flask):
         params = {'returnTo': url_for('catch_all', _external=True), 'client_id': config.AUTH0_CLIENT_ID}
         return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
 
-
-def _configure_core_auth(app: Flask):
-    # This handles auth errors on the API that core uses (/core)
+    # This handles auth errors on the "core" API (/core)
     @app.errorhandler(CoreAuthError)
     def handle_auth_error(ex):
         response = jsonify(ex.error)
         response.status_code = ex.status_code
         return response
 
-
-def create_app():
-    app = Flask(__name__, static_folder=CLIENT_DIR, static_url_path='/static')
-    app.config.from_object(Config)
-    app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
-
-    from core.apis.client.jobs import jobs_bp
-    app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
-
-    from core.apis.core.jobs import core_jobs_bp
-    app.register_blueprint(core_jobs_bp, url_prefix=CORE_API)
-
+    # Catch all to server the react app
     @app.route('/', methods=['GET'])
     @app.route('/<path:path>', methods=['GET'])
     @requires_auth
