@@ -4,6 +4,8 @@ import {
 } from "react-router-dom";
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
+import { getApiKey } from '../../api';
+
 function statusFormat(fieldValue) {
     switch (fieldValue) {
         case 'New': return 'text-info';
@@ -22,7 +24,7 @@ const JobsTable = (props) => {
     const [apiKey, setApiKey] = useState('');
 
     useEffect(() => {
-      loadMachineParameters(machine)
+      getApiKey()
         .then(payload => {
           setApiKey(payload.api_key)
         })
