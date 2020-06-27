@@ -40,8 +40,8 @@ def _configure_client_auth(app: Flask):
         client_id=config.AUTH0_CLIENT_ID,
         client_secret=config.AUTH0_CLIENT_SECRET,
         api_base_url=config.AUTH0_BASE_URL,
-        access_token_url=config.AUTH0_BASE_URL + '/oauth/token',
-        authorize_url=config.AUTH0_BASE_URL + '/authorize',
+        access_token_url=config.AUTH0_BASE_URL + '/oauth/token' if config.AUTH0_BASE_URL else '',
+        authorize_url=config.AUTH0_BASE_URL + '/authorize' if config.AUTH0_BASE_URL else '',
         client_kwargs={
             'scope': 'openid profile email',
         },

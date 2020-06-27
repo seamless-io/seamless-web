@@ -5,7 +5,7 @@ import urllib.request
 from functools import wraps
 
 import jwt
-from flask import request, _request_ctx_stack
+from flask import request, _request_ctx_stack # type: ignore
 from jwt.algorithms import RSAAlgorithm
 
 from core import config
