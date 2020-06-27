@@ -15,9 +15,9 @@ logging.basicConfig(level='INFO')
 @core_users_bp.route('/users', methods=['POST'])
 @requires_auth
 def create_user():
-    logging.info(request.data)
+    logging.info(request.json)
     with session_scope() as session:
-        user = User(email=request.data['email'],
+        user = User(email=request.json['email'],
                     api_key=generate_api_key())
         session.add(user)
         session.commit()
