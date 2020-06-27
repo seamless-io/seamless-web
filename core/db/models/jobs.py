@@ -1,7 +1,7 @@
 import datetime
 import enum
 
-from sqlalchemy import Column, Integer, DateTime, Text, Enum, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, Text, Enum, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from core.db.models.base import base
@@ -17,6 +17,10 @@ class JobStatus(enum.Enum):
 
 class Job(base):
     __tablename__ = 'jobs'
+    __table_args__ = (UniqueConstraint('user_id',
+                                       'name',
+                                       name='job_names_must_be_unique_within_user'),
+                      )
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
