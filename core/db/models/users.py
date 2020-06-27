@@ -13,7 +13,7 @@ class User(UserMixin, base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    jobs = relationship("Job", back_populates="users")
+    jobs = relationship("Job", back_populates="user")
 
     email = Column(String(64), unique=True, index=True)
     created_at = Column(DateTime, default=datetime.datetime.now())
