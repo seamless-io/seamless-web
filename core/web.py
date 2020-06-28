@@ -40,8 +40,8 @@ def create_app():
     from core.apis.client.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
 
-    from core.apis.client.users import users_bp
-    app.register_blueprint(users_bp, url_prefix=API_VERSION)
+    from core.apis.client.users import user_bp
+    app.register_blueprint(user_bp, url_prefix=API_VERSION)
 
     from core.apis.core.jobs import core_jobs_bp
     app.register_blueprint(core_jobs_bp, url_prefix=CORE_API)
@@ -72,8 +72,7 @@ def create_app():
         session['jwt_payload'] = userinfo
         session['profile'] = {
             'user_id': userinfo['sub'],
-            'name': userinfo['name'],
-            'picture': userinfo['picture']
+            'email': userinfo['email']
         }
         return redirect('/')
 

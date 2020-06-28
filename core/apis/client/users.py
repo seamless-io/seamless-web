@@ -1,23 +1,24 @@
 import logging
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 
 from core.db import session_scope
 from core.web import requires_auth
 from core.db.models import User
 
-users_bp = Blueprint('users', __name__)
+user_bp = Blueprint('user', __name__)
 
 logging.basicConfig(level='INFO')
 
 
-@users_bp.route('/users', methods=['GET'])
+@user_bp.route('/user', methods=['GET'])
 @requires_auth
 def get_user_info():
-    email = request.args.get('email')
+    email = session['profile']['email']
+    print(email)
     try:
-        with session_scope() as session:
-            user = session.query(User).filter(User.email == email).one_or_none()
+        with session_scope() as db_session:
+            user = db_session.query(User).filter(User.email == email).one_or_none()
             if user:
                 return jsonify({'email': user.email,
                                 'api_key': user.api_key}), 200
