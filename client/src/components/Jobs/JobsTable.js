@@ -4,7 +4,7 @@ import {
 } from "react-router-dom";
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
-import { getApiKey } from '../../api';
+import { getUserInfo } from '../../api';
 
 function statusFormat(fieldValue) {
     switch (fieldValue) {
@@ -21,12 +21,12 @@ function nameFormat(cell, row) {
 }
 
 const JobsTable = (props) => {
-    const [apiKey, setApiKey] = useState('');
+    const [userInfo, setUserInfo] = useState('');
 
     useEffect(() => {
-      getApiKey()
+      getUserInfo()
         .then(payload => {
-          setApiKey(payload.api_key)
+          setUserInfo(payload.api_key)
         })
         .catch(payload => {
           alert(payload.message)
@@ -36,7 +36,7 @@ const JobsTable = (props) => {
         <div>
             <div className="row">
                 <div className="col-md-12">
-                    Api key: {apiKey}
+                    Api key: {userInfo}
                 </div>
             </div>
             <BootstrapTable data={props.data} striped hover condensed>
