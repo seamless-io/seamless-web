@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const getApiKey = async () => {
-  let response = await axios.get('/api/v1/api-key');
+export const getUserInfo = async () => {
+  let response = await axios.get('/api/v1/users');
   return response.data;
 };

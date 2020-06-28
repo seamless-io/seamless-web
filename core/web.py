@@ -40,6 +40,9 @@ def create_app():
     from core.apis.client.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
 
+    from core.apis.client.users import users_bp
+    app.register_blueprint(users_bp, url_prefix=API_VERSION)
+
     from core.apis.core.jobs import core_jobs_bp
     app.register_blueprint(core_jobs_bp, url_prefix=CORE_API)
 
