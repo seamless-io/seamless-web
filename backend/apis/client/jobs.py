@@ -1,44 +1,27 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, session
 
+from backend.db import session_scope
+from backend.db.helpers import row2dict
+from backend.db.models import Job, User
 from backend.web import requires_auth
 
 jobs_bp = Blueprint('jobs', __name__)
-
-JOBS_BY_ID = {
-    1: {
-        'id': 1,
-        'name': 'Send email with stocks to invest',
-        'schedule': 'Every Monday, at 12:00 PM',
-        'is_schedule_enabled': True,
-        'status': 'New'},
-    2: {
-        'id': 2,
-        'name': 'Find new apts on OLX',
-        'schedule': 'Not scheduled',
-        'is_schedule_enabled': False,
-        'status': 'Ok'},
-    3: {
-        'id': 3,
-        'name': 'Check train tickets',
-        'schedule': 'Every minute',
-        'is_schedule_enabled': True,
-        'status': 'Failed'},
-    4: {
-        'id': 4,
-        'name': 'Update database',
-        'schedule': 'Every hour on weekday',
-        'is_schedule_enabled': False,
-        'status': 'Ok'}
-}
 
 
 @jobs_bp.route('/jobs', methods=['GET'])
 @requires_auth
 def get_jobs():
-    return jsonify(list(JOBS_BY_ID.values())), 200
+    email = session['profile']['email']
+    with session_scope() as db_session:
+        user = User.get_user_from_email(email, db_session)
+        print(user.jobs)
+        jobs = [row2dict(job) for job in user.jobs]
+        print(jobs)
+        return jsonify(jobs), 200
 
 
 @jobs_bp.route('/jobs/<job_id>', methods=['GET'])
 @requires_auth
 def get_job(job_id):
-    return jsonify((JOBS_BY_ID[int(job_id)])), 200
+    with session_scope() as session:
+        return jsonify(row2dict(session.query(Job).get(job_id))), 200

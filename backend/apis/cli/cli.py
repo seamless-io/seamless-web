@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, Response
 
 from backend.db import session_scope
-from backend.db.models import Job
+from backend.db.models import Job, User
 from job_executor import project, executor
 from job_executor.project import ProjectType
 
@@ -14,18 +14,24 @@ def create_job():
     if not api_key:
         return Response('Not authorized request', 401)
 
+    job_name = request.args.get('name')
     cron_schedule = request.args.get('schedule')
 
+    print(job_name)
     print(cron_schedule)
 
-    return 'ok', 200
-
-    # with session_scope() as session:
-    #     user_id = 1  # get from api key
-    #     job = Job(**request.json, user_id=user_id)
-    #     session.add(job)
-    #     session.commit()
-    #     return jsonify({'job_id': job.id}), 200
+    with session_scope() as session:
+        user = User.get_user_from_api_key(api_key, session)
+        job_attributes = {
+            'name': job_name,
+            'user_id': user.id
+        }
+        if cron_schedule:
+            job_attributes.update({"schedule": cron_schedule})
+        job = Job(**job_attributes)
+        session.add(job)
+        session.commit()
+        return jsonify({'job_id': job.id}), 200
 
 
 @cli_bp.route('/run', methods=['POST'])

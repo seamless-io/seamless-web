@@ -15,10 +15,9 @@ logging.basicConfig(level='INFO')
 @requires_auth
 def get_user_info():
     email = session['profile']['email']
-    print(email)
     try:
         with session_scope() as db_session:
-            user = db_session.query(User).filter(User.email == email).one_or_none()
+            user = User.get_user_from_email(email, db_session)
             if user:
                 return jsonify({'email': user.email,
                                 'api_key': user.api_key}), 200
