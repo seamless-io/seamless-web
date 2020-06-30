@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
     Link
 } from "react-router-dom";
-import { BootstrapTable, TableHeaderColumn, BootstrapButton } from 'react-bootstrap-table';
+import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 import { getUserInfo, triggerJobRun } from '../../api';
 
