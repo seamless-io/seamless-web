@@ -34,5 +34,8 @@ class Job(base):
     schedule_is_active = Column(Boolean)
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
+    def get_sorted_job_runs(self):
+        return sorted(self.runs, key=lambda o: o.created_at)
+
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.schedule)

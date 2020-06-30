@@ -1,4 +1,5 @@
 import React, {Component} from "react";
+import JobRunLogs from "./JobRunLogs";
 
 const GET_JOB_URL = '/api/v1/jobs/'
 
@@ -11,11 +12,23 @@ class Index extends Component {
         };
     }
     render() {
-        return (
-            <div>
-                <h1>{this.state.job ? this.state.job.name : 'Loading...'}</h1>
-            </div>
-        )
+        let content;
+        if (this.state.job) {
+            content = (
+                <div>
+                    <h1>{this.state.job.name }</h1>
+                    <JobRunLogs job_id={this.state.job.id}/>
+                </div>
+            )
+        }
+        else {
+            content = (
+                <div>
+                    <h1>Loading</h1>
+                </div>
+            )
+        }
+        return content;
     }
 
     componentDidMount() {
