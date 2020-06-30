@@ -25,3 +25,11 @@ def get_jobs():
 def get_job(job_id):
     with session_scope() as session:
         return jsonify(row2dict(session.query(Job).get(job_id))), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/run', methods=['POST'])
+@requires_auth
+def run_job(job_id):
+    with session_scope() as session:
+        job = session.query(Job).get(job_id)
+        return f"Running job {job.name}", 200

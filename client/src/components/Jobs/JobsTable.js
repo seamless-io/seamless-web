@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import {
     Link
 } from "react-router-dom";
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import { BootstrapTable, TableHeaderColumn, BootstrapButton } from 'react-bootstrap-table';
 
-import { getUserInfo } from '../../api';
+import { getUserInfo, triggerJobRun } from '../../api';
 
 function statusFormat(fieldValue) {
     switch (fieldValue) {
@@ -16,8 +16,17 @@ function statusFormat(fieldValue) {
     }
 }
 
-function nameFormat(cell, row) {
-    return (<Link to={"/jobs/" + row.id}>{cell}</Link>);
+function nameFormatter(cell, row) {
+    return (
+        <Link to={"/jobs/" + row.id}>{cell}</Link>
+    );
+}
+function buttonFormatter(cell, row){
+    return (
+        <button className="btn btn-primary" onClick={() => triggerJobRun(row.id)}>
+            <span className="glyphicon glyphicon-play-circle" /> Run
+        </button>
+    );
 }
 
 const JobsTable = (props) => {
@@ -41,9 +50,10 @@ const JobsTable = (props) => {
             </div>
             <BootstrapTable data={props.data} striped hover condensed>
                 <TableHeaderColumn dataField='id' isKey hidden />
-                <TableHeaderColumn dataField='name' dataFormat={nameFormat}>Name</TableHeaderColumn>
+                <TableHeaderColumn dataField='name' dataFormat={nameFormatter}>Name</TableHeaderColumn>
                 <TableHeaderColumn dataField='schedule'>Schedule</TableHeaderColumn>
                 <TableHeaderColumn dataField='status' columnClassName={ statusFormat }>Status</TableHeaderColumn>
+                <TableHeaderColumn dataField='button' dataFormat={buttonFormatter}>Controls</TableHeaderColumn>
             </BootstrapTable>
             <p>{props.isFetching ? 'Fetching jobs...' : ''}</p>
         </div>
