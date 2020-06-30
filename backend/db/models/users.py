@@ -3,9 +3,9 @@ import datetime
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
-from core.db import session_scope
-from core.db.models.base import base
-from core.api_key import API_KEY_LENGTH
+from backend.db import session_scope
+from backend.db.models.base import base
+from backend.api_key import API_KEY_LENGTH
 
 
 class User(base):

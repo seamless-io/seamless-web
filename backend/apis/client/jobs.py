@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 
-from core.web import requires_auth
+from backend.web import requires_auth
 
 jobs_bp = Blueprint('jobs', __name__)
 

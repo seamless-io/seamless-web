@@ -4,7 +4,7 @@ import enum
 from sqlalchemy import Column, Integer, DateTime, Text, Enum, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
-from core.db.models.base import base
+from backend.db.models.base import base
 
 
 # IMPORTANT: use only this enum for populating Job.status column in the form of JobStatus.<status>.value

@@ -1,6 +1,6 @@
 import os
 
-from core.web import create_app
+from backend.web import create_app
 
 app = create_app()
 

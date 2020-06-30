@@ -9,17 +9,20 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, session, url_for, redirect, jsonify
 
 from app_config import Config
-from core import config
-from core.apis.core.auth import CoreAuthError
+from backend import config
+from backend.apis.auth0.auth import CoreAuthError
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
-API_VERSION = '/api/v1'
-CORE_API = '/core'
+CLIENT_API = '/api/v1'
+AUTH_API = '/auth'
+CLI_API = '/cli'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
+
+JOB_LOGS_RETENTION_DAYS = 1
 
 
 def requires_auth(f):
@@ -37,17 +40,17 @@ def create_app():
     app.config.from_object(Config)
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
 
-    from core.apis.client.jobs import jobs_bp
-    app.register_blueprint(jobs_bp, url_prefix=API_VERSION)
+    from backend.apis.client.jobs import jobs_bp
+    app.register_blueprint(jobs_bp, url_prefix=CLIENT_API)
 
-    from core.apis.client.users import user_bp
-    app.register_blueprint(user_bp, url_prefix=API_VERSION)
+    from backend.apis.client.users import user_bp
+    app.register_blueprint(user_bp, url_prefix=CLIENT_API)
 
-    from core.apis.core.jobs import core_jobs_bp
-    app.register_blueprint(core_jobs_bp, url_prefix=CORE_API)
+    from backend.apis.cli.cli import cli_bp
+    app.register_blueprint(cli_bp, url_prefix=CLI_API)
 
-    from core.apis.core.users import core_users_bp
-    app.register_blueprint(core_users_bp, url_prefix=CORE_API)
+    from backend.apis.auth0.users import auth_users_bp
+    app.register_blueprint(auth_users_bp, url_prefix=AUTH_API)
 
     oauth = OAuth(app)
 

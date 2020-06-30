@@ -2,17 +2,17 @@ import logging
 
 from flask import Blueprint, request, jsonify
 
-from core.api_key import generate_api_key
-from core.apis.core.auth import requires_auth
-from core.db import session_scope
-from core.db.models import User
+from backend.api_key import generate_api_key
+from backend.apis.auth0.auth import requires_auth
+from backend.db import session_scope
+from backend.db.models import User
 
-core_users_bp = Blueprint('core_users', __name__)
+auth_users_bp = Blueprint('auth_users', __name__)
 
 logging.basicConfig(level='INFO')
 
 
-@core_users_bp.route('/users', methods=['POST'])
+@auth_users_bp.route('/users', methods=['POST'])
 @requires_auth
 def create_user():
     logging.info(request.json)

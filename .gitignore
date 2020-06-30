@@ -164,3 +164,7 @@ client/yarn-error.log*
 
 # Serverless
 .serverless
+
+# SEAMLESS CUSTOM GITIGNORE
+seamless_package.tar.gz
+user_projects/
