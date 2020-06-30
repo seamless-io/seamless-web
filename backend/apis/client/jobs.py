@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, session
 from backend.db import session_scope
 from backend.db.helpers import row2dict
 from backend.db.models import Job, User
+from backend.db.models.jobs import JobStatus
 from backend.web import requires_auth
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -32,4 +33,6 @@ def get_job(job_id):
 def run_job(job_id):
     with session_scope() as session:
         job = session.query(Job).get(job_id)
+        job.status = JobStatus.Executing.value
+        session.commit()
         return f"Running job {job.name}", 200

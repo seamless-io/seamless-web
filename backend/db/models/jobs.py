@@ -25,6 +25,7 @@ class Job(base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", back_populates="jobs")
+    runs = relationship("JobRun", back_populates="job")
 
     name = Column(Text, nullable=False)
     # Alembic does not work very well with native postgres Enum type so the status column is Text
