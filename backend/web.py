@@ -22,8 +22,6 @@ APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
 
-JOB_LOGS_RETENTION_DAYS = 1
-
 
 def requires_auth(f):
     @wraps(f)

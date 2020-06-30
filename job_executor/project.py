@@ -31,7 +31,7 @@ def get_path_to_job(job_type: JobType,
     if job_type == JobType.PUBLISHED:
         # Add project because there may be multiple published projects
         user_folder_path = str(os.path.join(user_folder_path, job_id))
-    return user_folder_path
+    return os.path.abspath(user_folder_path)
 
 
 def create(fileobj: FileStorage,
@@ -51,9 +51,8 @@ def create(fileobj: FileStorage,
     tar.extractall(path=path)
     tar.close()
 
-    destination = os.path.abspath(path)
-    logging.info(f"File saved to {destination}")
-    return destination
+    logging.info(f"File saved to {path}")
+    return path
 
 
 class ProjectValidationError(Exception):

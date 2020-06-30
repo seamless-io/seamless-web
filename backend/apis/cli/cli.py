@@ -72,6 +72,6 @@ def run() -> Response:
     except project.ProjectValidationError as exc:
         return Response(str(exc), 400)
 
-    logstream = executor.execute(project_path, api_key)
+    logstream = executor.execute_and_stream_back(project_path, api_key)
 
     return Response(logstream)
