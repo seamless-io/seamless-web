@@ -20,6 +20,12 @@ class JobRunResult(enum.Enum):
     Executing = "Executing"
 
 
+def generate_cloudwatch_log_stream_name(job_id: str) -> str:
+    time_format = "%m_%d_%Y_%H_%M_%S_%f"
+    timestamp_str = datetime.datetime.utcnow().strftime(time_format)
+    return f"/job_id/{job_id}/timestamp/{timestamp_str}"
+
+
 class JobRun(base):
     __tablename__ = 'job_runs'
 
@@ -30,6 +36,7 @@ class JobRun(base):
     type = Column(Text, nullable=False)
     result = Column(Text, default=JobRunResult.Executing.value, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    cloudwatch_log_stream_name = Column(Text, nullable=False)
 
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.schedule)

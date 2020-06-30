@@ -54,7 +54,7 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
         yield line
 
 
-def execute_and_stream_to_cloudwatch(path_to_job_files: str, job_id: str):
+def execute_and_stream_to_cloudwatch(path_to_job_files: str, job_id: str, log_stream_name: str):
     logstream = _run_container(path_to_job_files, job_id)
 
     def put_logs_into_cloudwatch():
@@ -75,14 +75,14 @@ def execute_and_stream_to_cloudwatch(path_to_job_files: str, job_id: str):
                 raise e
         cloud_watch.create_log_stream(
             logGroupName=log_group_name,
-            logStreamName=job_id
+            logStreamName=log_stream_name
         )
 
         sequence_token = None
         for line in logstream:
             log_args = {
                 'logGroupName': log_group_name,
-                'logStreamName': job_id,
+                'logStreamName': log_stream_name,
                 'logEvents': [
                     {
                         'timestamp': int(round(time.time() * 1000)),
