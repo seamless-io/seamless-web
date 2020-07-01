@@ -2,6 +2,7 @@ import React, {Component} from "react";
 import {getJobRunLogs, getJobRuns} from '../../../api';
 import {BootstrapTable, TableHeaderColumn} from "react-bootstrap-table";
 import JobRunLogs from "./JobRunLogs";
+import ExecutionTimelineTable from "./ExecutionTimelineTable";
 
 class JobRuns extends Component {
     constructor(props) {
@@ -17,14 +18,8 @@ class JobRuns extends Component {
     render() {
         return (
             <div>
-                <h3>Execution Timeline</h3>
-                <BootstrapTable data={this.state.runs} bordered={ false }
-                                options={{onRowClick: this.handleRowClick.bind(this)}}>
-                    <TableHeaderColumn dataField='id' isKey hidden />
-                    <TableHeaderColumn dataField='created_at'>Time</TableHeaderColumn>
-                    <TableHeaderColumn dataField='type'>Type</TableHeaderColumn>
-                    <TableHeaderColumn dataField='status'>Status</TableHeaderColumn>
-                </BootstrapTable>
+                <p className="SubHeader">Execution Timeline</p>
+                <ExecutionTimelineTable data={this.state.runs}/>
                 <JobRunLogs logs={this.state.logs}
                             isFetching={this.state.isFetching}
                             handleRefreshClick={this.fetchLogs}/>

@@ -16,7 +16,7 @@ class Index extends Component {
         if (this.state.job) {
             content = (
                 <div>
-                    <h1>{this.state.job.name }</h1>
+                    <p className="Header">{this.state.job.name }</p>
                     <JobRuns job_id={this.state.job.id}/>
                 </div>
             )
