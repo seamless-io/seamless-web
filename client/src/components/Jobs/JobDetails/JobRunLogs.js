@@ -1,48 +1,20 @@
-import React, {Component} from "react";
-import { getJobRunLogs } from '../../../api';
+import React from "react";
+import {BootstrapTable, TableHeaderColumn} from "react-bootstrap-table";
 
-class JobRunLogs extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            job_id: props.job_id,
-            isFetching: true,
-            logs: "Fetching logs..."
-        };
-    }
-    render() {
-        return (
-            <div>
-                <button className="btn btn-primary pull-right" onClick={this.fetchLogs}>
-                    <span className="glyphicon glyphicon-refresh" /> Refresh
-                </button>
-                <p>{this.state.logs ? this.state.logs : ''}</p>
-            </div>
-        )
-    }
-
-    componentDidMount() {
-        this.fetchLogs()
-    }
-
-    fetchLogs = () => {
-        this.setState({
-            isFetching: true,
-            logs: "Fetching logs..."
-        });
-        getJobRunLogs(this.state.job_id)
-            .then(res => {
-                console.log(res)
-                var messages = res.map(function(item) {
-                    return item['message'];
-                });
-                console.log(messages.join(''));
-                this.setState({
-                    isFetching: false,
-                    logs: messages.join('')
-                });
-            })
-            .catch (err => console.error(err))
-    }
-}
+const JobRunLogs = (props) => {
+    return (
+        <div>
+            <button className="btn btn-primary pull-right" onClick={props.handleRefreshClick}>
+                <span className="glyphicon glyphicon-refresh" /> Refresh
+            </button>
+            <h3>Logs</h3>
+            <BootstrapTable data={props.logs} bordered={ false } scrollTop={ 'Bottom' }>
+                <TableHeaderColumn dataField='id' isKey hidden />
+                <TableHeaderColumn dataField='timestamp'>Time</TableHeaderColumn>
+                <TableHeaderColumn dataField='message'>Message</TableHeaderColumn>
+            </BootstrapTable>
+            <p>{props.isFetching ? 'Fetching logs...' : ''}</p>
+        </div>
+    )
+};
 export default JobRunLogs

@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import JobRunLogs from "./JobRunLogs";
+import JobRuns from "./JobRuns";
 
 const GET_JOB_URL = '/api/v1/jobs/'
 
@@ -17,7 +17,7 @@ class Index extends Component {
             content = (
                 <div>
                     <h1>{this.state.job.name }</h1>
-                    <JobRunLogs job_id={this.state.job.id}/>
+                    <JobRuns job_id={this.state.job.id}/>
                 </div>
             )
         }

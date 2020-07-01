@@ -21,6 +21,7 @@ def get_jobs():
     with session_scope() as db_session:
         user = User.get_user_from_email(email, db_session)
         jobs = [row2dict(job) for job in user.jobs]
+
         return jsonify(jobs), 200
 
 
@@ -28,6 +29,7 @@ def get_jobs():
 @requires_auth
 def get_job(job_id):
     with session_scope() as db_session:
+
         return jsonify(row2dict(db_session.query(Job).get(job_id))), 200
 
 
@@ -47,17 +49,23 @@ def run_job(job_id):
         return f"Running job {job.name}", 200
 
 
-@jobs_bp.route('/jobs/<job_id>/logs', methods=['GET'])
+@jobs_bp.route('/jobs/<job_id>/runs', methods=['GET'])
 @requires_auth
-def get_job_logs(job_id: str):
+def get_job_runs(job_id: str):
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
         job_runs = job.get_sorted_job_runs()
         if not job_runs:
-            return "No logs yet, please run the job at least once.", 200
+            return [], 200
 
-        # Hardcode to return only the last run logs
-        job_run = job_runs[-1]
+        return jsonify([row2dict(job_run) for job_run in job_runs]), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/runs/<job_run_id>/logs', methods=['GET'])
+@requires_auth
+def get_job_logs(job_id: str, job_run_id: str):
+    with session_scope() as db_session:
+        job_run = db_session.query(JobRun).get(job_run_id)
         logs = [row2dict(log_record) for log_record in job_run.logs]
 
         return jsonify(logs), 200
