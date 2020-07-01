@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import JobsTable from "./JobsTable";
 
+import '../../styles/style.css'
+
 const GET_JOBS_URL = '/api/v1/jobs'
 
 
@@ -15,12 +17,11 @@ class Jobs extends Component {
     render() {
         return (
             <div>
-                <h1>My Jobs:</h1>
-                <button className="btn btn-primary pull-right" onClick={this.fetchJobs}>
-                    <span className="glyphicon glyphicon-refresh" /> Refresh
+                <h1 className="Header">My Jobs:</h1>
+                <button className="ControlButton" onClick={this.fetchJobs}>
+                    <span> Refresh </span>
                 </button>
-                <JobsTable data={this.state.jobs}
-                           isFetching={this.state.isFetching}/>
+                <JobsTable data={this.state.jobs}/>
             </div>
         )
     }

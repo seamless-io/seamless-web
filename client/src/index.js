@@ -7,7 +7,10 @@ import {
   Route,
   Link
 } from "react-router-dom";
-import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
+// import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
+
+import './styles/style.css'
+import './styles/toggleSwitch.css'
 
 import Jobs from './components/Jobs';
 import JobDetails from './components/Jobs/JobDetails';
@@ -15,25 +18,27 @@ import JobDetails from './components/Jobs/JobDetails';
 const Application = () => {
   return (
     <Router>
-      <div>
-        <nav>
-          <ul>
-            <li>
-              <Link to="/">Jobs</Link>
-            </li>
-            <li>
-              <a href={window.location.origin + "/logout"}> Logout </a>
-            </li>
-          </ul>
-        </nav>
+      <div className="BackgroundContainer">
+        <div className="MainContainer">
+          <nav>
+            <ul>
+              <li>
+                <Link to="/">Jobs</Link>
+              </li>
+              <li>
+                <a href={window.location.origin + "/logout"}> Logout </a>
+              </li>
+            </ul>
+          </nav>
 
-        <Switch>
-          <Route exact path="/">
-            <Jobs />
-          </Route>
-          <Route path="/jobs/:id" component={JobDetails}>
-          </Route>
-        </Switch>
+          <Switch>
+            <Route exact path="/">
+              <Jobs />
+            </Route>
+            <Route path="/jobs/:id" component={JobDetails}>
+            </Route>
+          </Switch>
+        </div>
       </div>
     </Router>
   );

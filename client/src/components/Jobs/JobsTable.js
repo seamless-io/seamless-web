@@ -1,62 +1,70 @@
-import React, { useEffect, useState } from "react";
-import {
-    Link
-} from "react-router-dom";
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import React from "react";
+import Table from '../table'
+import {useHistory} from 'react-router-dom'
 
-import { getUserInfo, triggerJobRun } from '../../api';
+import { triggerJobRun } from '../../api';
 
-function statusFormat(fieldValue) {
-    switch (fieldValue) {
-        case 'New': return 'text-info';
-        case 'Ok': return 'text-success';
-        case 'Failed': return 'text-danger';
-        case 'Executing': return 'text-warning';
-        default: return 'text-white';
+function getClassNameFromStatus(status) {
+    switch (status) {
+        case "New": return "JobStatus JobStatusNew";
+        case "Ok": return "JobStatus JobStatusOk";
+        case "Failed": return "JobStatusFailed";
+        case "Executing": return "JobStatusExecuting";
     }
 }
 
-function nameFormatter(cell, row) {
-    return (
-        <Link to={"/jobs/" + row.id}>{cell}</Link>
-    );
-}
-function buttonFormatter(cell, row){
-    return (
-        <button className="btn btn-primary" onClick={() => triggerJobRun(row.id)}>
-            <span className="glyphicon glyphicon-play-circle" /> Run
-        </button>
-    );
-}
+function JobsTable(props) {
+    const history = useHistory();
 
-const JobsTable = (props) => {
-    const [userInfo, setUserInfo] = useState('');
-
-    useEffect(() => {
-      getUserInfo()
-        .then(payload => {
-          setUserInfo(payload.api_key)
-        })
-        .catch(payload => {
-          alert(payload.message)
-        });
-    }, []);
-    return (
-        <div>
-            <div className="row">
-                <div className="col-md-12">
-                    Api key: {userInfo}
-                </div>
-            </div>
-            <BootstrapTable data={props.data} striped hover condensed>
-                <TableHeaderColumn dataField='id' isKey hidden />
-                <TableHeaderColumn dataField='name' dataFormat={nameFormatter}>Name</TableHeaderColumn>
-                <TableHeaderColumn dataField='schedule'>Schedule</TableHeaderColumn>
-                <TableHeaderColumn dataField='status' columnClassName={ statusFormat }>Status</TableHeaderColumn>
-                <TableHeaderColumn dataField='button' dataFormat={buttonFormatter}>Controls</TableHeaderColumn>
-            </BootstrapTable>
-            <p>{props.isFetching ? 'Fetching jobs...' : ''}</p>
-        </div>
+    const columns = React.useMemo(
+        () => [
+            {
+                Header: 'NAME',
+                accessor: 'name',
+                Cell: cell => (
+                    <a onClick={() => history.push("/jobs/" + cell.row.original.id)}
+                       className="primaryText">{cell.value}</a>
+                )
+            },
+            {
+                Header: 'SCHEDULE',
+                accessor: 'schedule',
+                Cell: cell => (
+                    <div>
+                        <label className="switch">
+                            <input type="checkbox"/>
+                            <span className="slider round"/>
+                        </label>
+                        <p className="secondaryText">{cell.value}</p>
+                    </div>
+                )
+            },
+            {
+                Header: 'STATUS',
+                accessor: 'status',
+                Cell: cell => (
+                    <p className={getClassNameFromStatus(cell.value)}>{cell.value}</p>
+                )
+            },
+            {
+                Header: "CONTROLS",
+                accessor: "controls",
+                Cell: cell => (
+                    <button className="ControlButton" onClick={() =>
+                        triggerJobRun(cell.row.original.id)}>
+                        <span> Run Now </span>
+                    </button>
+                )
+            }
+        ],
+        []
     )
-};
+
+    return (
+        <Table columns={columns}
+               data={props.data}
+               classname="JobsTable"/>
+    )
+}
+
 export default JobsTable

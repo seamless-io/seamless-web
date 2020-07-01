@@ -1,0 +1,148 @@
+.Header {
+    height: 36px;
+    font-family: Inter;
+    font-size: 28px;
+    font-weight: bold;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.29;
+    letter-spacing: normal;
+    color: #1a1a1a;
+}
+
+.BackgroundContainer {
+    width: 100%;
+    height: 100%;
+    min-width: 1170px;
+    background-color: #f7f7f7;
+}
+
+.MainContainer {
+    width: 1170px;
+    margin: 0 auto;
+}
+
+.ControlButton {
+    width: 84px;
+    height: 24px;
+    border-radius: 4px;
+    background-color: #e5f0ff;
+    padding: 0;
+    border: none;
+}
+
+.ControlButton > span  {
+    font-family: Inter;
+    font-size: 12px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.33;
+    letter-spacing: normal;
+    color: #0160e6;
+}
+
+.JobsTable {
+    width: 100%;
+    border-collapse:separate;
+    border-spacing:0 12px;
+}
+
+.JobsTable > tbody > tr > td {
+    background-color: #ffffff;
+    height: 60px;
+    border-radius: 4px;
+    padding: 0px 28px;
+}
+
+.primaryText {
+    font-family: Inter;
+    font-size: 14px;
+    font-weight: 600;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.43;
+    letter-spacing: normal;
+    color: #1a1a1a;
+}
+
+.secondaryText {
+    font-family: Inter;
+    font-size: 14px;
+    font-weight: normal;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.43;
+    letter-spacing: normal;
+    color: #1a1a1a;
+    display: inline-block;
+}
+
+.JobsTable > thead > tr > th {
+    font-family: Inter;
+    font-size: 12px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.33;
+    letter-spacing: normal;
+    color: #9299a3;
+    text-align: left;
+    padding: 0px 28px;
+}
+
+.JobStatus {
+    border-radius: 2px;
+    width: fit-content;
+    height: 16px;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: #ede6ff;
+    font-family: Inter;
+    font-size: 10px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.6;
+    letter-spacing: normal;
+}
+
+.JobStatusNew {
+    background-color: #ede6ff;
+    color: #5102ff;
+}
+
+.JobStatusOk {
+    background-color: #e5f8eb;
+    color: #00a334;
+}
+
+.JobStatusFailed {
+    background-color: #ffebea;
+    color: #e63629;
+}
+
+.JobStatusExecuting {
+    background-color: #fef4e5;
+    color: #db8400;
+}
+
+/* mouse over link */
+a:hover {
+    color: #016bff;
+    cursor: pointer;
+}
+
+/* selected link */
+a:active {
+    color: #016bff;
+}
+
+/* Make the application take all 100% of screen height */
+body > #root > div {
+    height: 100vh;
+}
+
+body {
+    min-width: 1170px;;
+}

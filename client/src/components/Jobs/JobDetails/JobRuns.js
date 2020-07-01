@@ -23,7 +23,7 @@ class JobRuns extends Component {
                     <TableHeaderColumn dataField='id' isKey hidden />
                     <TableHeaderColumn dataField='created_at'>Time</TableHeaderColumn>
                     <TableHeaderColumn dataField='type'>Type</TableHeaderColumn>
-                    <TableHeaderColumn dataField='result'>Result</TableHeaderColumn>
+                    <TableHeaderColumn dataField='status'>Status</TableHeaderColumn>
                 </BootstrapTable>
                 <JobRunLogs logs={this.state.logs}
                             isFetching={this.state.isFetching}

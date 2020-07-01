@@ -10,6 +10,8 @@ from docker.types import Mount
 
 from backend.db import session_scope
 from backend.db.models.job_run_logs import JobRunLog
+from backend.db.models.job_runs import JobRunResult, JobRun
+from backend.db.models.jobs import JobStatus, Job
 
 DOCKER_FILE_NAME = "Dockerfile"
 JOB_LOGS_RETENTION_DAYS = 1
@@ -55,12 +57,18 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
         yield line
 
 
-def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str, ):
+def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str):
     logstream = _run_container(path_to_job_files, job_id)
 
     def save_logs():
         with session_scope() as db_session:
+            job_run_result = JobRunResult.Ok
+            job_status = JobStatus.Ok
             for line in logstream:
+                l = str(line, "utf-8")
+                if "error" in l.lower():
+                    job_run_result = JobRunResult.Failed
+                    job_status = JobStatus.Failed
                 db_session.add(
                     JobRunLog(
                         job_run_id=job_run_id,
@@ -69,6 +77,11 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
                     )
                 )
                 db_session.commit()
+            job = db_session.query(Job).get(job_id)
+            job_run = db_session.query(JobRun).get(job_run_id)
+            job.status = job_status.value
+            job_run.status = job_run_result.value
+            db_session.commit()
 
     # Put logs into cloudwatch in another thread to not block the outer function
     thread = Thread(target=save_logs)

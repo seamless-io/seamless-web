@@ -29,7 +29,7 @@ class JobRun(base):
     logs = relationship("JobRunLog", back_populates="job_run")
 
     type = Column(Text, nullable=False)
-    result = Column(Text, default=JobRunResult.Executing.value, nullable=False)
+    status = Column(Text, default=JobRunResult.Executing.value, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
 
     def __repr__(self):
