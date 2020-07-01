@@ -32,7 +32,7 @@ class Job(base):
     status = Column(Text, default=JobStatus.New.value, nullable=False)
     schedule = Column(Text)
     schedule_is_active = Column(Boolean)
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow(), nullable=False)
 
     def get_sorted_job_runs(self):
         return sorted(self.runs, key=lambda o: o.created_at)

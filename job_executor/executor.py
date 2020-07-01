@@ -1,14 +1,15 @@
 import os
-import time
+from datetime import datetime
 from shutil import copyfile
 from threading import Thread
 from typing import Iterable
 
-import boto3
 import docker
-from botocore.exceptions import ClientError
 from docker.errors import BuildError
 from docker.types import Mount
+
+from backend.db import session_scope
+from backend.db.models.job_run_logs import JobRunLog
 
 DOCKER_FILE_NAME = "Dockerfile"
 JOB_LOGS_RETENTION_DAYS = 1
@@ -54,51 +55,21 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
         yield line
 
 
-def execute_and_stream_to_cloudwatch(path_to_job_files: str, job_id: str, log_stream_name: str):
+def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str, ):
     logstream = _run_container(path_to_job_files, job_id)
 
-    def put_logs_into_cloudwatch():
-        cloud_watch = boto3.client('logs', region_name=os.getenv('AWS_REGION_NAME'))
-        log_group_name = '/seamless/jobs/'
-        try:
-            cloud_watch.create_log_group(
-                logGroupName=log_group_name
-            )
-            cloud_watch.put_retention_policy(
-                logGroupName=log_group_name,
-                retentionInDays=JOB_LOGS_RETENTION_DAYS
-            )
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ResourceAlreadyExistsException':
-                pass  # If log group already exists - it's fine
-            else:
-                raise e
-        cloud_watch.create_log_stream(
-            logGroupName=log_group_name,
-            logStreamName=log_stream_name
-        )
-
-        sequence_token = None
-        for line in logstream:
-            log_args = {
-                'logGroupName': log_group_name,
-                'logStreamName': log_stream_name,
-                'logEvents': [
-                    {
-                        'timestamp': int(round(time.time() * 1000)),
-                        'message': str(line, "utf-8")
-                    }
-                ],
-
-            }
-            if sequence_token:
-                log_args.update({
-                    'sequenceToken'
-                    : sequence_token
-                })
-            response = cloud_watch.put_log_events(**log_args)
-            sequence_token = response['nextSequenceToken']
+    def save_logs():
+        with session_scope() as db_session:
+            for line in logstream:
+                db_session.add(
+                    JobRunLog(
+                        job_run_id=job_run_id,
+                        timestamp=datetime.utcnow(),
+                        message=str(line, "utf-8")
+                    )
+                )
+                db_session.commit()
 
     # Put logs into cloudwatch in another thread to not block the outer function
-    thread = Thread(target=put_logs_into_cloudwatch)
+    thread = Thread(target=save_logs)
     thread.start()

@@ -29,6 +29,8 @@ def get_path_to_job(job_type: JobType,
                     job_id: Optional[str]):
     user_folder_path = str(os.path.join(UPLOAD_FOLDER, job_type.value, api_key))
     if job_type == JobType.PUBLISHED:
+        if not job_id:
+            raise Exception("If job_type = JobType.PUBLISHED you need to provide job_id")
         # Add project because there may be multiple published projects
         user_folder_path = str(os.path.join(user_folder_path, job_id))
     return os.path.abspath(user_folder_path)
@@ -37,7 +39,7 @@ def get_path_to_job(job_type: JobType,
 def create(fileobj: FileStorage,
            api_key: str,
            job_type: JobType,
-           job_id: str = None):
+           job_id: Optional[str] = None):
     if fileobj.filename and not fileobj.filename.endswith(ALLOWED_EXTENSION):
         raise ProjectValidationError('File extension is not allowed')
 
