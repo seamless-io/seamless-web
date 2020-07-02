@@ -13,7 +13,7 @@ import './styles/style.css'
 import './styles/toggleSwitch.css'
 import './styles/jobExecutionSpinner.css'
 
-import Jobs from './components/Jobs';
+import Jobs from './components/Jobs/Jobs';
 import JobDetails from './components/Jobs/JobDetails';
 
 

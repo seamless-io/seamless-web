@@ -2,7 +2,6 @@ import React from "react";
 import Moment from 'react-moment';
 import Table from '../../table'
 
-import { triggerJobRun } from '../../../api';
 import {getClassNameFromStatus} from '../../helpers'
 
 
@@ -11,9 +10,12 @@ function ExecutionTimelineTable(props) {
         () => [
             {
                 accessor: 'created_at',
-                Cell : cell =>{
-                    return <Moment format="LL LTS">{cell.value}</Moment>
-                }
+                Cell : cell =>(
+                    <a onClick={(row) => props.handleRowClick(cell.row.original)}
+                       className="primaryText">
+                        <Moment format="LL LTS" className="JobRunTimestamp">{cell.value}
+                        </Moment></a>
+                )
             },
             {
                 accessor: 'status',
@@ -28,6 +30,7 @@ function ExecutionTimelineTable(props) {
     return (
         <Table columns={columns}
                data={props.data}
+               no_table_header={true}
                classname="ExecutionTimelineTable"/>
     )
 }

@@ -1,6 +1,5 @@
 import React, {Component} from "react";
 import {getJobRunLogs, getJobRuns} from '../../../api';
-import {BootstrapTable, TableHeaderColumn} from "react-bootstrap-table";
 import JobRunLogs from "./JobRunLogs";
 import ExecutionTimelineTable from "./ExecutionTimelineTable";
 
@@ -18,12 +17,17 @@ class JobRuns extends Component {
     render() {
         return (
             <div>
-                <p className="SubHeader">Execution Timeline</p>
-                <ExecutionTimelineTable data={this.state.runs}/>
-                <JobRunLogs logs={this.state.logs}
-                            isFetching={this.state.isFetching}
-                            handleRefreshClick={this.fetchLogs}/>
-
+                <div className="ExecutionTimelineContainer">
+                    <p className="SubHeader"> Execution Timeline </p>
+                    <ExecutionTimelineTable data={this.state.runs}
+                                            handleRowClick={this.handleRowClick.bind(this)}/>
+                </div>
+                <div className="JobRunLogsContainer">
+                    <p className="SubHeader"> Logs </p>
+                    <JobRunLogs logs={this.state.logs}
+                                isFetching={this.state.isFetching}
+                                handleRefreshClick={this.fetchLogs}/>
+                </div>
             </div>
         )
     }

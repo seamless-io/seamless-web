@@ -15,9 +15,9 @@ class JobRunType(enum.Enum):
 
 # IMPORTANT: use only this enum for populating JobRun.result column in the form of JobRunResult.<result>.value
 class JobRunResult(enum.Enum):
-    Ok = "Ok"
-    Failed = "Failed"
-    Executing = "Executing"
+    Ok = "OK"
+    Failed = "FAILED"
+    Executing = "EXECUTING"
 
 
 class JobRun(base):

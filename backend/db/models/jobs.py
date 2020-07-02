@@ -1,7 +1,7 @@
 import datetime
 import enum
 
-from sqlalchemy import Column, Integer, DateTime, Text, Enum, Boolean, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from backend.db.models.base import base
@@ -9,10 +9,10 @@ from backend.db.models.base import base
 
 # IMPORTANT: use only this enum for populating Job.status column in the form of JobStatus.<status>.value
 class JobStatus(enum.Enum):
-    New = "New"
-    Ok = "Ok"
-    Failed = "Failed"
-    Executing = "Executing"
+    New = "NEW"
+    Ok = "OK"
+    Failed = "FAILED"
+    Executing = "EXECUTING"
 
 
 class Job(base):

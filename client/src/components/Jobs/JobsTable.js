@@ -3,15 +3,8 @@ import Table from '../table'
 import {useHistory} from 'react-router-dom'
 
 import JobRunButton from "./JobRunButton";
+import {getClassNameFromStatus} from '../helpers'
 
-function getClassNameFromStatus(status) {
-    switch (status) {
-        case "New": return "JobStatus JobStatusNew";
-        case "Ok": return "JobStatus JobStatusOk";
-        case "Failed": return "JobStatus JobStatusFailed";
-        case "Executing": return "JobStatus JobStatusExecuting";
-    }
-}
 
 function JobsTable(props) {
     const history = useHistory();

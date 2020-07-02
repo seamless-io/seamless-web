@@ -3,10 +3,7 @@ import JobsTable from "./JobsTable";
 import openSocket from 'socket.io-client';
 
 import '../../styles/style.css'
-import {getJobRuns, getJobs} from "../../api";
-
-const GET_JOBS_URL = '/api/v1/jobs'
-
+import {getJobs} from "../../api";
 
 class Jobs extends Component {
     constructor(props) {

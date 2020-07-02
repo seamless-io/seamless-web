@@ -1,7 +1,7 @@
 import React from "react";
 import { useTable } from 'react-table'
 
-function Table({ columns, data, classname}) {
+function Table({ columns, data, classname, header, no_table_header}) {
     // Use the state and functions returned from useTable to build your UI
     const {
         getTableProps,
@@ -16,29 +16,33 @@ function Table({ columns, data, classname}) {
 
     // Render the UI for your table
     return (
-        <table className={classname} {...getTableProps()}>
-            <thead>
-            {headerGroups.map(headerGroup => (
-                <tr {...headerGroup.getHeaderGroupProps()}>
-                    {headerGroup.headers.map(column => (
-                        <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+        <div>
+            <table className={classname} {...getTableProps()}>
+                {!no_table_header &&
+                    <thead>
+                    {headerGroups.map(headerGroup => (
+                        <tr {...headerGroup.getHeaderGroupProps()}>
+                            {headerGroup.headers.map(column => (
+                                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                            ))}
+                        </tr>
                     ))}
-                </tr>
-            ))}
-            </thead>
-            <tbody {...getTableBodyProps()}>
-            {rows.map((row, i) => {
-                prepareRow(row)
-                return (
-                    <tr {...row.getRowProps()}>
-                        {row.cells.map(cell => {
-                            return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                        })}
-                    </tr>
-                )
-            })}
-            </tbody>
-        </table>
+                    </thead>
+                }
+                <tbody {...getTableBodyProps()}>
+                {rows.map((row, i) => {
+                    prepareRow(row)
+                    return (
+                        <tr {...row.getRowProps()}>
+                            {row.cells.map(cell => {
+                                return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                            })}
+                        </tr>
+                    )
+                })}
+                </tbody>
+            </table>
+        </div>
     )
 }
 

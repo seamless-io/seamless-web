@@ -20,6 +20,7 @@
     line-height: 1.5;
     letter-spacing: normal;
     color: #1a1a1a;
+    padding: 0px 28px;
 }
 
 .BackgroundContainer {
@@ -64,17 +65,59 @@
     border-spacing:0 12px;
 }
 
-.JobsTable > tbody > tr > td {
+.JobsTable tbody > tr > td {
     background-color: #ffffff;
     height: 60px;
     border-radius: 4px;
     padding: 0px 28px;
 }
 
-.ExecutionTimelineTable {
+.ExecutionTimelineContainer {
     width: 25%;
+    min-height: 556px;
+    float: left;
+    background-color: #ffffff;
+}
+
+.ExecutionTimelineTable {
     border-collapse:separate;
     border-spacing:0 12px;
+}
+
+.ExecutionTimelineTable > tbody > tr > td {
+    padding: 0px 28px;
+    height: 48px;
+}
+
+.JobRunLogsContainer {
+    float: left;
+    background-color: #ffffff;
+    width: 74%;
+    min-height: 556px;
+    border-left: 1px solid #ebedf0;
+}
+
+.JobRunLogRecord {
+    padding: 0px 28px;
+    font-family: Inter;
+    font-size: 12px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.33;
+    letter-spacing: normal;
+    color: #1a1a1a;
+}
+
+.JobRunTimestamp {
+    font-family: Inter;
+    font-size: 12px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.33;
+    letter-spacing: normal;
+    color: #1a1a1a;
 }
 
 .primaryText {
