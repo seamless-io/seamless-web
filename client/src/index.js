@@ -15,7 +15,7 @@ import './styles/jobExecutionSpinner.css'
 import './styles/scroll.css'
 
 import Jobs from './components/Jobs/Jobs';
-import JobDetails from './components/Jobs/JobDetails';
+import JobDetails from './components/Jobs/JobDetails/JobDetails';
 
 
 const Application = () => {

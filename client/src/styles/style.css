@@ -118,7 +118,6 @@
     border-radius: 4px;
     border: solid 2px #ebedf0;
     margin: 0px 28px;
-    overflow-y: scroll;
 }
 
 .JobRunLogRecord {
@@ -194,8 +193,8 @@
 .JobStatusContainer {
     height: 48px;
     display: flex;
-    justify-content: center;
     align-items: center;
+    width: 58px;
 }
 
 .JobStatus {

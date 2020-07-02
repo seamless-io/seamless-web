@@ -3,7 +3,7 @@ import JobRuns from "./JobRuns";
 
 const GET_JOB_URL = '/api/v1/jobs/'
 
-class Index extends Component {
+class JobDetails extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -48,4 +48,4 @@ class Index extends Component {
             });
     };
 }
-export default Index
+export default JobDetails
