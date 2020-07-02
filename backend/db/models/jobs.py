@@ -35,7 +35,7 @@ class Job(base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def get_sorted_job_runs(self):
-        return sorted(self.runs, key=lambda o: o.created_at)
+        return sorted(self.runs, key=lambda o: o.created_at, reverse=True)
 
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.schedule)

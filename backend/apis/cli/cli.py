@@ -36,7 +36,8 @@ def create_job():
                 'user_id': user.id
             }
             if cron_schedule:
-                job_attributes.update({"schedule": cron_schedule})
+                job_attributes.update({"schedule": cron_schedule,
+                                       "schedule_is_active": False})
             job = Job(**job_attributes)
             session.add(job)
             session.commit()

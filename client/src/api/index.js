@@ -10,6 +10,11 @@ export const getJobs = async () => {
   return response.data;
 };
 
+export const updateJob = async (job_id, data) => {
+  let response = await axios.put('/api/v1/jobs/' + job_id, data);
+  return response.data;
+};
+
 export const triggerJobRun = async (job_id) => {
   let response = await axios.post('/api/v1/jobs/' + job_id + '/run');
   return response.data;

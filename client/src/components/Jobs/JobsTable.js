@@ -22,15 +22,24 @@ function JobsTable(props) {
             {
                 Header: 'SCHEDULE',
                 accessor: 'schedule',
-                Cell: cell => (
+                Cell: cell => {
+                    let row = cell.cell.row.original;
+                    let schedule_exists = row.schedule_is_active !== 'None';
+                    let schedule_is_active = row.schedule_is_active === 'True';
+                    return (
                     <div>
                         <label className="switch">
-                            <input type="checkbox"/>
+                            <input type="checkbox"
+                                   checked={schedule_exists && schedule_is_active}
+                                   onChange={() => props.onScheduleSwitch(row, schedule_exists, schedule_is_active)}/>
                             <span className="slider round"/>
                         </label>
-                        <p className="secondaryText">{cell.value}</p>
+                        <p className={schedule_is_active ? "secondaryText" : "secondaryText inactiveText"}>
+                            {schedule_exists ? cell.value : "Not scheduled"}
+                        </p>
                     </div>
-                )
+                    )
+                }
             },
             {
                 Header: 'STATUS',

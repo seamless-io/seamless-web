@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify, session, request
 from flask_socketio import emit
 
 from backend.db import session_scope
@@ -30,8 +30,22 @@ def get_jobs():
 @requires_auth
 def get_job(job_id):
     with session_scope() as db_session:
-
         return jsonify(row2dict(db_session.query(Job).get(job_id))), 200
+
+
+@jobs_bp.route('/jobs/<job_id>', methods=['PUT'])
+@requires_auth
+def update_job(job_id):
+    allowed_fields = ['schedule_is_active']
+    data = request.json
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        for key, value in data.items():
+            if key not in allowed_fields:
+                return f"{key} field is not allowed to be updated", 400
+            setattr(job, key, value)
+        db_session.commit()
+        return jsonify(row2dict(job)), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/run', methods=['POST'])
