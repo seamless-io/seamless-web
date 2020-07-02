@@ -7,7 +7,9 @@ from typing import Iterable
 import docker
 from docker.errors import BuildError
 from docker.types import Mount
+from flask_socketio import emit
 
+from flask import current_app
 from backend.db import session_scope
 from backend.db.models.job_run_logs import JobRunLog
 from backend.db.models.job_runs import JobRunResult, JobRun
@@ -60,7 +62,7 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
 def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str):
     logstream = _run_container(path_to_job_files, job_id)
 
-    def save_logs():
+    def save_logs(app):
         with session_scope() as db_session:
             job_run_result = JobRunResult.Ok
             job_status = JobStatus.Ok
@@ -83,6 +85,13 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
             job_run.status = job_run_result.value
             db_session.commit()
 
+            with app.app_context():
+                emit('status', {'job_id': job_id,
+                                'job_run_id': job_run_id,
+                                'status': job_status.value},
+                     namespace='/socket',
+                     broadcast=True)
+
     # Put logs into cloudwatch in another thread to not block the outer function
-    thread = Thread(target=save_logs)
+    thread = Thread(target=save_logs, kwargs={'app': current_app._get_current_object()})
     thread.start()

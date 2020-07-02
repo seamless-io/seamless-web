@@ -2,7 +2,7 @@ import React from "react";
 import Table from '../table'
 import {useHistory} from 'react-router-dom'
 
-import { triggerJobRun } from '../../api';
+import JobRunButton from "./JobRunButton";
 
 function getClassNameFromStatus(status) {
     switch (status) {
@@ -50,10 +50,8 @@ function JobsTable(props) {
                 Header: "CONTROLS",
                 accessor: "controls",
                 Cell: cell => (
-                    <button className="ControlButton" onClick={() =>
-                        triggerJobRun(cell.row.original.id)}>
-                        <span> Run Now </span>
-                    </button>
+                    <JobRunButton job_id={cell.row.original.id}
+                                  job_status={cell.row.original.status}/>
                 )
             }
         ],

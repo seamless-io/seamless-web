@@ -12,3 +12,4 @@ PyJWT~=1.7.1
 docker~=4.2.1
 boto3~=1.14.6
 botocore~=1.17.6
+flask-socketio~=4.3.0

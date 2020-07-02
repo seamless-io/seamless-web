@@ -167,4 +167,5 @@ body > #root > div {
 
 body {
     min-width: 1170px;;
+    margin: 0;
 }

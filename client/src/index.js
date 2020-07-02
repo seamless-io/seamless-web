@@ -11,9 +11,11 @@ import {
 
 import './styles/style.css'
 import './styles/toggleSwitch.css'
+import './styles/jobExecutionSpinner.css'
 
 import Jobs from './components/Jobs';
 import JobDetails from './components/Jobs/JobDetails';
+
 
 const Application = () => {
   return (
