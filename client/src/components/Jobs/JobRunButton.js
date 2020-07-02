@@ -3,7 +3,7 @@ import {triggerJobRun} from "../../api";
 
 function JobRunButton(props) {
     return (
-        <div>{console.log(props)}
+        <div>
             {props.job_status === 'EXECUTING'
                 ? <div className="JobExecutionSpinner"/>
                 : <button className="ControlButton" onClick={() =>

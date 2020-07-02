@@ -143,6 +143,10 @@
     display: inline-block;
 }
 
+.inactiveText {
+    color: #bec4cc;
+}
+
 .JobsTable > thead > tr > th {
     font-family: Inter;
     font-size: 12px;
@@ -154,6 +158,10 @@
     color: #9299a3;
     text-align: left;
     padding: 0px 28px;
+}
+
+.JobStatusContainer {
+    width: 66px;
 }
 
 .JobStatus {

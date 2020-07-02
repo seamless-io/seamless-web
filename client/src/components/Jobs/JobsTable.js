@@ -45,7 +45,9 @@ function JobsTable(props) {
                 Header: 'STATUS',
                 accessor: 'status',
                 Cell: cell => (
-                    <p className={getClassNameFromStatus(cell.value)}>{cell.value}</p>
+                    <div className="JobStatusContainer">
+                        <p className={getClassNameFromStatus(cell.value)}>{cell.value}</p>
+                    </div>
                 )
             },
             {
