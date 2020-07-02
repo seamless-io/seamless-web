@@ -147,6 +147,7 @@ client/.pip
 client/.pnp.js
 client/.cache
 client/dist
+client/package-lock.json
 node_modules/
 
 # Testing
