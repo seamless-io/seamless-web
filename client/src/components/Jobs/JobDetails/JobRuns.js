@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import {getJobRunLogs, getJobRuns} from '../../../api';
 import JobRunLogs from "./JobRunLogs";
-import ExecutionTimelineTable from "./ExecutionTimelineTable";
+import ExecutionTimeline from "./ExecutionTimeline";
 
 class JobRuns extends Component {
     constructor(props) {
@@ -19,8 +19,9 @@ class JobRuns extends Component {
             <div>
                 <div className="ExecutionTimelineContainer">
                     <p className="SubHeader"> Execution Timeline </p>
-                    <ExecutionTimelineTable data={this.state.runs}
-                                            handleRowClick={this.handleRowClick.bind(this)}/>
+                    <ExecutionTimeline data={this.state.runs}
+                                       handleRowClick={this.handleRowClick.bind(this)}
+                                       selected_job_run_id={this.state.selected_job_run_id}/>
                 </div>
                 <div className="JobRunLogsContainer">
                     <p className="SubHeader"> Logs </p>
