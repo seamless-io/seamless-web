@@ -20,7 +20,9 @@ function ExecutionTimelineTable(props) {
             {
                 accessor: 'status',
                 Cell: cell => (
-                    <p className={getClassNameFromStatus(cell.value)}>{cell.value}</p>
+                    <div className="JobStatusContainer">
+                        <p className={getClassNameFromStatus(cell.value)}>{cell.value}</p>
+                    </div>
                 )
             },
         ],

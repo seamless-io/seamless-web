@@ -74,9 +74,11 @@
 
 .ExecutionTimelineContainer {
     width: 25%;
-    min-height: 556px;
+    height: 556px;
     float: left;
     background-color: #ffffff;
+    overflow-y: scroll;
+    margin-right: 5px;
 }
 
 .ExecutionTimelineTable {
@@ -85,7 +87,7 @@
 }
 
 .ExecutionTimelineTable > tbody > tr > td {
-    padding: 0px 28px;
+    padding: 0px 20px;
     height: 48px;
 }
 
@@ -95,6 +97,8 @@
     width: 74%;
     min-height: 556px;
     border-left: 1px solid #ebedf0;
+    height: 556px;
+    overflow-y: scroll;
 }
 
 .JobRunLogRecord {
