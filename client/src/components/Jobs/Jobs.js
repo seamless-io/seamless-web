@@ -2,8 +2,9 @@ import React, {Component} from 'react';
 import JobsTable from "./JobsTable";
 import openSocket from 'socket.io-client';
 
-import '../../styles/style.css'
 import {getJobs, updateJob} from "../../api";
+
+import './styles/style.css'
 
 class Jobs extends Component {
     constructor(props) {
