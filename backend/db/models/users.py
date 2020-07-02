@@ -14,7 +14,7 @@ class User(base):
     jobs = relationship("Job", back_populates="user")
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow())
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     @staticmethod
     def get_user_from_api_key(api_key, session):

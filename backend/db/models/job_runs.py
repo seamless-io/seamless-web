@@ -30,7 +30,7 @@ class JobRun(base):
 
     type = Column(Text, nullable=False)
     status = Column(Text, default=JobRunResult.Executing.value, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def __repr__(self):
         return '<JobRun %r %r %r>' % (self.id, self.type, self.result)
