@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from functools import wraps
 from urllib.parse import urlencode
@@ -71,6 +72,7 @@ def create_app():
         userinfo = resp.json()
 
         session['jwt_payload'] = userinfo
+        logging.info(userinfo)
         session['profile'] = {
             'user_id': userinfo['sub'],
             'email': userinfo['email']

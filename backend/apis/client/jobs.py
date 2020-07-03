@@ -30,6 +30,7 @@ def get_jobs():
 @requires_auth
 def get_job(job_id):
     with session_scope() as db_session:
+        db_session.query(Job)
         return jsonify(row2dict(db_session.query(Job).get(job_id))), 200
 
 

@@ -1,18 +1,16 @@
 """
 Module for manipulations with projects/jobs uploaded to seamless
 """
-import os
 import io
+import logging
+import os
 import shutil
 import tarfile
-import datetime
-import logging
 from enum import Enum
 from pathlib import Path
 from typing import Optional
 
 from werkzeug.datastructures import FileStorage
-
 
 ALLOWED_EXTENSION = "tar.gz"
 UPLOAD_FOLDER = "user_projects"
