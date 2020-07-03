@@ -30,6 +30,10 @@ def create_job():
                 break
         if existing_job:  # The user re-publishes an existing job
             job_id = existing_job.id
+            if cron_schedule:
+                existing_job.schedule = cron_schedule
+                if existing_job.schedule_is_active is None:
+                    existing_job.schedule_is_active = False
         else:  # The user publishes the new job
             job_attributes = {
                 'name': job_name,
@@ -44,18 +48,12 @@ def create_job():
             job_id = job.id
 
     try:
-        project_path = project.create(file,
-                                      api_key,
-                                      JobType.PUBLISHED,
-                                      str(job_id))
+        project.create(file, api_key, JobType.PUBLISHED, str(job_id))
     except project.ProjectValidationError as exc:
         return Response(str(exc), 400)
 
-    print(job_name)
-    print(cron_schedule)
-    print(project_path)
-
-    return jsonify({'job_id': job_id}), 200
+    return jsonify({'job_id': job_id,
+                    'existing_job': existing_job is not None}), 200
 
 
 @cli_bp.route('/run', methods=['POST'])
