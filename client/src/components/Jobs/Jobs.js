@@ -39,7 +39,7 @@ class Jobs extends Component {
         this.setState({...this.state, jobs: updated_jobs});
     }
 
-    socket = openSocket('http://' + document.domain + ':' + location.port + '/socket');
+    socket = openSocket(location.protocol + '//' + document.domain + ':' + location.port + '/socket');
 
     updateJobStatus = (data) => {
         this.updateJobById(data.job_id, {'status': data.status})
