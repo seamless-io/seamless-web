@@ -12,6 +12,8 @@ from flask import Flask, render_template, session, url_for, redirect, jsonify
 from app_config import Config
 from backend import config
 from backend.apis.auth0.auth import CoreAuthError
+from backend.db import get_session
+from backend.db.models import User
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -72,10 +74,13 @@ def create_app():
         userinfo = resp.json()
 
         session['jwt_payload'] = userinfo
-        logging.info(userinfo)
+
+        internal_user_id = User.get_user_from_email(userinfo['email'], get_session()).id
+
         session['profile'] = {
             'user_id': userinfo['sub'],
-            'email': userinfo['email']
+            'email': userinfo['email'],
+            'internal_user_id': internal_user_id
         }
         return redirect('/')
 
