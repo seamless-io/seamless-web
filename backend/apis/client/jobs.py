@@ -30,8 +30,10 @@ def get_jobs():
 @requires_auth
 def get_job(job_id):
     with session_scope() as db_session:
-        db_session.query(Job)
-        return jsonify(row2dict(db_session.query(Job).get(job_id))), 200
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
+        return jsonify(row2dict(job)), 200
 
 
 @jobs_bp.route('/jobs/<job_id>', methods=['PUT'])
@@ -41,6 +43,8 @@ def update_job(job_id):
     data = request.json
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
         for key, value in data.items():
             if key not in allowed_fields:
                 return f"{key} field is not allowed to be updated", 400
@@ -54,6 +58,8 @@ def update_job(job_id):
 def run_job(job_id):
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
         job.status = JobStatus.Executing.value
         job_run = JobRun(job_id=job_id,
                          type=JobRunType.RunButton.value)
@@ -76,6 +82,8 @@ def run_job(job_id):
 def get_job_runs(job_id: str):
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
         job_runs = job.get_sorted_job_runs()
         if not job_runs:
             return [], 200
@@ -87,6 +95,9 @@ def get_job_runs(job_id: str):
 @requires_auth
 def get_job_logs(job_id: str, job_run_id: str):
     with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
         job_run = db_session.query(JobRun).get(job_run_id)
         logs = [row2dict(log_record) for log_record in job_run.logs]
 
