@@ -4,6 +4,10 @@ import json
 import boto3
 
 
+QUEUE_ID = 'scheduled-to-execute.fifo'
+QUEUE_ARN = 'arn:aws:sqs:us-east-1:202868668807:scheduled-to-execute.fifo'
+
+
 def schedule(cron_schedule: str, project_path: str) -> str:
     """
     TODO: do not use project_path as an identifier for events
@@ -23,8 +27,8 @@ def schedule(cron_schedule: str, project_path: str) -> str:
         Rule=project_path,
         Targets=[
             {
-                'Id': 'scheduled-to-execute.fifo',
-                'Arn': 'arn:aws:sqs:us-east-1:202868668807:scheduled-to-execute.fifo',
+                'Id': QUEUE_ID,
+                'Arn': QUEUE_ARN,
                 'Input': json.dumps({'project_path': project_path}),
                 'SqsParameters': {
                     'MessageGroupId': 'project'  # TODO: figure our why do we need message group
