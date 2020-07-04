@@ -5,6 +5,9 @@ import boto3
 
 
 def schedule(cron_schedule: str, project_path: str) -> str:
+    """
+    TODO: do not use project_path as an identifier for events
+    """
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
 
     result = events.put_rule(
