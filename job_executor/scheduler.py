@@ -28,7 +28,7 @@ def schedule(cron_schedule: str, job_id: str) -> str:
             {
                 'Id': QUEUE_ID,
                 'Arn': QUEUE_ARN,
-                'Input': json.dumps({'project_path': job_id}),
+                'Input': json.dumps({'job_id': job_id}),
                 'SqsParameters': {
                     'MessageGroupId': 'project'  # TODO: figure our why do we need message group
                 }
