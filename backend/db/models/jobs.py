@@ -38,7 +38,8 @@ class Job(base):
     _cloudwatch_rule_arn = Column(Text, nullable=True)
 
     def schedule_job(self):
-        self._cloudwatch_rule_arn = scheduler.schedule(self.schedule, self.id)
+        if self.schedule:
+            self._cloudwatch_rule_arn = scheduler.schedule(self.schedule, self.id)
 
     def get_sorted_job_runs(self):
         return sorted(self.runs, key=lambda o: o.created_at, reverse=True)
