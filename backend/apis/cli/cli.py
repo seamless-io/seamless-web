@@ -1,3 +1,5 @@
+import logging
+
 from flask import Blueprint, jsonify, request, Response
 
 from backend.db import session_scope
@@ -20,6 +22,8 @@ def create_job():
 
     job_name = request.args.get('name')
     cron_schedule = request.args.get('schedule')
+
+    logging.info(f"Received 'publish': job_name={job_name}, schedule={cron_schedule}")
 
     with session_scope() as session:
         user = User.get_user_from_api_key(api_key, session)
