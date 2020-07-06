@@ -9,17 +9,17 @@ QUEUE_ID = 'scheduled-to-execute.fifo'
 QUEUE_ARN = 'arn:aws:sqs:us-east-1:202868668807:scheduled-to-execute.fifo'
 
 
-def schedule(cron_schedule: str, job_id: str) -> str:
+def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     """
     TODO: do not use project_path as an identifier for events
     """
-    logging.info(f"Scheduling job (id:{job_id}): {cron_schedule}")
+    logging.info(f"Scheduling job (id:{job_id}): {cron_schedule} (active: {is_active})")
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
 
     result = events.put_rule(
         Name=job_id,
         ScheduleExpression=f"cron({cron_schedule})",  # TODO: convert default cron to AWS cron
-        State='ENABLED'
+        State='ENABLED' if is_active else 'DISABLED'
     )
     rule_arn = result['RuleArn']
     logging.info(f"Cloudwatch Event Rule was configured succesfully. Rule ARN: {rule_arn}")

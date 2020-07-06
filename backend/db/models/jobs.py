@@ -1,5 +1,6 @@
 import datetime
 import enum
+import logging
 
 from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
@@ -36,8 +37,9 @@ class Job(base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def schedule_job(self):
+        logging.info(f"Scheduling job: ({self.id}, {self.schedule}, active: {self.schedule_is_active})")
         if self.schedule and self.schedule_is_active:
-            scheduler.schedule(self.schedule, str(self.id))
+            scheduler.schedule(self.schedule, str(self.id), self.schedule_is_active)
 
     def get_sorted_job_runs(self):
         return sorted(self.runs, key=lambda o: o.created_at, reverse=True)
