@@ -5,6 +5,7 @@ from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, Uni
 from sqlalchemy.orm import relationship
 
 from backend.db.models.base import base
+from job_executor import scheduler
 
 
 # IMPORTANT: use only this enum for populating Job.status column in the form of JobStatus.<status>.value
@@ -33,6 +34,12 @@ class Job(base):
     schedule = Column(Text)
     schedule_is_active = Column(Boolean)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    _cloudwatch_rule_arn = Column(Text, nullable=True)
+
+    def schedule_job(self):
+        if self.schedule:
+            self._cloudwatch_rule_arn = scheduler.schedule(self.schedule, self.id)
 
     def get_sorted_job_runs(self):
         return sorted(self.runs, key=lambda o: o.created_at, reverse=True)

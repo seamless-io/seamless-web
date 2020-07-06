@@ -43,6 +43,7 @@ def create_job():
                 job_attributes.update({"schedule": cron_schedule,
                                        "schedule_is_active": False})
             job = Job(**job_attributes)
+            job.schedule_job()
             session.add(job)
             session.commit()
             job_id = job.id
