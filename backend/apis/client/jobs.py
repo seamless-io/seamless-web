@@ -56,7 +56,7 @@ def update_job(job_id):
 # TODO: figure out auth
 @jobs_bp.route('/jobs/execute', methods=['POST'])  # events from SQS sent to this endpoint (see beanstalk config)
 def run_job_by_schedule():
-    job_id = request.json()['job_id']
+    job_id = request.json['job_id']
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
         if not job:
