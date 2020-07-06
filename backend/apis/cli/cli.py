@@ -27,17 +27,17 @@ def create_job():
 
     with session_scope() as session:
         user = User.get_user_from_api_key(api_key, session)
-        existing_job = None
+        job = None
         for j in user.jobs:
             if j.name == job_name:
-                existing_job = j
+                job = j
                 break
-        if existing_job:  # The user re-publishes an existing job
-            job_id = existing_job.id
+        if job:  # The user re-publishes an existing job
+            job_id = job.id
             if cron_schedule:
-                existing_job.schedule = cron_schedule
-                if existing_job.schedule_is_active is None:
-                    existing_job.schedule_is_active = False
+                job.schedule = cron_schedule
+                if job.schedule_is_active is None:
+                    job.schedule_is_active = True
         else:  # The user publishes the new job
             job_attributes = {
                 'name': job_name,
@@ -45,13 +45,13 @@ def create_job():
             }
             if cron_schedule:
                 job_attributes.update({"schedule": cron_schedule,
-                                       "schedule_is_active": False})
+                                       "schedule_is_active": True})
             job = Job(**job_attributes)
             session.add(job)
-            session.commit()
 
-            job.schedule_job()
-            job_id = job.id
+        session.commit()
+        job.schedule_job()
+        job_id = job.id
 
     try:
         project.create(file, api_key, JobType.PUBLISHED, str(job_id))
@@ -59,7 +59,7 @@ def create_job():
         return Response(str(exc), 400)
 
     return jsonify({'job_id': job_id,
-                    'existing_job': existing_job is not None}), 200
+                    'existing_job': job is not None}), 200
 
 
 @cli_bp.route('/run', methods=['POST'])
