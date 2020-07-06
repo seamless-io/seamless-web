@@ -36,7 +36,7 @@ class Job(base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def schedule_job(self):
-        if self.schedule:
+        if self.schedule and self.schedule_is_active:
             scheduler.schedule(self.schedule, str(self.id))
 
     def get_sorted_job_runs(self):
