@@ -5,8 +5,8 @@ import logging
 import boto3
 
 
-QUEUE_ID = 'scheduled-to-execute.fifo'
-QUEUE_ARN = 'arn:aws:sqs:us-east-1:202868668807:scheduled-to-execute.fifo'
+QUEUE_ID = 'jobs-queue.fifo'
+QUEUE_ARN = 'arn:aws:sqs:us-east-1:202868668807:jobs-queue.fifo'
 
 
 def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
@@ -35,7 +35,6 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
                 'SqsParameters': {
                     'MessageGroupId': 'project'  # TODO: figure our why do we need message group
                 }
-
             }
         ]
     )
