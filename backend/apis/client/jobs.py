@@ -110,8 +110,6 @@ def get_job_runs(job_id: str):
         if not job or job.user_id != session['profile']['internal_user_id']:
             return "Job Not Found", 404
         job_runs = job.get_sorted_job_runs()
-        if not job_runs:
-            return [], 200
 
         return jsonify([row2dict(job_run) for job_run in job_runs]), 200
 
