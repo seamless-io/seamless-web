@@ -5,8 +5,8 @@ import logging
 import boto3
 
 
-QUEUE_ID = 'jobs-queue.fifo'
-QUEUE_ARN = 'arn:aws:sqs:us-east-1:202868668807:jobs-queue.fifo'
+QUEUE_ID = 'jobs.fifo'
+QUEUE_ARN = 'arn:aws:sqs:us-east-1:202868668807:jobs.fifo'
 
 
 def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
