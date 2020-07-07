@@ -1,18 +1,27 @@
 import logging
-import pprint
 
 from flask import Blueprint, request
+from flask_httpauth import HTTPBasicAuth
 
 schedule_events_bp = Blueprint('schedule_events', __name__)
 
+auth = HTTPBasicAuth()
 
-# TODO: figure out auth
-@schedule_events_bp.route('/jobs/execute', methods=['POST'])  # events from SQS sent to this endpoint (see beanstalk config)
+
+@auth.verify_password
+def verify_password(username, password):
+    if username == 'sns' and password == 'k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i':
+        return username
+
+
+@schedule_events_bp.route('/jobs/execute', methods=['POST'])  # events from SNS sent to this endpoint (see beanstalk config)
+@auth.login_required
 def run_job_by_schedule():
     logging.info(request.json)
     logging.info(request.args)
     logging.info(request.headers)
     logging.info(request.get_data())
+    logging.info(auth.current_user())
     return "Success", 200
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
