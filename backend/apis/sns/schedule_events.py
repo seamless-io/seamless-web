@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, request
 from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import check_password_hash, generate_password_hash
 
 schedule_events_bp = Blueprint('schedule_events', __name__)
 
@@ -10,15 +11,16 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username, password):
-    if username == 'sns_user' and password == 'k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i':
+    logging.info(username)
+    logging.info(password)
+    if username == 'sns_user' and\
+            check_password_hash(generate_password_hash('k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i'), password):
         return username
 
 
 @schedule_events_bp.route('/jobs/execute', methods=['POST'])  # events from SNS sent to this endpoint (see beanstalk config)
 @auth.login_required
 def run_job_by_schedule():
-    logging.info(request.json)
-    logging.info(request.args)
     logging.info(request.headers)
     logging.info(request.get_data())
     logging.info(auth.current_user())
