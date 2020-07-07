@@ -13,8 +13,6 @@ def run_job_by_schedule():
     logging.info(request.args)
     logging.info(request.headers)
     logging.info(request.get_data())
-    logging.info(request.content)
-    logging.info(request.text)
     return "Success", 200
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
