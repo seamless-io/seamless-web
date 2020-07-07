@@ -9,6 +9,7 @@ schedule_events_bp = Blueprint('schedule_events', __name__)
 @schedule_events_bp.route('/jobs/execute', methods=['POST'])  # events from SQS sent to this endpoint (see beanstalk config)
 def run_job_by_schedule():
     logging.info(request.json)
+    logging.info(request.args)
     return "Success", 200
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
