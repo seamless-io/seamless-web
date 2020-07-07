@@ -4,9 +4,6 @@ env:
   WEB_APPLICATION_NAME       : "web-prod"
   WEB_ENVIRONMENT_NAME       : "web-prod-env"
 
-  WEB_WORKER_APPLICATION_NAME: "web-worker-prod"
-  WEB_WORKER_ENVIRONMENT_NAME: "web-worker-prod-env"
-
   PACKAGE_S3_BUCKET_NAME : "web-prod-packages"
   DEPLOY_PACKAGE_NAME    : "web_${{ github.sha }}.zip"
   
@@ -108,18 +105,3 @@ jobs:
       run: aws elasticbeanstalk update-environment --environment-name ${{ env.WEB_ENVIRONMENT_NAME }} --version-label "ver-${{ github.sha }}"
 
     ### DEPLOYING TO WEB ENVIRONMENT END ###
-
-    ### DEPLOYING TO WEB WORKER ENVIRONMENT START ###
-
-    - name: Create new ElasticBeanstalk Application Version
-      run: |
-        aws elasticbeanstalk create-application-version \
-        --application-name ${{ env.WEB_WORKER_APPLICATION_NAME }} \
-        --source-bundle S3Bucket="${{ env.PACKAGE_S3_BUCKET_NAME }}",S3Key="${{ env.DEPLOY_PACKAGE_NAME }}" \
-        --version-label "ver-${{ github.sha }}" \
-        --description "commit-sha-${{ github.sha }}"
-
-    - name: Deploy new ElasticBeanstalk Application Version
-      run: aws elasticbeanstalk update-environment --environment-name ${{ env.WEB_WORKER_ENVIRONMENT_NAME }} --version-label "ver-${{ github.sha }}"
-
-    ### DEPLOYING TO WEB WORKER ENVIRONMENT END ###
