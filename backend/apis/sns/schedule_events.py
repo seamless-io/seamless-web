@@ -1,4 +1,5 @@
 import logging
+import pprint
 
 from flask import Blueprint, request
 
@@ -10,6 +11,9 @@ schedule_events_bp = Blueprint('schedule_events', __name__)
 def run_job_by_schedule():
     logging.info(request.json)
     logging.info(request.args)
+    logging.info(request.headers)
+    logging.info(request.text)
+    pprint.pformat(request.__dict__, depth=5)
     return "Success", 200
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
