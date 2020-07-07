@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
-import JobsTable from './JobsTable';
 import openSocket from 'socket.io-client';
+import { Row, Col, Button } from 'react-bootstrap';
 
 import { getJobs, updateJob } from '../../api';
+import Job from './Job';
 
-import './styles/style.css';
+import './style.css';
+
+import linkExternal from '../../images/link-external.svg';
+import refreshJobs from '../../images/refresh.svg';
 
 class Jobs extends Component {
   constructor(props) {
@@ -14,18 +18,33 @@ class Jobs extends Component {
       jobs: [],
     };
   }
+
   render() {
     return (
-      <div>
-        <h1 className="Header">My Jobs:</h1>
-        <button className="ControlButton" onClick={this.fetchJobs}>
-          <span> Refresh </span>
-        </button>
-        <JobsTable
-          data={this.state.jobs}
-          onScheduleSwitch={this.updateSchedule}
-        />
-      </div>
+      <>
+        <Row className="smls-jobs-header">
+          <Col className="smls-my-jobs-header">
+            <h1 className="smls-my-jobs-h1">My Jobs</h1>
+          </Col>
+          <Col className="smls-jobs-header-buttons-container">
+            <div className="smls-jobs-header-buttons">
+              <Button className="smls-button-add-jobs">
+                <img src={linkExternal} alt="External link" />
+                <span className="smls-jobs-add-jobs">Learn to add jobs</span>
+              </Button>
+            </div>
+          </Col>
+        </Row>
+        <Row className="smls-jobs-column-names">
+          <Col sm={4}>NAME</Col>
+          <Col sm={4}>SCHEDULE</Col>
+          <Col sm={2}>STATUS</Col>
+          <Col sm={2}>CONTROLS</Col>
+        </Row>
+        {this.state.jobs.map(job => (
+          <Job key={job.id} {...job} />
+        ))}
+      </>
     );
   }
 
@@ -83,4 +102,5 @@ class Jobs extends Component {
     }
   };
 }
+
 export default Jobs;

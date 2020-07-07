@@ -1,33 +1,29 @@
 import React from 'react';
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route
-} from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
-import './styles/application.css'
+import { Container } from 'react-bootstrap';
+
+import './style.css';
 
 import ApplicationHeader from './ApplicationHeader';
 import Jobs from '../Jobs/Jobs';
-import JobDetails from '../Jobs/JobDetails';
-
+import JobDetails from '../Jobs/JobDetails/JobDetails';
 
 const ApplicationRoot = () => {
   return (
     <Router>
-      <div className="BackgroundContainer">
-        <div className="MainContainer">
-          <ApplicationHeader />
+      <ApplicationHeader />
 
+      <Container fluid className="smls-main-container">
+        <div className="smls-jobs-container">
           <Switch>
             <Route exact path="/">
               <Jobs />
             </Route>
-            <Route path="/jobs/:id" component={JobDetails}>
-            </Route>
+            <Route path="/jobs/:id" component={JobDetails}></Route>
           </Switch>
         </div>
-      </div>
+      </Container>
     </Router>
   );
 };

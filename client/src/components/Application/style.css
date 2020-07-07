@@ -1,0 +1,48 @@
+html,
+body {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+.smls-main-container {
+  background-color: #f7f7f7;
+  height: 100%;
+}
+
+.smls-jobs-container {
+  margin-left: 55px;
+  margin-right: 55px;
+}
+
+.smls-header {
+  width: 100%;
+}
+
+.smls-header-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.smls-header-logout {
+  align-items: center;
+  display: flex;
+}
+
+.smls-header-right {
+  float: right;
+  margin-left: auto;
+}
+
+.smls-logo {
+  object-fit: contain;
+}
+
+.smls-logout {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
