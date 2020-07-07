@@ -10,7 +10,7 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username, password):
-    if username == 'sns' and password == 'k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i':
+    if username == 'sns_user' and password == 'k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i':
         return username
 
 
