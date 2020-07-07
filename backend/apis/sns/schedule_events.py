@@ -13,8 +13,9 @@ auth = HTTPBasicAuth()
 def verify_password(username, password):
     logging.info(username)
     logging.info(password)
+    p = 'k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i'
     if username == 'sns_user' and\
-            check_password_hash(generate_password_hash('k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i'), password):
+            check_password_hash(generate_password_hash('****'), password):
         return username
 
 
