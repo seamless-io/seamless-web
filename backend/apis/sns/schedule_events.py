@@ -32,7 +32,8 @@ def run_job_by_schedule():
         res.raise_for_status()
         return "Success", 200
     else:
-        logging.info("running scheduled job...")
+        job_id = message['Message']['job_id']
+        logging.info(f"Running scheduled job {job_id}")
     return "Success", 200
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
