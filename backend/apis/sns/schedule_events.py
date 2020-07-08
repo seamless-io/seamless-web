@@ -25,6 +25,7 @@ def run_job_by_schedule():
     logging.info(request.headers)
     logging.info(request.get_data())
     logging.info(auth.current_user())
+    logging.info(request.get_json(force=True))
     return "Success", 200
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
