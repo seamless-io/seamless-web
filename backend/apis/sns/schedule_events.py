@@ -5,6 +5,8 @@ from flask import Blueprint, request
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from backend.config import SNS_PASSWORD
+
 schedule_events_bp = Blueprint('schedule_events', __name__)
 
 auth = HTTPBasicAuth()
@@ -14,9 +16,8 @@ auth = HTTPBasicAuth()
 def verify_password(username, password):
     logging.info(username)
     logging.info(password)
-    p = 'k7zTnN7meLo3PraPpgxUCtJwQe8AfI2i'
-    if username == 'sns_user' and\
-            check_password_hash(generate_password_hash('12345'), password):
+    if username == 'sns' and\
+            check_password_hash(generate_password_hash(SNS_PASSWORD), password):
         return username
 
 
