@@ -4,9 +4,8 @@ import logging
 
 import boto3
 
-
-QUEUE_ID = 'jobs.fifo'
-QUEUE_ARN = 'arn:aws:sqs:us-east-1:202868668807:jobs.fifo'
+LAMBDA_NAME = 'schedule_events_proxy'
+LAMBDA_ARN = f'arn:aws:lambda:us-east-1:202868668807:function:{LAMBDA_NAME}'
 
 
 def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
@@ -24,17 +23,13 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     rule_arn = result['RuleArn']
     logging.info(f"Cloudwatch Event Rule was configured succesfully. Rule ARN: {rule_arn}")
 
-    # TODO: create SQS in terraform
     res = events.put_targets(
         Rule=job_id,
         Targets=[
             {
-                'Id': QUEUE_ID,
-                'Arn': QUEUE_ARN,
-                'Input': json.dumps({'job_id': job_id}),  # TODO: send auth codes to recognize them in client/jobs.py
-                'SqsParameters': {
-                    'MessageGroupId': 'project'  # TODO: figure our why do we need message group
-                }
+                'Id': LAMBDA_NAME,
+                'Arn': LAMBDA_ARN,
+                'Input': json.dumps({'job_id': job_id}),
             }
         ]
     )

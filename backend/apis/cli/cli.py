@@ -33,7 +33,6 @@ def create_job():
                 job = j
                 break
         if job:  # The user re-publishes an existing job
-            job_id = job.id
             if cron_schedule:
                 job.schedule = cron_schedule
                 if job.schedule_is_active is None:
