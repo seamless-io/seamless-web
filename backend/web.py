@@ -99,6 +99,10 @@ def create_app():
         params = {'returnTo': url_for('catch_all', _external=True), 'client_id': config.AUTH0_CLIENT_ID}
         return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
 
+    @app.route('/health-check')
+    def health_check():
+        return "Success", 200
+
     # This handles auth errors on the "core" API (/core)
     @app.errorhandler(CoreAuthError)
     def handle_auth_error(ex):
