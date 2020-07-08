@@ -23,18 +23,8 @@ def verify_password(username, password):
 @schedule_events_bp.route('/jobs/execute', methods=['POST'])
 @auth.login_required
 def run_job_by_schedule():
-    message = request.get_json(force=True)
-    logging.info(message)
-    logging.info(auth.current_user())
-    if message['Type'] == 'SubscriptionConfirmation':
-        confirmation_url = message['SubscribeURL']
-        res = requests.get(confirmation_url)
-        res.raise_for_status()
-        return "Success", 200
-    else:
-        job_id = message['Message']['job_id']
-        logging.info(f"Running scheduled job {job_id}")
-    return "Success", 200
+    job_id = request.json['job_id']
+    logging.info(job_id)
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
     #     job = db_session.query(Job).get(job_id)
