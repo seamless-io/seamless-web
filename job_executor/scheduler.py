@@ -4,6 +4,8 @@ import logging
 
 import boto3
 
+events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
+
 LAMBDA_NAME = 'schedule_events_proxy'
 LAMBDA_ARN = f'arn:aws:lambda:us-east-1:202868668807:function:{LAMBDA_NAME}'
 
@@ -13,8 +15,6 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     TODO: do not use project_path as an identifier for events
     """
     logging.info(f"Scheduling job (id:{job_id}): {cron_schedule} (active: {is_active})")
-    events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
-
     result = events.put_rule(
         Name=job_id,
         ScheduleExpression=f"cron({cron_schedule})",  # TODO: convert default cron to AWS cron
@@ -35,3 +35,11 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     )
     logging.info(f"Configured target for CW rule: {res}")
     return rule_arn  # TODO: store it somewhere
+
+
+def enable_job_schedule(job_id: str):
+    events.enable_rule(Name=job_id)
+
+
+def disable_job_schedule(job_id: str):
+    events.disable_rule(Name=job_id)

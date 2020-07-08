@@ -9,6 +9,7 @@ from backend.db.models.jobs import JobStatus
 from backend.web import requires_auth
 from job_executor import executor
 from job_executor.project import get_path_to_job, JobType
+from job_executor.scheduler import enable_job_schedule, disable_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -49,6 +50,11 @@ def update_job(job_id):
             if key not in allowed_fields:
                 return f"{key} field is not allowed to be updated", 400
             setattr(job, key, value)
+            if key == 'schedule_is_active':
+                if value:
+                    enable_job_schedule(job_id)
+                else:
+                    disable_job_schedule(job_id)
         db_session.commit()
         return jsonify(row2dict(job)), 200
 
