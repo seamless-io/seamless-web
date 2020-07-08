@@ -14,8 +14,6 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username, password):
-    logging.info(username)
-    logging.info(password)
     if username == 'sns' and\
             check_password_hash(generate_password_hash(SNS_PASSWORD), password):
         return username
@@ -34,7 +32,7 @@ def run_job_by_schedule():
         res.raise_for_status()
         return "Success", 200
     else:
-        pass
+        logging.info("running scheduled job...")
     return "Success", 200
     # job_id = request.json['job_id']
     # with session_scope() as db_session:
