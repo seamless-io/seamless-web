@@ -14,6 +14,7 @@ from backend.db import session_scope
 from backend.db.models.job_run_logs import JobRunLog
 from backend.db.models.job_runs import JobRunResult, JobRun
 from backend.db.models.jobs import JobStatus, Job
+from job_executor.project import restore_project_from_s3
 
 DOCKER_FILE_NAME = "Dockerfile"
 JOB_LOGS_RETENTION_DAYS = 1
@@ -60,6 +61,8 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
 
 
 def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str):
+    if not os.path.exists(path_to_job_files):
+        restore_project_from_s3(path_to_job_files, job_id)
     logstream = _run_container(path_to_job_files, job_id)
 
     def save_logs(app):

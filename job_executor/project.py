@@ -10,11 +10,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+import boto3
 from werkzeug.datastructures import FileStorage
 
 ALLOWED_EXTENSION = "tar.gz"
 UPLOAD_FOLDER = "user_projects"
 DATETIME_FOLDER_NAME_FORMAT = "%m_%d_%Y_%H_%M_%S"
+
+s3 = boto3.client('s3', region_name=os.getenv('AWS_REGION_NAME'))
+USER_PROJECTS_S3_BUCKET = "web-prod-jobs"
 
 
 class JobType(Enum):
@@ -34,6 +38,11 @@ def get_path_to_job(job_type: JobType,
     return os.path.abspath(user_folder_path)
 
 
+def save_project_to_s3(fileobj, job_id):
+    s3.upload_fileobj(fileobj, USER_PROJECTS_S3_BUCKET, f"{job_id}.{ALLOWED_EXTENSION}")
+    logging.info(f"Files of job {job_id} saved to {USER_PROJECTS_S3_BUCKET} s3 bucket")
+
+
 def create(fileobj: FileStorage,
            api_key: str,
            job_type: JobType,
@@ -51,8 +60,22 @@ def create(fileobj: FileStorage,
     tar.extractall(path=path)
     tar.close()
 
+    io_bytes.seek(0)
+    save_project_to_s3(io_bytes, job_id)
+
     logging.info(f"File saved to {path}")
     return path
+
+
+def restore_project_from_s3(path_to_job_files: str, job_id: str):
+    Path(path_to_job_files).mkdir(parents=True, exist_ok=True)
+    s3_response_object = s3.get_object(Bucket=USER_PROJECTS_S3_BUCKET,
+                                       Key=f"{job_id}.{ALLOWED_EXTENSION}")
+
+    io_bytes = io.BytesIO(s3_response_object['Body'].read())
+    tar = tarfile.open(fileobj=io_bytes, mode='r')
+    tar.extractall(path=path_to_job_files)
+    tar.close()
 
 
 class ProjectValidationError(Exception):
