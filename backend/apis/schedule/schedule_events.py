@@ -31,7 +31,7 @@ def verify_password(username, password):
 @auth.login_required
 def run_job_by_schedule():
     job_id = request.json['job_id']
-    logging.info(job_id)
+    logging.info(f"Running job {job_id} based on schedule")
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
         if not job:
