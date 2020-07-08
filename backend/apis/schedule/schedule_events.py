@@ -44,4 +44,4 @@ def run_job_by_schedule():
     #          broadcast=True)
     #     path_to_job_files = get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
     #     executor.execute_and_stream_to_db(path_to_job_files, str(job.id), str(job_run.id))
-    #     return f"Running job {job.name}", 200
+    return f"Running job {job_id}", 200
