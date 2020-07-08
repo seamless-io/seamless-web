@@ -8,7 +8,6 @@ import Job from './Job';
 import './style.css';
 
 import linkExternal from '../../images/link-external.svg';
-import refreshJobs from '../../images/refresh.svg';
 
 class Jobs extends Component {
   constructor(props) {

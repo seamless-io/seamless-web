@@ -8,7 +8,6 @@ import play from '../../images/play-filled.svg';
 const Job = ({ name, schedule, status, id }) => {
   const [scheduleValue, setScheduleValue] = useState(schedule);
   const [scheduleClassName, setScheduleClassName] = useState('');
-  const [statusClassName, setStatusClassName] = useState('new');
 
   if (scheduleValue === 'None') {
     setScheduleValue('Not scheduled');
