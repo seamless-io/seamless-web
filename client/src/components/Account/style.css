@@ -1,0 +1,32 @@
+.smls-account-container {
+  margin-left: 255px;
+  margin-right: 255px;
+  padding-top: 40px;
+}
+
+.smls-account-header {
+  font-size: 28px;
+  font-weight: bold;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.29;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.smls-account-key-header {
+  font-size: 16px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.smls-card {
+  border-radius: 4px;
+  box-shadow: 0 1px 4px 0 rgba(50, 50, 50, 0.15);
+  background-color: #ffffff;
+  margin-bottom: 20px;
+}

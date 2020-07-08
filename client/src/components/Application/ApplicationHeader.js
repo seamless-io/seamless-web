@@ -22,7 +22,7 @@ const ApplicationHeader = () => {
             <img src={jobsLogo} className="smls-jobs" alt="Jobs" />
             Jobs
           </Nav.Link>
-          <Nav.Link href="#">
+          <Nav.Link href="/account">
             <img src={userAccount} className="smls-user" alt="User account" />
             My Account
           </Nav.Link>

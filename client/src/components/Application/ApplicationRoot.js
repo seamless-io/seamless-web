@@ -3,11 +3,12 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import { Container } from 'react-bootstrap';
 
-import './style.css';
-
 import ApplicationHeader from './ApplicationHeader';
 import Jobs from '../Jobs/Jobs';
+import Account from '../Account/Account';
 import JobDetails from '../Jobs/JobDetails/JobDetails';
+
+import './style.css';
 
 const ApplicationRoot = () => {
   return (
@@ -19,6 +20,9 @@ const ApplicationRoot = () => {
           <Switch>
             <Route exact path="/">
               <Jobs />
+            </Route>
+            <Route path="/account">
+              <Account />
             </Route>
             <Route path="/jobs/:id" component={JobDetails}></Route>
           </Switch>
