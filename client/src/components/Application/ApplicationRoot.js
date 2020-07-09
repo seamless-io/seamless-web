@@ -1,7 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import Favicon from 'react-favicon';
 
 import { Container } from 'react-bootstrap';
+
+import favicon from '../../images/favicon.ico';
 
 import ApplicationHeader from './ApplicationHeader';
 import Jobs from '../Jobs/Jobs';
@@ -13,6 +16,7 @@ import './style.css';
 const ApplicationRoot = () => {
   return (
     <Router>
+      <Favicon url={favicon} />
       <ApplicationHeader />
 
       <Container fluid className="smls-main-container">
