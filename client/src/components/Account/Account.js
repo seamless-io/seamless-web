@@ -24,6 +24,18 @@ const Account = () => {
       });
   }, []);
 
+  const copyApiKey = () => {
+    alert('Not working yet');
+  };
+
+  const resetApiKey = () => {
+    alert('Not working yet');
+  };
+
+  const changePassword = () => {
+    alert('Not working yet');
+  };
+
   return (
     <div className="smls-account-container">
       <div className="smls-account-header-container">
@@ -39,14 +51,14 @@ const Account = () => {
             <h5 className="smls-account-section-header">API Key</h5>
           </Col>
           <Col sm={7}>
-            <div className="smls-account-key-text">
+            <div className="smls-account-section-text">
               <img src={key} className="smls-account-key" alt="Api key" />
               <span>{apiKey}</span>
             </div>
           </Col>
           <Col sm={2}>
             <div className="smls-account-copy-container">
-              <button className="smls-account-copy-button">
+              <button className="smls-account-copy-button" onClick={copyApiKey}>
                 <img src={copy} className="smls-account-copy" alt="Copy" />
                 <span className="smls-account-copy-button-text">Copy</span>
               </button>
@@ -54,7 +66,10 @@ const Account = () => {
           </Col>
           <Col sm={3}>
             <div className="smls-account-reset-key-container">
-              <button className="smls-account-reset-key-button">
+              <button
+                className="smls-account-reset-key-button"
+                onClick={resetApiKey}
+              >
                 <img
                   src={reset}
                   className="smls-account-reset"
@@ -74,7 +89,7 @@ const Account = () => {
             <h5 className="smls-account-section-header">My Email</h5>
           </Col>
           <Col sm={7}>
-            <div className="smls-account-key-text">
+            <div className="smls-account-section-text">
               <img src={atSign} className="smls-account-key" alt="Api key" />
               <span>{email}</span>
             </div>
@@ -128,7 +143,10 @@ const Account = () => {
           </Col>
           <Col sm={7} className="smls-account-input-contaier">
             <div>
-              <button className="smls-account-change-password-button">
+              <button
+                className="smls-account-change-password-button"
+                onClick={changePassword}
+              >
                 <span className="smls-account-change-password-button-text">
                   Change Password
                 </span>
