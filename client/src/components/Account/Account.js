@@ -4,6 +4,7 @@ import { Row, Col } from 'react-bootstrap';
 import reset from '../../images/rotate-left.svg';
 import copy from '../../images/copy.svg';
 import key from '../../images/key.svg';
+import atSign from '../../images/at-sign.svg';
 import './style.css';
 
 const Account = () => {
@@ -56,13 +57,34 @@ const Account = () => {
           <Col sm={12}>
             <h5 className="smls-account-key-header">My Email</h5>
           </Col>
-          <Col sm={12}>test.testovich@test.test</Col>
+          <Col sm={7}>
+            <div className="smls-account-key-text">
+              <img src={atSign} className="smls-account-key" alt="Api key" />
+              <span>sdjkn234jsdjfnsn923kjn3oisdkj</span>
+            </div>
+          </Col>
         </Row>
       </div>
       <div className="smls-account-password smls-card">
         <Row>
           <Col sm={12}>
             <h5 className="smls-account-key-header">Change Password</h5>
+          </Col>
+          <Col sm={7} className="smls-account-input-contaier">
+            <div className="">
+              <label htmlFor="old-password">Old Password</label>
+              <input className="smls-account-input" id="old-password"></input>
+            </div>
+          </Col>
+          <Col sm={7} className="smls-account-input-contaier">
+            <div className="">
+              <label htmlFor="new-password">New Password</label>
+              <input
+                className="smls-account-input"
+                id="new-password"
+                placeholder="min. 8 characters"
+              ></input>
+            </div>
           </Col>
         </Row>
       </div>
