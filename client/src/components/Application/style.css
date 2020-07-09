@@ -5,6 +5,7 @@ body {
 
 #root {
   height: 100%;
+  background-color: #f7f7f7;
 }
 
 .smls-main-container {
@@ -20,6 +21,7 @@ body {
 
 .smls-header {
   width: 100%;
+  background-color: #fff;
 }
 
 .smls-header-center {
@@ -46,4 +48,8 @@ body {
   width: 24px;
   height: 24px;
   object-fit: contain;
+}
+
+.smls-header {
+  height: 60px;
 }
