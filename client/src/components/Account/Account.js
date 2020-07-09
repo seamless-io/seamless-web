@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col } from 'react-bootstrap';
+
+import { getUserInfo } from '../../api';
 
 import reset from '../../images/rotate-left.svg';
 import copy from '../../images/copy.svg';
@@ -8,9 +10,23 @@ import atSign from '../../images/at-sign.svg';
 import './style.css';
 
 const Account = () => {
+  const [apiKey, setApiKey] = useState('');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    getUserInfo()
+      .then(payload => {
+        setApiKey(payload.api_key);
+        setEmail(payload.email);
+      })
+      .catch(() => {
+        alert('Error!');
+      });
+  }, []);
+
   return (
     <div className="smls-account-container">
-      <div className="smls-account-header">
+      <div className="smls-account-header-container">
         <Row>
           <Col>
             <h1 className="smls-account-header">My Account</h1>
@@ -19,13 +35,13 @@ const Account = () => {
       </div>
       <div className="smls-account-key smls-card">
         <Row>
-          <Col sm={12}>
-            <h5 className="smls-account-key-header">API Key</h5>
+          <Col sm={12} className="smls-account-section-header-container">
+            <h5 className="smls-account-section-header">API Key</h5>
           </Col>
           <Col sm={7}>
             <div className="smls-account-key-text">
               <img src={key} className="smls-account-key" alt="Api key" />
-              <span>sdjkn234jsdjfnsn923kjn3oisdkj</span>
+              <span>{apiKey}</span>
             </div>
           </Col>
           <Col sm={2}>
@@ -54,21 +70,21 @@ const Account = () => {
       </div>
       <div className="smls-account-email smls-card">
         <Row>
-          <Col sm={12}>
-            <h5 className="smls-account-key-header">My Email</h5>
+          <Col sm={12} className="smls-account-section-header-container">
+            <h5 className="smls-account-section-header">My Email</h5>
           </Col>
           <Col sm={7}>
             <div className="smls-account-key-text">
               <img src={atSign} className="smls-account-key" alt="Api key" />
-              <span>sdjkn234jsdjfnsn923kjn3oisdkj</span>
+              <span>{email}</span>
             </div>
           </Col>
         </Row>
       </div>
       <div className="smls-account-password smls-card">
         <Row>
-          <Col sm={12}>
-            <h5 className="smls-account-key-header">Change Password</h5>
+          <Col sm={12} className="smls-account-section-header-container">
+            <h5 className="smls-account-section-header">Change Password</h5>
           </Col>
           <Col sm={7} className="smls-account-input-contaier">
             <div>

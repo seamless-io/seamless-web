@@ -133,3 +133,11 @@
   letter-spacing: normal;
   color: #1a1a1a;
 }
+
+.smls-account-header-container {
+  margin-bottom: 28px;
+}
+
+.smls-account-section-header-container {
+  margin-bottom: 15px;
+}
