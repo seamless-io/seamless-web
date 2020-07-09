@@ -10,7 +10,7 @@ import jobsLogo from '../../images/lightning.svg';
 
 const ApplicationHeader = () => {
   return (
-    <Navbar expand="lg">
+    <Navbar expand="lg" className="smls-header">
       <Row className="smls-header">
         <Col>
           <Navbar.Brand href="#home">
@@ -22,7 +22,7 @@ const ApplicationHeader = () => {
             <img src={jobsLogo} className="smls-jobs" alt="Jobs" />
             Jobs
           </Nav.Link>
-          <Nav.Link href="#">
+          <Nav.Link href="/account">
             <img src={userAccount} className="smls-user" alt="User account" />
             My Account
           </Nav.Link>
