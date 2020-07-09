@@ -104,3 +104,32 @@
 .smls-account-input-contaier {
   margin-bottom: 15px;
 }
+
+.smls-account-change-password-button {
+  width: 40%;
+  height: 36px;
+  border-radius: 4px;
+  border: 0px;
+  background-color: #016bff;
+}
+
+.smls-account-change-password-button-text {
+  font-family: Inter;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #ffffff;
+}
+
+.smls-account-input-label {
+  font-size: 14px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}

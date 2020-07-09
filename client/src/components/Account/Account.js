@@ -71,19 +71,52 @@ const Account = () => {
             <h5 className="smls-account-key-header">Change Password</h5>
           </Col>
           <Col sm={7} className="smls-account-input-contaier">
-            <div className="">
-              <label htmlFor="old-password">Old Password</label>
+            <div>
+              <label
+                htmlFor="old-password"
+                className="smls-account-input-label"
+              >
+                Old Password
+              </label>
               <input className="smls-account-input" id="old-password"></input>
             </div>
           </Col>
           <Col sm={7} className="smls-account-input-contaier">
-            <div className="">
-              <label htmlFor="new-password">New Password</label>
+            <div>
+              <label
+                htmlFor="new-password"
+                className="smls-account-input-label"
+              >
+                New Password
+              </label>
               <input
                 className="smls-account-input"
                 id="new-password"
                 placeholder="min. 8 characters"
               ></input>
+            </div>
+          </Col>
+          <Col sm={7} className="smls-account-input-contaier">
+            <div>
+              <label
+                htmlFor="confirm-password"
+                className="smls-account-input-label"
+              >
+                Confirm New Password
+              </label>
+              <input
+                className="smls-account-input"
+                id="confrim-password"
+              ></input>
+            </div>
+          </Col>
+          <Col sm={7} className="smls-account-input-contaier">
+            <div>
+              <button className="smls-account-change-password-button">
+                <span className="smls-account-change-password-button-text">
+                  Change Password
+                </span>
+              </button>
             </div>
           </Col>
         </Row>

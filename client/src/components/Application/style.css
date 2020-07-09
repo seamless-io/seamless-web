@@ -9,7 +9,8 @@ body {
 
 .smls-main-container {
   background-color: #f7f7f7;
-  height: 100%;
+  height: auto;
+  padding-bottom: 20px;
 }
 
 .smls-jobs-container {
