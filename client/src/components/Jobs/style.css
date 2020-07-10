@@ -28,7 +28,7 @@
   padding-right: 0px !important;
 }
 
-.smls-jobs-add-jobs {
+.smls-jobs-leaen-add-jobs-text {
   font-size: 14px;
   font-weight: 600;
   font-stretch: normal;
@@ -36,20 +36,16 @@
   line-height: 1.43;
   letter-spacing: normal;
   color: #1a1a1a;
+  padding-left: 10px;
 }
 
-.smls-button-add-jobs.btn {
+.smls-button-add-jobs {
   width: 181px;
   height: 36px;
   border-radius: 4px;
   border: solid 2px #dde0e5;
   background-color: transparent;
   padding: 0px;
-}
-
-.smls-button-add-jobs.btn:hover {
-  background-color: transparent;
-  border-color: #dde0e5;
 }
 
 .smls-jobs-column-names {
@@ -69,7 +65,7 @@
   height: 20px;
 }
 
-.smls-job {
+.smls-job-line {
   height: 60px;
   border-radius: 4px;
   box-shadow: 0 1px 4px 0 rgba(50, 50, 50, 0.05);
@@ -78,6 +74,10 @@
   padding-top: 20px;
   padding-bottom: 20px;
   font-size: 14px;
+}
+
+.smls-job-line-name-container {
+  cursor: pointer;
 }
 
 .smls-job-name {
@@ -127,32 +127,19 @@
   color: #db8400;
 }
 
-.smls-job-run-button {
+.smls-job-line-run-button {
   width: 84px;
   height: 24px;
   border-radius: 4px;
-}
-
-.smls-job-run-button.btn {
   background-color: #e5f0ff;
   border: 0px;
-  border-radius: 4px;
-  padding: 0;
-}
-
-.smls-job-run-button.btn:hover {
-  background-color: #e5f0ff;
-  border-color: #e5f0ff;
 }
 
 .smls-job-play {
   padding-right: 3px;
 }
 
-.smls-job-run-button-text {
-  width: 52px;
-  height: 16px;
-  font-family: Inter;
+.smls-job-line-run-button-text {
   font-size: 12px;
   font-weight: 500;
   font-stretch: normal;
@@ -160,210 +147,4 @@
   line-height: 1.33;
   letter-spacing: normal;
   color: #0160e6;
-}
-
-/* 
-*********************************
-
-Andrey's styles. We will delete them later.
-
-*********************************
-*/
-
-.ControlButton {
-  width: 84px;
-  height: 24px;
-  border-radius: 4px;
-  background-color: #e5f0ff;
-  padding: 0;
-  border: none;
-}
-
-.ControlButton :hover {
-  cursor: pointer;
-}
-
-.ControlButton > span {
-  font-family: Inter;
-  font-size: 12px;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.33;
-  letter-spacing: normal;
-  color: #0160e6;
-}
-
-.JobsTable {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 12px;
-}
-
-.JobsTable tbody > tr > td {
-  background-color: #ffffff;
-  height: 60px;
-  border-radius: 4px;
-  padding: 0px 28px;
-}
-
-.ExecutionTimelineContainer {
-  width: 25%;
-  height: 556px;
-  float: left;
-  background-color: #ffffff;
-  margin-right: 5px;
-}
-
-.ExecutionTimeline {
-  padding: 0px 28px;
-  overflow-y: scroll;
-  height: 488px;
-  text-align: center;
-}
-
-.JobExecutionTimelineItem {
-  border-radius: 4px;
-  border: solid 2px #ebedf0;
-  margin: 6px 0px;
-}
-
-/* mouse over link */
-.JobExecutionTimelineItem:hover {
-  color: #016bff;
-  cursor: pointer;
-}
-
-.JobExecutionTimelineItemActive {
-  border: solid 2px #00bd3c;
-}
-
-.JobRunLogsContainer {
-  float: left;
-  background-color: #ffffff;
-  width: 74%;
-  min-height: 556px;
-  border-left: 1px solid #ebedf0;
-  height: 556px;
-}
-
-.JobRunLogs {
-  width: 742px;
-  height: 464px;
-  border-radius: 4px;
-  border: solid 2px #ebedf0;
-  margin: 0px 28px;
-}
-
-.JobRunLogRecord {
-  padding: 0px 28px;
-  font-family: Inter;
-  font-size: 12px;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.33;
-  letter-spacing: normal;
-  color: #1a1a1a;
-}
-
-.JobRunTimestamp {
-  font-family: Inter;
-  font-size: 12px;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.33;
-  letter-spacing: normal;
-  color: #1a1a1a;
-}
-
-.primaryText {
-  font-family: Inter;
-  font-size: 14px;
-  font-weight: 600;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.43;
-  letter-spacing: normal;
-  color: #1a1a1a;
-}
-
-.secondaryText {
-  font-family: Inter;
-  font-size: 14px;
-  font-weight: normal;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.43;
-  letter-spacing: normal;
-  color: #1a1a1a;
-  display: inline-block;
-}
-
-.inactiveText {
-  color: #bec4cc;
-}
-
-.JobsTable > thead > tr > th {
-  font-family: Inter;
-  font-size: 12px;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.33;
-  letter-spacing: normal;
-  color: #9299a3;
-  text-align: left;
-  padding: 0px 28px;
-}
-
-.JobExecutionTimestampContainer {
-  width: 65%;
-  height: 48px;
-  float: left;
-  display: inline-block;
-}
-
-.JobStatusContainer {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  width: 58px;
-}
-
-.JobStatus {
-  border-radius: 2px;
-  width: fit-content;
-  height: 16px;
-  padding-left: 5px;
-  padding-right: 5px;
-  background-color: #ede6ff;
-  font-family: Inter;
-  font-size: 10px;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.6;
-  letter-spacing: normal;
-}
-
-.JobStatusNew {
-  background-color: #ede6ff;
-  color: #5102ff;
-}
-
-.JobStatusOk {
-  background-color: #e5f8eb;
-  color: #00a334;
-}
-
-.JobStatusFailed {
-  background-color: #ffebea;
-  color: #e63629;
-}
-
-.JobStatusExecuting {
-  background-color: #fef4e5;
-  color: #db8400;
 }

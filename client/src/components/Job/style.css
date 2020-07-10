@@ -1,0 +1,67 @@
+.smls-job-header {
+  padding-top: 55px;
+}
+
+.smls-job-name-header {
+  padding-left: 0px !important;
+}
+
+.smls-job-name-h1 {
+  font-size: 28px;
+  font-weight: bold;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.29;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.smls-job-header-buttons-container {
+  padding-right: 0px !important;
+}
+
+.smls-job-header-buttons {
+  width: 100%;
+}
+
+.smls-job-download-code-button {
+  height: 36px;
+  border-radius: 4px;
+  border: solid 2px #dde0e5;
+  background-color: transparent;
+  margin-right: 15px;
+  width: 30%;
+  float: right;
+}
+
+.smls-job-download-code-button-text {
+  padding-left: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+  padding-left: 10px;
+}
+
+.smls-job-run-button {
+  width: 15%;
+  height: 36px;
+  border-radius: 4px;
+  border: 0px;
+  background-color: #016bff;
+  float: right;
+}
+
+.smls-job-run-button-text {
+  padding-left: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #ffffff;
+}

@@ -9,7 +9,7 @@ import favicon from '../../images/favicon.ico';
 import ApplicationHeader from './ApplicationHeader';
 import Jobs from '../Jobs/Jobs';
 import Account from '../Account/Account';
-import JobDetails from '../Jobs/JobDetails/JobDetails';
+import Job from '../Job/Job';
 
 import './style.css';
 
@@ -28,7 +28,7 @@ const ApplicationRoot = () => {
             <Route path="/account">
               <Account />
             </Route>
-            <Route path="/jobs/:id" component={JobDetails}></Route>
+            <Route path="/jobs/:id" component={Job}></Route>
           </Switch>
         </div>
       </Container>

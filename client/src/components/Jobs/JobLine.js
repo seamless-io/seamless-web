@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
+
 import { Row, Col, Button, Badge } from 'react-bootstrap';
 
 import { triggerJobRun } from '../../api';
 
 import play from '../../images/play-filled.svg';
 
-const Job = ({ name, schedule, status, id }) => {
+const JobLine = ({ name, schedule, status, id }) => {
+  const history = useHistory();
   const [scheduleValue, setScheduleValue] = useState(schedule);
   const [scheduleClassName, setScheduleClassName] = useState('');
+  const openJob = () => {
+    history.push(`jobs/${id}`);
+  };
 
   if (scheduleValue === 'None') {
     setScheduleValue('Not scheduled');
@@ -16,19 +22,19 @@ const Job = ({ name, schedule, status, id }) => {
 
   const jobRunButton = jobId => {
     return (
-      <Button
+      <button
         onClick={() => triggerJobRun(jobId)}
-        className="smls-job-run-button"
+        className="smls-job-line-run-button"
       >
         <img src={play} className="smls-job-play" alt="Job run" />
-        <span className="smls-job-run-button-text">Run Now</span>
-      </Button>
+        <span className="smls-job-line-run-button-text">Run Now</span>
+      </button>
     );
   };
 
   return (
-    <Row className="smls-job">
-      <Col sm={4}>
+    <Row className="smls-job-line">
+      <Col sm={4} onClick={openJob} className="smls-job-line-name-container">
         <span className="smls-job-name">{name}</span>
       </Col>
       <Col sm={4}>
@@ -48,4 +54,4 @@ const Job = ({ name, schedule, status, id }) => {
   );
 };
 
-export default Job;
+export default JobLine;
