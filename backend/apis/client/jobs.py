@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, session, request
+import logging
+
+from flask import Blueprint, Response, jsonify, session, request
 from flask_socketio import emit
 
 from backend.db import session_scope
@@ -7,7 +9,7 @@ from backend.db.models import Job, User, JobRun
 from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
 from backend.web import requires_auth
-from job_executor import executor
+from job_executor import project, executor
 from job_executor.project import get_path_to_job, JobType
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule
 
@@ -131,3 +133,74 @@ def get_job_logs(job_id: str, job_run_id: str):
         logs = [row2dict(log_record) for log_record in job_run.logs]
 
         return jsonify(logs), 200
+
+
+@jobs_bp.route('/publish', methods=['PUT'])
+def create_job():
+    api_key = request.headers.get('Authorization')
+    if not api_key:
+        return Response('Not authorized request', 401)
+
+    file = request.files.get('seamless_project')
+    if not file:
+        return Response('File not provided', 400)
+
+    job_name = request.args.get('name')
+    cron_schedule = request.args.get('schedule')
+
+    logging.info(f"Received 'publish': job_name={job_name}, schedule={cron_schedule}")
+
+    with session_scope() as session:
+        user = User.get_user_from_api_key(api_key, session)
+        job = None
+        for j in user.jobs:
+            if j.name == job_name:
+                job = j
+                break
+        if job:  # The user re-publishes an existing job
+            if cron_schedule:
+                job.schedule = cron_schedule
+                if job.schedule_is_active is None:
+                    job.schedule_is_active = True
+        else:  # The user publishes the new job
+            job_attributes = {
+                'name': job_name,
+                'user_id': user.id
+            }
+            if cron_schedule:
+                job_attributes.update({"schedule": cron_schedule,
+                                       "schedule_is_active": True})
+            job = Job(**job_attributes)
+            session.add(job)
+
+        session.commit()
+        job.schedule_job()
+        job_id = job.id
+
+    try:
+        project.create(file, api_key, JobType.PUBLISHED, str(job_id))
+    except project.ProjectValidationError as exc:
+        return Response(str(exc), 400)
+
+    return jsonify({'job_id': job_id,
+                    'existing_job': job is not None}), 200
+
+
+@jobs_bp.route('/run', methods=['POST'])
+def run() -> Response:
+    api_key = request.headers.get('Authorization')
+    if not api_key:
+        return Response('Not authorized request', 401)
+
+    file = request.files.get('seamless_project')
+    if not file:
+        return Response('File not provided', 400)
+
+    try:
+        project_path = project.create(file, api_key, JobType.RUN)
+    except project.ProjectValidationError as exc:
+        return Response(str(exc), 400)
+
+    logstream = executor.execute_and_stream_back(project_path, api_key)
+
+    return Response(logstream)

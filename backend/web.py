@@ -48,9 +48,6 @@ def create_app():
     from backend.apis.client.users import user_bp
     app.register_blueprint(user_bp, url_prefix=CLIENT_API)
 
-    from backend.apis.cli.cli import cli_bp
-    app.register_blueprint(cli_bp, url_prefix=CLI_API)
-
     from backend.apis.auth0.users import auth_users_bp
     app.register_blueprint(auth_users_bp, url_prefix=AUTH_API)
 
