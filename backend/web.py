@@ -20,8 +20,6 @@ load_dotenv(dotenv_path)
 
 CLIENT_API = '/api/v1'
 AUTH_API = '/auth'
-CLI_API = '/cli'
-SCHEDULE_API = '/schedule'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
@@ -50,9 +48,6 @@ def create_app():
 
     from backend.apis.auth0.users import auth_users_bp
     app.register_blueprint(auth_users_bp, url_prefix=AUTH_API)
-
-    from backend.apis.schedule.schedule_events import schedule_events_bp
-    app.register_blueprint(schedule_events_bp, url_prefix=SCHEDULE_API)
 
     oauth = OAuth(app)
 
