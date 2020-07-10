@@ -29,7 +29,7 @@ class Jobs extends Component {
             <div className="smls-jobs-header-buttons">
               <Button className="smls-button-add-jobs">
                 <img src={linkExternal} alt="External link" />
-                <span className="smls-jobs-add-jobs">Learn to add jobs</span>
+                <span className="smls-jobs-add-jobs">Learn how to create jobs</span>
               </Button>
             </div>
           </Col>
