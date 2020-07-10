@@ -40,10 +40,10 @@ def create_app():
     app.config.from_object(Config)
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
 
-    from backend.apis.client.jobs import jobs_bp
+    from backend.apis.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=CLIENT_API)
 
-    from backend.apis.client.users import user_bp
+    from backend.apis.users import user_bp
     app.register_blueprint(user_bp, url_prefix=CLIENT_API)
 
     from backend.apis.auth0.users import auth_users_bp
