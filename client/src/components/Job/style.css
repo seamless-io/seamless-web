@@ -1,0 +1,176 @@
+.smls-job-header {
+  padding-top: 55px;
+}
+
+.smls-job-name-header {
+  padding-left: 0px !important;
+}
+
+.smls-job-name-h1 {
+  font-size: 28px;
+  font-weight: bold;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.29;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.smls-job-header-buttons-container {
+  padding-right: 0px !important;
+}
+
+.smls-job-header-buttons {
+  width: 100%;
+}
+
+.smls-job-download-code-button {
+  height: 36px;
+  border-radius: 4px;
+  border: solid 2px #dde0e5;
+  background-color: transparent;
+  margin-right: 15px;
+  width: 30%;
+  float: right;
+}
+
+.smls-job-download-code-button-text {
+  padding-left: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+  padding-left: 10px;
+}
+
+.smls-job-run-button {
+  width: 15%;
+  height: 36px;
+  border-radius: 4px;
+  border: 0px;
+  background-color: #016bff;
+  float: right;
+}
+
+.smls-job-run-button-text {
+  padding-left: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #ffffff;
+}
+
+.smls-job-extra-info {
+  margin-top: 28px;
+  height: 64px;
+}
+
+.smls-job-extra-info-section {
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px 0 rgba(50, 50, 50, 0.05);
+  background-color: #ffffff;
+  padding-left: 28px;
+  height: 100%;
+}
+
+.smls-job-extra-info-section span {
+  padding-left: 12px;
+}
+
+.smls-job-main-info {
+  margin-top: 28px;
+  background-color: #fff;
+  min-height: 400px;
+}
+
+.smls-job-main-info-section {
+  padding-left: 28px;
+  padding-top: 20px;
+}
+
+.smls-job-main-info-section-header {
+  font-size: 16px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.smls-job-container {
+  border: 2px solid #ebedf0;
+  padding: 10px;
+}
+
+.smls-job-info-section-col {
+  padding-left: 13px;
+  padding-right: 13px;
+}
+
+.smls-job-info-section-col-scheduled {
+  margin-left: 13px;
+  margin-right: 13px;
+  height: 48px;
+  border-radius: 4px;
+  border: solid 2px #ebedf0;
+  display: flex;
+  align-items: center;
+}
+
+.smls-job-info-section-col-scheduled-text {
+  width: 50%;
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.33;
+  letter-spacing: normal;
+  color: #9299a3;
+}
+
+.smls-job-info-section-col-scheduled-badge {
+  text-align: right;
+  width: 50%;
+  padding: 16px;
+}
+
+.smls-job-info-section-col-scheduled-badge span {
+  border-radius: 2px;
+  background-color: #ebedf0;
+  text-transform: uppercase;
+  padding: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.33;
+  letter-spacing: normal;
+  color: #9299a3;
+}
+
+.smls-job-info-section-col-hr {
+  padding-left: 13px;
+  padding-right: 13px;
+}
+
+.smls-job-name-pencil {
+  border: 0px;
+  background-color: transparent;
+  margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.smls-job-heade-container {
+  display: flex;
+  align-items: center;
+}

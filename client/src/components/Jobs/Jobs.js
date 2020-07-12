@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import openSocket from 'socket.io-client';
-import { Row, Col, Button } from 'react-bootstrap';
+import { Row, Col } from 'react-bootstrap';
 
 import { getJobs, updateJob } from '../../api';
-import Job from './Job';
+import JobLine from './JobLine';
 
 import './style.css';
 
@@ -27,10 +27,15 @@ class Jobs extends Component {
           </Col>
           <Col className="smls-jobs-header-buttons-container">
             <div className="smls-jobs-header-buttons">
-              <Button className="smls-button-add-jobs">
+              <button
+                className="smls-button-add-jobs"
+                onClick={() => alert('Not working yet.')}
+              >
                 <img src={linkExternal} alt="External link" />
-                <span className="smls-jobs-add-jobs">Learn how to create jobs</span>
-              </Button>
+                <span className="smls-jobs-leaen-add-jobs-text">
+                  Learn how to create jobs
+                </span>
+              </button>
             </div>
           </Col>
         </Row>
@@ -41,7 +46,7 @@ class Jobs extends Component {
           <Col sm={2}>CONTROLS</Col>
         </Row>
         {this.state.jobs.map(job => (
-          <Job key={job.id} {...job} />
+          <JobLine key={job.id} {...job} />
         ))}
       </>
     );

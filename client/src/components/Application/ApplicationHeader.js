@@ -13,7 +13,7 @@ const ApplicationHeader = () => {
     <Navbar expand="lg" className="smls-header">
       <Row className="smls-header">
         <Col>
-          <Navbar.Brand href="#home">
+          <Navbar.Brand href="/">
             <img src={logo} className="smls-logo" alt="SeamlessCloud logo" />
           </Navbar.Brand>
         </Col>
