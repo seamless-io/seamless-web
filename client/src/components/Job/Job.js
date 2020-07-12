@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { Row, Col } from 'react-bootstrap';
+import Toggle from 'react-toggle';
 
 import { getJob } from '../../api';
 
 import './style.css';
+import '../Jobs/toggle.css';
 import download from '../../images/cloud-download.svg';
 import timeHistory from '../../images/time-history.svg';
 import pencil from '../../images/pencil-create.svg';
@@ -13,6 +15,7 @@ import pencil from '../../images/pencil-create.svg';
 const Job = () => {
   const job = useParams();
   const [name, setName] = useState('');
+  const [isScheduleOne, setIsScheduleOne] = useState(true);
 
   useEffect(() => {
     getJob(job.id)
@@ -40,10 +43,16 @@ const Job = () => {
         </Col>
         <Col className="smls-job-header-buttons-container">
           <div className="smls-job-header-buttons">
-            <button className="smls-job-run-button">
+            <button
+              className="smls-job-run-button"
+              onClick={() => alert('Not working yet.')}
+            >
               <span className="smls-job-run-button-text">Run</span>
             </button>
-            <button className="smls-job-download-code-button">
+            <button
+              className="smls-job-download-code-button"
+              onClick={() => alert('Not working yet.')}
+            >
               <img src={download} alt="Download code" />
               <span className="smls-job-download-code-button-text">
                 Download Code
@@ -55,6 +64,11 @@ const Job = () => {
       <Row className="smls-job-extra-info">
         <Col style={{ paddingLeft: '0px' }}>
           <div className="smls-job-extra-info-section">
+            <Toggle
+              defaultChecked={isScheduleOne}
+              icons={false}
+              onChange={() => alert('Not working yet.')}
+            />
             <span>Scheduled for every Monday, at 12 PM</span>
           </div>
         </Col>
