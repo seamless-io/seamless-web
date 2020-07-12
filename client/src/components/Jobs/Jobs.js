@@ -27,7 +27,10 @@ class Jobs extends Component {
           </Col>
           <Col className="smls-jobs-header-buttons-container">
             <div className="smls-jobs-header-buttons">
-              <button className="smls-button-add-jobs">
+              <button
+                className="smls-button-add-jobs"
+                onClick={() => alert('Not working yet.')}
+              >
                 <img src={linkExternal} alt="External link" />
                 <span className="smls-jobs-leaen-add-jobs-text">
                   Learn to add jobs

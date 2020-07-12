@@ -15,7 +15,7 @@ import pencil from '../../images/pencil-create.svg';
 const Job = () => {
   const job = useParams();
   const [name, setName] = useState('');
-  const [isScheduleOne, setIsScheduleOne] = useState(true);
+  const [isScheduleOn, setIsScheduleOn] = useState(true);
 
   useEffect(() => {
     getJob(job.id)
@@ -65,7 +65,7 @@ const Job = () => {
         <Col style={{ paddingLeft: '0px' }}>
           <div className="smls-job-extra-info-section">
             <Toggle
-              defaultChecked={isScheduleOne}
+              defaultChecked={isScheduleOn}
               icons={false}
               onChange={() => alert('Not working yet.')}
             />

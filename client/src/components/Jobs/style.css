@@ -80,7 +80,7 @@
   cursor: pointer;
 }
 
-.smls-job-name {
+.smls-job-line-name {
   font-size: 14px;
   font-weight: 600;
   font-stretch: normal;
@@ -90,13 +90,14 @@
   color: #1a1a1a;
 }
 
-.smls-job-schedule {
+.smls-job-line-schedule {
   font-size: 14px;
   font-weight: normal;
   font-stretch: normal;
   font-style: normal;
   line-height: 1.43;
   letter-spacing: normal;
+  margin-left: 10px;
 }
 
 .smls-normal {
@@ -147,4 +148,20 @@
   line-height: 1.33;
   letter-spacing: normal;
   color: #0160e6;
+}
+
+.smls-job-line-toggle-container {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.smls-job-line-tooltip {
+  font-size: 12px;
+  font-weight: normal;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.33;
+  letter-spacing: normal;
+  color: #ffffff;
 }
