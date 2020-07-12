@@ -33,7 +33,7 @@ class Jobs extends Component {
               >
                 <img src={linkExternal} alt="External link" />
                 <span className="smls-jobs-leaen-add-jobs-text">
-                  Learn to add jobs
+                  Learn how to create jobs
                 </span>
               </button>
             </div>
