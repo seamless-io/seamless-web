@@ -8,6 +8,7 @@ import { getJob } from '../../api';
 import './style.css';
 import download from '../../images/cloud-download.svg';
 import timeHistory from '../../images/time-history.svg';
+import pencil from '../../images/pencil-create.svg';
 
 const Job = () => {
   const job = useParams();
@@ -27,7 +28,15 @@ const Job = () => {
     <>
       <Row className="smls-job-header">
         <Col className="smls-job-name-header">
-          <h1 className="smls-job-name-h1">{name}</h1>
+          <div className="smls-job-heade-container">
+            <h1 className="smls-job-name-h1">{name}</h1>
+            <button
+              className="smls-job-name-pencil"
+              onClick={() => alert('Not working yet.')}
+            >
+              <img src={pencil} alt="Updated at" />
+            </button>
+          </div>
         </Col>
         <Col className="smls-job-header-buttons-container">
           <div className="smls-job-header-buttons">
@@ -46,7 +55,7 @@ const Job = () => {
       <Row className="smls-job-extra-info">
         <Col style={{ paddingLeft: '0px' }}>
           <div className="smls-job-extra-info-section">
-            <span>Schedule</span>
+            <span>Scheduled for every Monday, at 12 PM</span>
           </div>
         </Col>
         <Col style={{ paddingRight: '0px' }}>
@@ -64,9 +73,28 @@ const Job = () => {
         >
           <Row>
             <Col>
-              <h5 className="smls-job-main-info-section-header">
-                Execution Timeline
-              </h5>
+              <div className="smls-job-info-section-col">
+                <h5>Execution Timeline</h5>
+              </div>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <div className="smls-job-info-section-col-scheduled">
+                <div className="smls-job-info-section-col-scheduled-text">
+                  Devember 25, 2020, 05:08
+                </div>
+                <div className="smls-job-info-section-col-scheduled-badge">
+                  <span>scheduled</span>
+                </div>
+              </div>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <div className="smls-job-info-section-col-hr">
+                <hr />
+              </div>
             </Col>
           </Row>
         </Col>

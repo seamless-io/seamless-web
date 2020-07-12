@@ -110,3 +110,67 @@
   border: 2px solid #ebedf0;
   padding: 10px;
 }
+
+.smls-job-info-section-col {
+  padding-left: 13px;
+  padding-right: 13px;
+}
+
+.smls-job-info-section-col-scheduled {
+  margin-left: 13px;
+  margin-right: 13px;
+  height: 48px;
+  border-radius: 4px;
+  border: solid 2px #ebedf0;
+  display: flex;
+  align-items: center;
+}
+
+.smls-job-info-section-col-scheduled-text {
+  width: 50%;
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.33;
+  letter-spacing: normal;
+  color: #9299a3;
+}
+
+.smls-job-info-section-col-scheduled-badge {
+  text-align: right;
+  width: 50%;
+  padding: 16px;
+}
+
+.smls-job-info-section-col-scheduled-badge span {
+  border-radius: 2px;
+  background-color: #ebedf0;
+  text-transform: uppercase;
+  padding: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.33;
+  letter-spacing: normal;
+  color: #9299a3;
+}
+
+.smls-job-info-section-col-hr {
+  padding-left: 13px;
+  padding-right: 13px;
+}
+
+.smls-job-name-pencil {
+  border: 0px;
+  background-color: transparent;
+  margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.smls-job-heade-container {
+  display: flex;
+  align-items: center;
+}
