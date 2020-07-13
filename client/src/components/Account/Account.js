@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Spinner } from 'react-bootstrap';
 
 import { getUserInfo } from '../../api';
 
@@ -12,12 +12,15 @@ import './style.css';
 const Account = () => {
   const [apiKey, setApiKey] = useState('');
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
     getUserInfo()
       .then(payload => {
         setApiKey(payload.api_key);
         setEmail(payload.email);
+        setLoading(false);
       })
       .catch(() => {
         alert('Error!');
@@ -35,6 +38,14 @@ const Account = () => {
   const changePassword = () => {
     alert('Not working yet');
   };
+
+  if (loading) {
+    return (
+      <div className="smls-jobs-spinner-container">
+        <Spinner animation="border" role="status"></Spinner>
+      </div>
+    );
+  }
 
   return (
     <div className="smls-account-container">

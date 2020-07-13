@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import openSocket from 'socket.io-client';
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Spinner } from 'react-bootstrap';
 
 import { getJobs, updateJob } from '../../api';
 import JobLine from './JobLine';
@@ -14,14 +14,17 @@ import terminal from '../../images/terminal.svg';
 const Jobs = () => {
   const [jobs, setjobs] = useState([]);
   const [noJobsStyle, setNoJobsStyle] = useState('');
+  const [loading, setLoading] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
     getJobs()
       .then(payload => {
         setjobs(payload);
         setNoJobsStyle(
           payload && payload.length > 0 ? '' : 'smls-no-jobs-header'
         );
+        setLoading(false);
       })
       .catch(() => {
         alert('Error!');
@@ -93,6 +96,14 @@ const Jobs = () => {
       </>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="smls-jobs-spinner-container">
+        <Spinner animation="border" role="status"></Spinner>
+      </div>
+    );
+  }
 
   return (
     <>
