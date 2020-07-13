@@ -69,18 +69,24 @@ const Jobs = () => {
             </div>
             <div className="smls-no-jobs-message">
               <p>
-                Installation Guide<sup>*</sup>
+                <strong>
+                  Installation Guide<sup>*</sup>
+                </strong>
               </p>
               <p>
                 Copy this into your terminal, run the command, and follow
                 further instractions:
               </p>
               <div>
-                <code>pip install seamless-cli</code>
-                <code>seamless-cli configure api_key=23i485765834012</code>
-                <code>seamless init</code>
+                <code className="smls-jobs-code">pip install seamless-cli</code>
+                <code className="smls-jobs-code">
+                  seamless-cli configure api_key=23i485765834012
+                </code>
+                <code className="smls-jobs-code">seamless init</code>
               </div>
-              <p>* Requires Python 3.6 or higher</p>
+              <p className="smls-jobs-python-requirement">
+                * Requires Python 3.6 or higher
+              </p>
             </div>
           </Col>
         </Row>
