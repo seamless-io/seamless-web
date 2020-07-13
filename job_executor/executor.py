@@ -48,8 +48,8 @@ def _run_container(path_to_job_files: str, tag: str) -> Iterable[bytes]:
                       type='bind')],
         auto_remove=True,
         detach=True,
-        mem_limit='128m',
-        memswap_limit='128m'
+        mem_limit='512m',
+        memswap_limit='512m'
     )
     return container.logs(stream=True)
 
