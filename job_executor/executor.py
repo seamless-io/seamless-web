@@ -17,10 +17,21 @@ from backend.db.models.jobs import JobStatus, Job
 from job_executor.project import restore_project_from_s3
 
 DOCKER_FILE_NAME = "Dockerfile"
+REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
 
+def _ensure_requirements(job_directory):
+    """
+    Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
+    """
+    path_to_requirements = f"{job_directory}/{REQUIREMENTS_FILENAME}"
+    if not os.path.exists(path_to_requirements):
+        with open(path_to_requirements, 'w'): pass
+
+
 def _run_container(path_to_job_files: str, tag: str) -> Iterable[bytes]:
+    _ensure_requirements(path_to_job_files)
     docker_client = docker.from_env()
     copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), DOCKER_FILE_NAME),
              os.path.join(path_to_job_files, DOCKER_FILE_NAME))
