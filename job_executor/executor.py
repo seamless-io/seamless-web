@@ -32,7 +32,7 @@ def _run_container(path_to_job_files: str, tag: str) -> Iterable[bytes]:
         error_logs = []
         for log_entry in e.build_log:
             line = log_entry.get('stream')
-            if line and "ERROR:" in line:
+            if line:
                 error_logs.append(line.rstrip('\n'))
         return error_logs
 
