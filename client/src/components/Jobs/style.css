@@ -165,3 +165,12 @@
   letter-spacing: normal;
   color: #ffffff;
 }
+
+.smls-no-jobs {
+  width: 70%;
+  margin: auto !important;
+}
+
+.smls-no-jobs-message {
+  padding-left: 0px !important;
+}
