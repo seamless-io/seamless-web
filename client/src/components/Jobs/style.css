@@ -166,11 +166,54 @@
   color: #ffffff;
 }
 
+.smls-no-jobs-header {
+  width: 70%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
 .smls-no-jobs {
   width: 70%;
-  margin: auto !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: 28px !important;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px 0 rgba(50, 50, 50, 0.05);
+  background-color: #ffffff;
 }
 
 .smls-no-jobs-message {
-  padding-left: 0px !important;
+  padding: 24px !important;
+  align-items: center;
+  margin-left: 20px;
+  font-size: 16px;
+  font-weight: normal;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.75;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.smls-no-jobs-icon-container {
+  padding: 24px !important;
+  align-items: center;
+  display: flex;
+}
+
+.smls-no-jobs-icon {
+  width: 52px;
+  justify-content: center;
+  height: 52px;
+  align-items: center;
+  display: flex;
+  border-radius: 50%;
+}
+
+.blue {
+  background-color: #e5f0ff;
+}
+
+.green {
+  background-color: #e5f8eb;
 }
