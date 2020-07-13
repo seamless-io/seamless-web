@@ -14,6 +14,7 @@ const JobLine = ({ name, schedule, status, id }) => {
   const [scheduleValue, setScheduleValue] = useState(schedule);
   const [scheduleClassName, setScheduleClassName] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
+  const [isToggleDisabled, setIsToggleDisabled] = useState(true);
 
   const openJob = () => {
     history.push(`jobs/${id}`);
@@ -54,6 +55,7 @@ const JobLine = ({ name, schedule, status, id }) => {
           <div className="smls-job-line-toggle-container">
             <Toggle
               defaultChecked={isScheduleOn}
+              disabled={isToggleDisabled}
               icons={false}
               onChange={() => alert('Not working yet.')}
             />

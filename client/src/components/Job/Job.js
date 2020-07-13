@@ -15,7 +15,8 @@ import pencil from '../../images/pencil-create.svg';
 const Job = () => {
   const job = useParams();
   const [name, setName] = useState('');
-  const [isScheduleOn, setIsScheduleOn] = useState(true);
+  const [isScheduleOn, setIsScheduleOn] = useState(false);
+  const [isToggleDisabled, setIsToggleDisabled] = useState(true);
 
   useEffect(() => {
     getJob(job.id)

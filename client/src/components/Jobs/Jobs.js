@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import openSocket from 'socket.io-client';
 import { Row, Col } from 'react-bootstrap';
 
@@ -8,103 +8,115 @@ import JobLine from './JobLine';
 import './style.css';
 
 import linkExternal from '../../images/link-external.svg';
+import jobsLogo from '../../images/lightning.svg';
+import terminal from '../../images/terminal.svg';
 
-class Jobs extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isFetching: false,
-      jobs: [],
-    };
-  }
+const Jobs = () => {
+  const [jobs, setjobs] = useState([]);
+  const [noJobsStyle, setNoJobsStyle] = useState('');
 
-  render() {
+  useEffect(() => {
+    getJobs()
+      .then(payload => {
+        setjobs(payload);
+        setNoJobsStyle(
+          payload && payload.length > 0 ? '' : 'smls-no-jobs-header'
+        );
+      })
+      .catch(() => {
+        alert('Error!');
+      });
+  }, []);
+
+  const renderJobs = () => {
+    if (jobs && jobs.length > 0) {
+      return (
+        <>
+          <Row className="smls-jobs-column-names">
+            <Col sm={4}>NAME</Col>
+            <Col sm={4}>SCHEDULE</Col>
+            <Col sm={2}>STATUS</Col>
+            <Col sm={2}>CONTROLS</Col>
+          </Row>
+          {jobs.map(job => (
+            <JobLine key={job.id} {...job} />
+          ))}
+        </>
+      );
+    }
+
     return (
       <>
-        <Row className="smls-jobs-header">
-          <Col className="smls-my-jobs-header">
-            <h1 className="smls-my-jobs-h1">My Jobs</h1>
-          </Col>
-          <Col className="smls-jobs-header-buttons-container">
-            <div className="smls-jobs-header-buttons">
-              <button
-                className="smls-button-add-jobs"
-                onClick={() => alert('Not working yet.')}
-              >
-                <img src={linkExternal} alt="External link" />
-                <span className="smls-jobs-leaen-add-jobs-text">
-                  Learn how to create jobs
-                </span>
-              </button>
+        <Row className="smls-no-jobs">
+          <Col className="smls-no-jobs-icon-container">
+            <div className="smls-no-jobs-icon blue">
+              <img src={jobsLogo} className="smls-jobs" alt="Jobs"></img>
+            </div>
+            <div className="smls-no-jobs-message">
+              <div>
+                <strong>You have no jobs</strong>
+              </div>
+              <div>
+                To proceed with seamless - install & configure seamless CLI.
+              </div>
             </div>
           </Col>
         </Row>
-        <Row className="smls-jobs-column-names">
-          <Col sm={4}>NAME</Col>
-          <Col sm={4}>SCHEDULE</Col>
-          <Col sm={2}>STATUS</Col>
-          <Col sm={2}>CONTROLS</Col>
+        <Row className="smls-no-jobs">
+          <Col className="smls-no-jobs-icon-container">
+            <div className="smls-no-jobs-icon green">
+              <img src={terminal} className="smls-jobs" alt="Terminal"></img>
+            </div>
+            <div className="smls-no-jobs-message">
+              <p>
+                <strong>
+                  Installation Guide<sup>*</sup>
+                </strong>
+              </p>
+              <p>
+                Copy this into your terminal, run the command, and follow
+                further instractions:
+              </p>
+              <div>
+                <code className="smls-jobs-code">pip install seamless-cli</code>
+                <code className="smls-jobs-code">
+                  seamless-cli configure api_key=23i485765834012
+                </code>
+                <code className="smls-jobs-code">seamless init</code>
+              </div>
+              <p className="smls-jobs-python-requirement">
+                * Requires Python 3.6 or higher
+              </p>
+            </div>
+          </Col>
         </Row>
-        {this.state.jobs.map(job => (
-          <JobLine key={job.id} {...job} />
-        ))}
       </>
     );
-  }
-
-  updateJobById = (job_id, update_map) => {
-    let updated_jobs = this.state.jobs.slice();
-    let job_index = updated_jobs.findIndex(obj => obj.id == job_id);
-    let job_to_update = updated_jobs[job_index];
-
-    for (let key in update_map) {
-      job_to_update[key] = update_map[key];
-    }
-
-    updated_jobs[job_index] = job_to_update;
-    this.setState({ ...this.state, jobs: updated_jobs });
   };
 
-  socket = openSocket(
-    location.protocol + '//' + document.domain + ':' + location.port + '/socket'
+  return (
+    <>
+      <Row className={`smls-jobs-header ${noJobsStyle}`}>
+        <Col className="smls-my-jobs-header">
+          <h1 className="smls-my-jobs-h1">My Jobs</h1>
+        </Col>
+        <Col className="smls-jobs-header-buttons-container">
+          <div className="smls-jobs-header-buttons">
+            <button
+              className="smls-button-add-jobs"
+              onClick={() => alert('Not working yet.')}
+            >
+              <img src={linkExternal} alt="External link" />
+              <span className="smls-jobs-leaen-add-jobs-text">
+                Learn how to create jobs
+              </span>
+            </button>
+          </div>
+        </Col>
+      </Row>
+      {renderJobs()}
+    </>
   );
-
-  updateJobStatus = data => {
-    this.updateJobById(data.job_id, { status: data.status });
-  };
-
-  componentDidMount() {
-    this.fetchJobs();
-    this.socket.on('status', data => this.updateJobStatus(data));
-  }
-
-  fetchJobs = () => {
-    this.setState({ ...this.state, isFetching: true });
-    getJobs()
-      .then(res => {
-        this.setState({
-          jobs: res,
-          isFetching: false,
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        this.setState({ ...this.state, isFetching: false });
-      });
-  };
-
-  updateSchedule = (job, schedule_exists, schedule_is_active) => {
-    if (!schedule_exists) {
-      return; // Ignore schedule switch clicks
-    }
-    if (schedule_is_active) {
-      updateJob(job.id, { schedule_is_active: false });
-      this.updateJobById(job.id, { schedule_is_active: 'False' });
-    } else {
-      updateJob(job.id, { schedule_is_active: true });
-      this.updateJobById(job.id, { schedule_is_active: 'True' });
-    }
-  };
-}
+};
 
 export default Jobs;
