@@ -75,7 +75,11 @@ const Jobs = () => {
                 Copy this into your terminal, run the command, and follow
                 further instractions:
               </p>
-              <p>pip install seamless-cli</p>
+              <div>
+                <code>pip install seamless-cli</code>
+                <code>seamless-cli configure api_key=23i485765834012</code>
+                <code>seamless init</code>
+              </div>
               <p>* Requires Python 3.6 or higher</p>
             </div>
           </Col>
