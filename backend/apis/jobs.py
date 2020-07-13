@@ -24,6 +24,15 @@ TIMESTAMP_FOR_LOGS_FORMAT = "%m_%d_%Y_%H_%M_%S_%f"
 auth = HTTPBasicAuth()
 
 
+@auth.verify_password
+def verify_password(username, password):
+    """
+    We are going to authenticate scheduler using hardcoded password
+    """
+    if username == 'schedule' and check_password_hash(generate_password_hash(SCHEDULE_PASSWORD), password):
+        return username
+
+
 @jobs_bp.route('/jobs', methods=['GET'])
 @requires_auth
 def get_jobs():
@@ -143,17 +152,6 @@ def create_job():
                     'existing_job': job is not None}), 200
 
 
-
-@auth.verify_password
-def verify_password(username, password):
-    """
-    We are going to authenticate scheduler using hardcoded password
-    """
-    if username == 'schedule' and\
-            check_password_hash(generate_password_hash(SCHEDULE_PASSWORD), password):
-        return username
-
-
 def _run_job(job_id, type_, user_id=None):
     """
     Function to execute job
@@ -185,6 +183,9 @@ def _run_job(job_id, type_, user_id=None):
 @jobs_bp.route('/jobs/execute', methods=['POST'])
 @auth.login_required
 def run_job_by_schedule():
+    """
+    Executing job which was scheduled
+    """
     job_id = request.json['job_id']
     logging.info(f"Running job {job_id} based on schedule")
     _run_job(job_id, JobRunType.Schedule.value)
@@ -194,12 +195,18 @@ def run_job_by_schedule():
 @jobs_bp.route('/jobs/<job_id>/run', methods=['POST'])
 @requires_auth
 def run_job(job_id):
+    """
+    Executing job when triggered manually via UI
+    """
     _run_job(job_id, JobRunType.RunButton.value, session['profile']['internal_user_id'])
     return f"Running job {job_id}", 200
 
 
 @jobs_bp.route('/run', methods=['POST'])
 def run() -> Response:
+    """
+    Exeucting job when triggered manually via CLI
+    """
     api_key = request.headers.get('Authorization')
     if not api_key:
         return Response('Not authorized request', 401)
