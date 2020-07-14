@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { Row, Col, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import openSocket from 'socket.io-client';
+import {
+  Row,
+  Col,
+  Badge,
+  OverlayTrigger,
+  Tooltip,
+  Toast,
+} from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { triggerJobRun } from '../../api';
@@ -12,27 +20,60 @@ import play from '../../images/play-filled.svg';
 const JobLine = ({ name, schedule, status, id }) => {
   const history = useHistory();
   const [scheduleValue, setScheduleValue] = useState(schedule);
+  const [statusValue, setStatusValue] = useState(status);
   const [scheduleClassName, setScheduleClassName] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
-
-  const openJob = () => {
-    history.push(`jobs/${id}`);
-  };
+  const [isRunButtonDisabled, setIsRunButtonDisabled] = useState(false);
+  const [showNotification, setShowNotification] = useState(true);
 
   if (scheduleValue === 'None') {
     setScheduleValue('Not scheduled');
     setScheduleClassName('smls-muted');
   }
 
-  const jobRunButton = jobId => {
+  const socket = openSocket(
+    location.protocol + '//' + document.domain + ':' + location.port + '/socket'
+  );
+
+  useEffect(() => {
+    socket.on('status', data => updateJobStatus(data));
+  }, []);
+
+  const updateJobStatus = data => {
+    setStatusValue(data.status);
+    console.log(data);
+    if (statusValue !== 'EXECUTING') {
+      setIsRunButtonDisabled(false);
+    }
+  };
+
+  const openJob = () => {
+    history.push(`jobs/${id}`);
+  };
+
+  const runJob = () => {
+    setIsRunButtonDisabled(true);
+    setShowNotification(true);
+    triggerJobRun(id)
+      .then(payload => {
+        setShowNotification(false);
+      })
+      .catch(payload => {
+        console.log(payload);
+      });
+  };
+
+  const jobRunButton = () => {
     return (
       <button
-        onClick={() => triggerJobRun(jobId)}
+        onClick={runJob}
         className="smls-job-line-run-button"
+        type="button"
+        disabled={isRunButtonDisabled}
       >
         <img src={play} className="smls-job-play" alt="Job run" />
-        <span className="smls-job-line-run-button-text">Run Now</span>
+        Run Now
       </button>
     );
   };
@@ -67,12 +108,24 @@ const JobLine = ({ name, schedule, status, id }) => {
       </Col>
       <Col sm={2}>
         <Badge
-          className={`smls-job-status smls-status-${status.toLowerCase()}`}
+          className={`smls-job-status smls-status-${statusValue.toLowerCase()}`}
         >
-          {status}
+          {statusValue}
         </Badge>
       </Col>
       <Col sm={2}>{jobRunButton(id)}</Col>
+      <Toast
+        onClose={() => setShowNotification(false)}
+        show={showNotification}
+        delay={3000}
+        autohide
+        className="smls-toast-notificaiton"
+      >
+        <Toast.Header>
+          <img src="holder.js/20x20?text=%20" className="rounded mr-2" alt="" />
+          <strong className="mr-auto">Job starts executing...</strong>
+        </Toast.Header>
+      </Toast>
     </Row>
   );
 };
