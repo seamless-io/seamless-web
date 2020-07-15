@@ -1,10 +1,26 @@
 import datetime
+import enum
 
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from backend.api_key import API_KEY_LENGTH
 from backend.db.models.base import base
+
+
+class UserAccountType(enum.Enum):
+    Free = "FREE"
+    Professional = "PROFESSIONAL"
+
+
+ACCOUNT_LIMITS_BY_TYPE = {
+    UserAccountType.Free: {
+        'jobs': 2
+    },
+    UserAccountType.Professional: {
+        'jobs': 10
+    }
+}
 
 
 class User(base):
@@ -15,6 +31,7 @@ class User(base):
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    account_type = Column(Text, nullable=False, default=UserAccountType.Free.value)
 
     @staticmethod
     def get_user_from_api_key(api_key, session):

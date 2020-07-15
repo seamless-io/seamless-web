@@ -4,8 +4,6 @@ import logging
 
 import boto3
 
-events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
-
 LAMBDA_NAME = 'schedule_events_proxy'
 LAMBDA_ARN = f'arn:aws:lambda:us-east-1:202868668807:function:{LAMBDA_NAME}'
 
@@ -14,6 +12,7 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     """
     TODO: do not use project_path as an identifier for events
     """
+    events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     logging.info(f"Scheduling job (id:{job_id}): {cron_schedule} (active: {is_active})")
     result = events.put_rule(
         Name=job_id,
@@ -38,8 +37,10 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
 
 
 def enable_job_schedule(job_id: str):
+    events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     events.enable_rule(Name=job_id)
 
 
 def disable_job_schedule(job_id: str):
+    events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     events.disable_rule(Name=job_id)
