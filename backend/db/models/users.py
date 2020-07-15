@@ -20,7 +20,7 @@ class AccountLimits:
     jobs: int
 
 
-ACCOUNT_LIMITS_BY_TYPE = DotDict({
+ACCOUNT_LIMITS_BY_TYPE = ({
     UserAccountType.Free: AccountLimits(jobs=2),
     UserAccountType.Professional: AccountLimits(jobs=10)
 })
