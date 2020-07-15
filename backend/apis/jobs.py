@@ -13,7 +13,7 @@ from backend.db.models.jobs import JobStatus
 from backend.web import requires_auth
 from backend.config import SCHEDULE_PASSWORD
 from job_executor import project, executor
-from job_executor.project import get_path_to_job, JobType
+from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule
 
 
@@ -99,6 +99,13 @@ def get_job_logs(job_id: str, job_run_id: str):
         logs = [row2dict(log_record) for log_record in job_run.logs]
 
         return jsonify(logs), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
+@requires_auth
+def get_job_code(job_id: str):
+    job_code = fetch_project_from_s3(job_id)
+    return jsonify(job_code), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])
