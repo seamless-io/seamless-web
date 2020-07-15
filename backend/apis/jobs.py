@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, Response, jsonify, session, request
+from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_socketio import emit
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -105,7 +105,7 @@ def get_job_logs(job_id: str, job_run_id: str):
 @requires_auth
 def get_job_code(job_id: str):
     job_code = fetch_project_from_s3(job_id)
-    return jsonify(job_code), 200
+    return send_file(job_code), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])

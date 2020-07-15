@@ -5,6 +5,7 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { getJob } from '../../api';
+import { downloadJobCode } from '../../api';
 
 import './style.css';
 import '../Jobs/toggle.css';
@@ -71,7 +72,7 @@ const Job = () => {
             </button>
             <button
               className="smls-job-download-code-button"
-              onClick={() => alert('Not working yet.')}
+              onClick={() => downloadJobCode(job.id)}
             >
               <img src={download} alt="Download code" />
               <span className="smls-job-download-code-button-text">

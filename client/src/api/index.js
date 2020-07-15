@@ -36,3 +36,9 @@ export const getJobRunLogs = async (job_id, job_run_id) => {
   );
   return response.data;
 };
+
+
+export const downloadJobCode = async (job_id) => {
+  let response = await axios.get('/api/v1/jobs/' + job_id + '/code');
+  return response.data;  // at the same time, flask should return file right away
+};
