@@ -1,10 +1,12 @@
 import datetime
 import enum
+from dataclasses import dataclass
 
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from backend.api_key import API_KEY_LENGTH
+from backend.db.helpers import DotDict
 from backend.db.models.base import base
 
 
@@ -13,14 +15,15 @@ class UserAccountType(enum.Enum):
     Professional = "PROFESSIONAL"
 
 
-ACCOUNT_LIMITS_BY_TYPE = {
-    UserAccountType.Free: {
-        'jobs': 2
-    },
-    UserAccountType.Professional: {
-        'jobs': 10
-    }
-}
+@dataclass
+class AccountLimits:
+    jobs: int
+
+
+ACCOUNT_LIMITS_BY_TYPE = DotDict({
+    UserAccountType.Free: AccountLimits(jobs=2),
+    UserAccountType.Professional: AccountLimits(jobs=10)
+})
 
 
 class User(base):

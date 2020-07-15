@@ -10,6 +10,7 @@ from backend.db.helpers import row2dict
 from backend.db.models import Job, User, JobRun
 from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
+from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
 from backend.config import SCHEDULE_PASSWORD
 from job_executor import project, executor
@@ -118,8 +119,15 @@ def create_job():
 
     with session_scope() as session:
         user = User.get_user_from_api_key(api_key, session)
+
+        account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
+        jobs_limit = account_limits.jobs
+        jobs = list(user.jobs)
+        if len(jobs) >= jobs_limit:
+            return Response('You have reached the limit of jobs for your account', 400)
+
         job = None
-        for j in user.jobs:
+        for j in jobs:
             if j.name == job_name:
                 job = j
                 break
