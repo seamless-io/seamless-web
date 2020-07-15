@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from shutil import copyfile
 from threading import Thread
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import docker
 from docker.errors import BuildError
@@ -30,7 +30,7 @@ def _ensure_requirements(job_directory):
         with open(path_to_requirements, 'w'): pass
 
 
-def _run_container(path_to_job_files: str, tag: str) -> Iterable[bytes]:
+def _run_container(path_to_job_files: str, tag: str) -> Tuple[Iterable[bytes], bool]:
     _ensure_requirements(path_to_job_files)
     docker_client = docker.from_env()
     copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), DOCKER_FILE_NAME),
@@ -68,7 +68,7 @@ def _run_container(path_to_job_files: str, tag: str) -> Iterable[bytes]:
 def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[bytes]:
     logstream, build_successful = _run_container(path_to_job_files, api_key)
     if not build_successful:
-        yield "Job build failed!"
+        yield b"Job build failed!\n"
     for line in logstream:
         yield line
 
