@@ -6,7 +6,6 @@ from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from backend.api_key import API_KEY_LENGTH
-from backend.db.helpers import DotDict
 from backend.db.models.base import base
 
 
