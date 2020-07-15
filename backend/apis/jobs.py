@@ -167,7 +167,7 @@ def _run_job(job_id, type_, user_id=None):
 
         job.status = JobStatus.Executing.value
         job_run = JobRun(job_id=job_id,
-                         type=JobRunType.Schedule.value)
+                         type=type_)
         db_session.add(job_run)
         db_session.commit()
 
