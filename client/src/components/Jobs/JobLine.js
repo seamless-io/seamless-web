@@ -24,43 +24,34 @@ const JobLine = ({ name, schedule, status, id }) => {
   const [scheduleClassName, setScheduleClassName] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
-  const [isRunButtonDisabled, setIsRunButtonDisabled] = useState(false);
-  const [showNotification, setShowNotification] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
 
   if (scheduleValue === 'None') {
     setScheduleValue('Not scheduled');
     setScheduleClassName('smls-muted');
   }
 
+  const openJob = () => {
+    history.push(`jobs/${id}`);
+  };
+
   const socket = openSocket(
     location.protocol + '//' + document.domain + ':' + location.port + '/socket'
   );
 
   useEffect(() => {
-    socket.on('status', data => updateJobStatus(data));
-  }, []);
-
-  const updateJobStatus = data => {
-    setStatusValue(data.status);
-    console.log(data);
-    if (statusValue !== 'EXECUTING') {
-      setIsRunButtonDisabled(false);
-    }
-  };
-
-  const openJob = () => {
-    history.push(`jobs/${id}`);
-  };
+    socket.on('status', data => setStatusValue(data.status));
+  });
 
   const runJob = () => {
-    setIsRunButtonDisabled(true);
     setShowNotification(true);
+    setStatusValue('EXECUTING');
     triggerJobRun(id)
-      .then(payload => {
+      .then(() => {
         setShowNotification(false);
       })
       .catch(payload => {
-        console.log(payload);
+        alert(payload);
       });
   };
 
@@ -70,10 +61,10 @@ const JobLine = ({ name, schedule, status, id }) => {
         onClick={runJob}
         className="smls-job-line-run-button"
         type="button"
-        disabled={isRunButtonDisabled}
+        disabled={statusValue === 'EXECUTING'}
       >
         <img src={play} className="smls-job-play" alt="Job run" />
-        Run Now
+        Run now
       </button>
     );
   };
@@ -123,7 +114,7 @@ const JobLine = ({ name, schedule, status, id }) => {
       >
         <Toast.Header>
           <img src="holder.js/20x20?text=%20" className="rounded mr-2" alt="" />
-          <strong className="mr-auto">Job starts executing...</strong>
+          <strong className="mr-auto">{`${name} starts executing...`}</strong>
         </Toast.Header>
       </Toast>
     </Row>
