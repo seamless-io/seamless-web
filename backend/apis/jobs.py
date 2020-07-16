@@ -132,11 +132,13 @@ def create_job():
                 job = j
                 break
         if job:  # The user re-publishes an existing job
+            existing_job = True
             if cron_schedule:
                 job.schedule = cron_schedule
                 if job.schedule_is_active is None:
                     job.schedule_is_active = True
         else:  # The user publishes the new job
+            existing_job = False
             job_attributes = {
                 'name': job_name,
                 'user_id': user.id
@@ -157,7 +159,7 @@ def create_job():
         return Response(str(exc), 400)
 
     return jsonify({'job_id': job_id,
-                    'existing_job': job is not None}), 200
+                    'existing_job': existing_job}), 200
 
 
 def _run_job(job_id, type_, user_id=None):
