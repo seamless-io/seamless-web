@@ -241,9 +241,3 @@
   top: 18%;
   right: 1%;
 }
-
-button:disabled,
-button[disabled] {
-  background-color: #bec4cc;
-  color: #666666;
-}

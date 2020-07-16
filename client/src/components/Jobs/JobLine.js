@@ -9,6 +9,7 @@ import {
   OverlayTrigger,
   Tooltip,
   Toast,
+  Spinner,
 } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
@@ -53,6 +54,27 @@ const JobLine = ({ name, schedule, status, id }) => {
       });
   };
 
+  const runButtonContent = () => {
+    if (statusValue === 'EXECUTING') {
+      return (
+        <Spinner
+          as="span"
+          animation="border"
+          size="sm"
+          role="status"
+          aria-hidden="true"
+        />
+      );
+    }
+
+    return (
+      <>
+        <img src={play} className="smls-job-play" alt="Job run" />
+        Run now
+      </>
+    );
+  };
+
   const jobRunButton = () => {
     return (
       <button
@@ -61,8 +83,7 @@ const JobLine = ({ name, schedule, status, id }) => {
         type="button"
         disabled={statusValue === 'EXECUTING'}
       >
-        <img src={play} className="smls-job-play" alt="Job run" />
-        Run now
+        {runButtonContent()}
       </button>
     );
   };
