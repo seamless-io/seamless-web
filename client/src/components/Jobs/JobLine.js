@@ -47,9 +47,7 @@ const JobLine = ({ name, schedule, status, id }) => {
     setShowNotification(true);
     setStatusValue('EXECUTING');
     triggerJobRun(id)
-      .then(() => {
-        setShowNotification(false);
-      })
+      .then(() => {})
       .catch(payload => {
         alert(payload);
       });
