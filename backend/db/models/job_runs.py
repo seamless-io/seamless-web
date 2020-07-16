@@ -9,8 +9,8 @@ from backend.db.models.base import base
 
 # IMPORTANT: use only this enum for populating JobRun.type column in the form of JobRunType.<type>.value
 class JobRunType(enum.Enum):
-    RunButton = "RunButton"
-    Schedule = "Schedule"
+    RunButton = "RUN_BUTTON"
+    Schedule = "SCHEDULE"
 
 
 # IMPORTANT: use only this enum for populating JobRun.result column in the form of JobRunResult.<result>.value

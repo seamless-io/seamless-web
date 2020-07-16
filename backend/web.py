@@ -85,6 +85,10 @@ def create_app():
         return auth0.authorize_redirect(redirect_uri=config.AUTH0_CALLBACK_URL,
                                         audience=None)
 
+    @app.route('/debug-sentry')
+    def trigger_error():
+        division_by_zero = 1 / 0
+
     @app.route('/logout')
     def logout():
         session.clear()
