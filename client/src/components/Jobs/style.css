@@ -134,13 +134,6 @@
   border-radius: 4px;
   background-color: #e5f0ff;
   border: 0px;
-}
-
-.smls-job-play {
-  padding-right: 3px;
-}
-
-.smls-job-line-run-button-text {
   font-size: 12px;
   font-weight: 500;
   font-stretch: normal;
@@ -148,6 +141,10 @@
   line-height: 1.33;
   letter-spacing: normal;
   color: #0160e6;
+}
+
+.smls-job-play {
+  padding-right: 3px;
 }
 
 .smls-job-line-toggle-container {
@@ -237,4 +234,16 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.smls-toast-notificaiton {
+  position: absolute;
+  top: 18%;
+  right: 1%;
+}
+
+button:disabled,
+button[disabled] {
+  background-color: #bec4cc;
+  color: #666666;
 }
