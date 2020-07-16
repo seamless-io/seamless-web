@@ -1,5 +1,6 @@
 import datetime
 import enum
+from dataclasses import dataclass
 
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
@@ -13,13 +14,14 @@ class UserAccountType(enum.Enum):
     Professional = "PROFESSIONAL"
 
 
+@dataclass
+class AccountLimits:
+    jobs: int
+
+
 ACCOUNT_LIMITS_BY_TYPE = {
-    UserAccountType.Free: {
-        'jobs': 2
-    },
-    UserAccountType.Professional: {
-        'jobs': 10
-    }
+    UserAccountType.Free: AccountLimits(jobs=2),
+    UserAccountType.Professional: AccountLimits(jobs=10)
 }
 
 

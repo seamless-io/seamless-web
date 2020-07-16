@@ -6,16 +6,16 @@ from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
-from backend.db.helpers import row2dict
+from backend.helpers import row2dict, parse_cron
 from backend.db.models import Job, User, JobRun
 from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
+from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
 from backend.config import SCHEDULE_PASSWORD
 from job_executor import project, executor
 from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule
-
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -125,24 +125,40 @@ def create_job():
 
     with session_scope() as session:
         user = User.get_user_from_api_key(api_key, session)
+
+        account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
+        jobs_limit = account_limits.jobs
+        jobs = list(user.jobs)
+        if len(jobs) >= jobs_limit:
+            return Response('You have reached the limit of jobs for your account', 400)
+
         job = None
-        for j in user.jobs:
+        for j in jobs:
             if j.name == job_name:
                 job = j
                 break
         if job:  # The user re-publishes an existing job
+            existing_job = True
             if cron_schedule:
-                job.schedule = cron_schedule
+                aws_cron, human_cron = parse_cron(cron_schedule)
+                job.cron = cron_schedule
+                job.aws_cron = aws_cron
+                job.human_cron = human_cron
                 if job.schedule_is_active is None:
                     job.schedule_is_active = True
         else:  # The user publishes the new job
+            existing_job = False
             job_attributes = {
                 'name': job_name,
                 'user_id': user.id
             }
             if cron_schedule:
-                job_attributes.update({"schedule": cron_schedule,
-                                       "schedule_is_active": True})
+                aws_cron, human_cron = parse_cron(cron_schedule)
+                job_attributes.update({
+                    "cron": cron_schedule,
+                    "aws_cron": aws_cron,
+                    "human_cron": human_cron,
+                    "schedule_is_active": True})
             job = Job(**job_attributes)
             session.add(job)
 
@@ -156,7 +172,7 @@ def create_job():
         return Response(str(exc), 400)
 
     return jsonify({'job_id': job_id,
-                    'existing_job': job is not None}), 200
+                    'existing_job': existing_job}), 200
 
 
 def _run_job(job_id, type_, user_id=None):
