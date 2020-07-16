@@ -6,7 +6,7 @@ from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
-from backend.db.helpers import row2dict
+from backend.helpers import row2dict, parse_cron
 from backend.db.models import Job, User, JobRun
 from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
@@ -16,7 +16,6 @@ from backend.config import SCHEDULE_PASSWORD
 from job_executor import project, executor
 from job_executor.project import get_path_to_job, JobType
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule
-
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -134,7 +133,10 @@ def create_job():
         if job:  # The user re-publishes an existing job
             existing_job = True
             if cron_schedule:
-                job.schedule = cron_schedule
+                aws_cron, human_cron = parse_cron(cron_schedule)
+                job.cron = cron_schedule
+                job.aws_cron = aws_cron
+                job.human_cron = human_cron
                 if job.schedule_is_active is None:
                     job.schedule_is_active = True
         else:  # The user publishes the new job
@@ -144,8 +146,12 @@ def create_job():
                 'user_id': user.id
             }
             if cron_schedule:
-                job_attributes.update({"schedule": cron_schedule,
-                                       "schedule_is_active": True})
+                aws_cron, human_cron = parse_cron(cron_schedule)
+                job_attributes.update({
+                    "cron": cron_schedule,
+                    "aws_cron": aws_cron,
+                    "human_cron": human_cron,
+                    "schedule_is_active": True})
             job = Job(**job_attributes)
             session.add(job)
 

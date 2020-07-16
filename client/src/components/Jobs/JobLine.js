@@ -18,9 +18,9 @@ import { triggerJobRun } from '../../api';
 import './toggle.css';
 import play from '../../images/play-filled.svg';
 
-const JobLine = ({ name, schedule, status, id }) => {
+const JobLine = ({ name, human_cron, status, id }) => {
   const history = useHistory();
-  const [scheduleValue, setScheduleValue] = useState(schedule);
+  const [scheduleValue, setScheduleValue] = useState(human_cron);
   const [statusValue, setStatusValue] = useState(status);
   const [scheduleClassName, setScheduleClassName] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
