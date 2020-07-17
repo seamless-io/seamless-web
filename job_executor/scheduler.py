@@ -7,6 +7,10 @@ import boto3
 import config
 
 
+def _generate_cloudwatch_rule_name(job_id: str, stage:str) -> str:
+    return f"{stage}-job-{job_id}"
+
+
 def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     """
     TODO: do not use project_path as an identifier for events
@@ -14,7 +18,7 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     logging.info(f"Scheduling job (id:{job_id}): {cron_schedule} (active: {is_active})")
     result = events.put_rule(
-        Name=f"{config.STAGE}/job/{job_id}",
+        Name=_generate_cloudwatch_rule_name(job_id, config.STAGE),
         ScheduleExpression=f"cron({cron_schedule})",  # TODO: convert default cron to AWS cron
         State='ENABLED' if is_active else 'DISABLED'
     )
