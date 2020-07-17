@@ -28,7 +28,7 @@ const Job = () => {
       .then(payload => {
         setName(payload.name);
 
-        if (payload.schedule === 'None') {
+        if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
           setScheduleClassName('smls-muted');
         }
