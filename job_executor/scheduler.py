@@ -7,7 +7,7 @@ import boto3
 import config
 
 
-def _generate_cloudwatch_rule_name(job_id: str, stage:str) -> str:
+def _generate_cloudwatch_rule_name(job_id: str, stage: str) -> str:
     return f"{stage}-job-{job_id}"
 
 
