@@ -1,5 +1,5 @@
-const { useEffect } = require("react");
-const { getJobRunLogs } = require("../../api");
+import  useEffect  from "react";
+import getJobRunLogs from "../../../api";
 
 const ExecutionTimeline  = () => {
   const [logs, setLogs] = useState('');

@@ -5,13 +5,13 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { getJob } from '../../api';
+import ExecutionTimeline from './ExecutionTimeline/ExecutionTimeline';
 
 import './style.css';
 import '../Jobs/toggle.css';
 import download from '../../images/cloud-download.svg';
 import timeHistory from '../../images/time-history.svg';
 import pencil from '../../images/pencil-create.svg';
-import ExecutionTimeline from '../ExecutionTimeline/ExecutionTimeline';
 
 const Job = () => {
   const job = useParams();
