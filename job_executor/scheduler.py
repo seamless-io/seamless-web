@@ -4,8 +4,7 @@ import logging
 
 import boto3
 
-LAMBDA_NAME = 'schedule_events_proxy'
-LAMBDA_ARN = f'arn:aws:lambda:us-east-1:202868668807:function:{LAMBDA_NAME}'
+import config
 
 
 def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
@@ -15,7 +14,7 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     logging.info(f"Scheduling job (id:{job_id}): {cron_schedule} (active: {is_active})")
     result = events.put_rule(
-        Name=job_id,
+        Name=f"{config.STAGE}/job/{job_id}",
         ScheduleExpression=f"cron({cron_schedule})",  # TODO: convert default cron to AWS cron
         State='ENABLED' if is_active else 'DISABLED'
     )
@@ -26,8 +25,8 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
         Rule=job_id,
         Targets=[
             {
-                'Id': LAMBDA_NAME,
-                'Arn': LAMBDA_ARN,
+                'Id': config.LAMBDA_PROXY_NAME,
+                'Arn': config.LAMBDA_PROXY_ARN,
                 'Input': json.dumps({'job_id': job_id}),
             }
         ]

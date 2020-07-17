@@ -5,7 +5,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 
 from flask_socketio import SocketIO
 
-from backend.config import SENTRY_DSN
+from config import SENTRY_DSN
 from backend.web import create_app
 
 sentry_sdk.init(

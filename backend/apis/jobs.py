@@ -12,7 +12,7 @@ from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
 from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
-from backend.config import SCHEDULE_PASSWORD
+import config
 from job_executor import project, executor
 from job_executor.project import get_path_to_job, JobType
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule
@@ -29,7 +29,8 @@ def verify_password(username, password):
     """
     We are going to authenticate scheduler using hardcoded password
     """
-    if username == 'schedule' and check_password_hash(generate_password_hash(SCHEDULE_PASSWORD), password):
+    if username == 'schedule' and check_password_hash(
+            generate_password_hash(config.LAMBDA_PROXY_PASSWORD), password):
         return username
 
 

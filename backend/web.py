@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from functools import wraps
 from urllib.parse import urlencode
@@ -10,7 +9,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, session, url_for, redirect, jsonify
 
 from app_config import Config
-from backend import config
+import config
 from backend.apis.auth0.auth import CoreAuthError
 from backend.db import get_session
 from backend.db.models import User
