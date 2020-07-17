@@ -18,7 +18,9 @@ import { triggerJobRun } from '../../api';
 import './toggle.css';
 import play from '../../images/play-filled.svg';
 
-const socket = io('http://localhost:5000/socket');
+const socket = io(
+  location.protocol + '//' + document.domain + ':' + location.port + '/socket'
+);
 
 const JobLine = ({ name, schedule, status, id }) => {
   const history = useHistory();
