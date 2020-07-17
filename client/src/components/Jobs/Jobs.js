@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import openSocket from 'socket.io-client';
 import { Row, Col, Spinner } from 'react-bootstrap';
 
 import { getJobs, updateJob, getUserInfo } from '../../api';
 import JobLine from './JobLine';
-
 import './style.css';
 
 import linkExternal from '../../images/link-external.svg';
