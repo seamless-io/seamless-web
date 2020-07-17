@@ -1,4 +1,5 @@
 # seamless-web
 The website
 
-![CI/CD](https://github.com/seamless-io/seamless-web/workflows/CI_CD/badge.svg)
+![PROD CI/CD](https://github.com/seamless-io/seamless-web/workflows/PROD_CI_CD/badge.svg)
+![STAGING CI/CD](https://github.com/seamless-io/seamless-web/workflows/STAGING_CI_CD/badge.svg)

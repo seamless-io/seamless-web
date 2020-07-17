@@ -1,4 +1,4 @@
-name: CI_CD
+name: PROD_CI_CD
 
 env:
   WEB_APPLICATION_NAME       : "web-prod"
