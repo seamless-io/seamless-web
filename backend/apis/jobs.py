@@ -105,7 +105,7 @@ def get_job_logs(job_id: str, job_run_id: str):
 @requires_auth
 def get_job_code(job_id: str):
     job_code = fetch_project_from_s3(job_id)
-    return send_file(job_code), 200
+    return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])

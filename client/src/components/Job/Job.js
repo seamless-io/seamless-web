@@ -15,6 +15,9 @@ import pencil from '../../images/pencil-create.svg';
 
 const Job = () => {
   const job = useParams();
+  
+  const downloadJobLink = '/api/v1/jobs/' + job.id + '/code';
+  
   const [name, setName] = useState('');
   const [schedule, setSchedule] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
@@ -70,15 +73,16 @@ const Job = () => {
             >
               <span className="smls-job-run-button-text">Run</span>
             </button>
-            <button
-              className="smls-job-download-code-button"
-              onClick={() => downloadJobCode(job.id)}
-            >
-              <img src={download} alt="Download code" />
-              <span className="smls-job-download-code-button-text">
-                Download Code
-              </span>
-            </button>
+            <a href={downloadJobLink}>
+              <button
+                className="smls-job-download-code-button"
+              >
+                <img src={download} alt="Download code" />
+                <span className="smls-job-download-code-button-text">
+                  Download Code
+                </span>
+              </button>
+            </a>
           </div>
         </Col>
       </Row>
