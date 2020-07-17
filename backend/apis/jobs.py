@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, Response, jsonify, session, request
+from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_socketio import emit
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -14,7 +14,7 @@ from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
 import config
 from job_executor import project, executor
-from job_executor.project import get_path_to_job, JobType
+from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -100,6 +100,13 @@ def get_job_logs(job_id: str, job_run_id: str):
         logs = [row2dict(log_record) for log_record in job_run.logs]
 
         return jsonify(logs), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
+@requires_auth
+def get_job_code(job_id: str):
+    job_code = fetch_project_from_s3(job_id)
+    return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])
