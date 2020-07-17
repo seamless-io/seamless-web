@@ -32,8 +32,14 @@ const JobLine = ({ name, schedule, status, id }) => {
   const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
-    socket.on('status', data => setStatusValue(data.status));
+    socket.on('status', job => updateJobStatus(job));
   }, []);
+
+  const updateJobStatus = job => {
+    if (job.job_id === id) {
+      setStatusValue(job.status);
+    }
+  };
 
   if (scheduleValue === 'None') {
     setScheduleValue('Not scheduled');
