@@ -6,6 +6,8 @@ import requests
 
 from backend.db import session_scope
 from backend.db.models import Job
+from backend.db.models.job_runs import JobRunResult
+from backend.helpers import row2dict
 from tests.integration.conftest import JOBS_PER_USER
 
 PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"
@@ -42,13 +44,19 @@ def test_load(test_users):
                 for job_id in created_job_ids_by_user_id[user['id']]:
                     job = db_session.query(Job).get(job_id)
                     job_runs = list(job.runs)
+                    print([row2dict(l) for l in job_runs])
 
                     # Each job should be executed at least TEST_RUNS times
                     # But no more than TEST_RUNS + 1 because of WAIT_FOR_EXECUTION_SECONDS
                     assert TEST_RUNS <= len(job_runs) <= TEST_RUNS + 1
 
-                    for run in job_runs:
+                    # There may be more runs because of the buffer, but we only check TEST_RUNS
+                    for run in job_runs[:TEST_RUNS]:
                         logs = list(run.logs)
+                        print([row2dict(l) for l in logs])
+
+                        # All executions should be successful
+                        assert run.status == JobRunResult.Ok.value
 
                         # Logs recorded for each job should be exactly like this
                         assert logs[0].message == 'SciPy version: 1.5.1\n'
