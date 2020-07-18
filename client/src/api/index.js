@@ -36,3 +36,10 @@ export const getJobRunLogs = async (job_id, job_run_id) => {
   );
   return response.data;
 };
+
+export const getLastExecutions = async (job_id) => {
+  let response = await axios.get(
+    '/api/v1/jobs/' + job_id + '/executions'
+  );
+  return response.data
+}

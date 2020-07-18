@@ -19,6 +19,7 @@ from job_executor.scheduler import enable_job_schedule, disable_job_schedule
 jobs_bp = Blueprint('jobs', __name__)
 
 TIMESTAMP_FOR_LOGS_FORMAT = "%m_%d_%Y_%H_%M_%S_%f"
+EXECUTION_TIMELINE_HISTORY_LIMIT = 5
 
 auth = HTTPBasicAuth()
 
@@ -105,6 +106,16 @@ def get_job_logs(job_id: str, job_run_id: str):
 def get_job_code(job_id: str):
     job_code = fetch_project_from_s3(job_id)
     return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
+@requires_auth
+def get_job_executions(job_id: str):
+    with session_scope() as db_session:
+        runs = db_session.query(JobRun).filter_by(
+            job_id=job_id).order_by(JobRun.created_at.desc()
+        ).limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
+        return jsonify([{'status': run.status, 'created_at': run.created_at} for run in runs]), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])
