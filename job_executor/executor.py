@@ -27,7 +27,8 @@ def _ensure_requirements(job_directory):
     """
     path_to_requirements = f"{job_directory}/{REQUIREMENTS_FILENAME}"
     if not os.path.exists(path_to_requirements):
-        with open(path_to_requirements, 'w'): pass
+        with open(path_to_requirements, 'w'):
+            pass
 
 
 def _run_container(path_to_job_files: str, tag: str) -> Tuple[Iterable[bytes], bool]:
@@ -84,6 +85,16 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
             job_status = JobStatus.Ok
             for line in logstream:
                 l = str(line, "utf-8")
+
+                # Streaming logs line by line
+                with app.app_context():
+                    emit(
+                        'logs',
+                        {'job_id': job_id, 'log_line': l},
+                        namespace='/socket',
+                        broadcast=True
+                    )
+
                 if "error" in l.lower():
                     job_run_result = JobRunResult.Failed
                     job_status = JobStatus.Failed
@@ -101,6 +112,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
             job_run.status = job_run_result.value
             db_session.commit()
 
+            # Streaming status
             with app.app_context():
                 emit('status', {'job_id': job_id,
                                 'job_run_id': job_run_id,
