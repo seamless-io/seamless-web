@@ -6,7 +6,7 @@ import JobLineItem from './JobLineItem';
 const ExecutionTimeline  = (recentExecutions, futureExecutions) => {
 
   const timelineSeparator = () => {
-    if (futureExecutions) {
+    if (futureExecutions['futureExecutions']) {
       return (
         <Row>
           <Col>
@@ -18,6 +18,14 @@ const ExecutionTimeline  = (recentExecutions, futureExecutions) => {
       );
     }
   };
+
+  const futureExecutionsContent = [];
+  if (futureExecutions['futureExecutions']) {
+    for (const execution of futureExecutions['futureExecutions']) {
+      futureExecutionsContent.push(<JobLineItem execution={execution} />)
+    }
+  }
+  
 
   console.log(futureExecutions);
 
@@ -35,9 +43,7 @@ const ExecutionTimeline  = (recentExecutions, futureExecutions) => {
               </div>
             </Col>
           </Row>
-          {futureExecutions['futureExecutions'].map(execution => (
-            <JobLineItem execution={execution} />
-          ))}
+          {futureExecutionsContent}
           {timelineSeparator()}
           {recentExecutions['recentExecutions'].map(execution => (
             <JobLineItem execution={execution} />
