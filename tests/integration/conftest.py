@@ -2,24 +2,28 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.apis.auth0.users import add_user_to_db
+from backend.api_key import generate_api_key
 from backend.db import session_scope
 from backend.db.models import User
+from backend.helpers import row2dict
 
-NUMBER_OF_TEST_USERS = 10
-TASKS_PER_USER = 2
+NUMBER_OF_TEST_USERS = 1
+JOBS_PER_USER = 1
 DB_PREFIX = "INTEGRATION_TEST"
 
 
 @pytest.fixture(scope="session")
-def create_test_users():
+def test_users():
     with patch('backend.db.DB_PREFIX', DB_PREFIX):
-        user_id = add_user_to_db('fake')
-        print(f"User id: {user_id}")
-
-        yield
-
         with session_scope() as session:
-            deleted_objects = User.__table__.delete().where(User.id.in_([user_id]))
-            session.execute(deleted_objects)
+            users = [User(email=f"{i}@loadtest.com", api_key=generate_api_key())
+                     for i in range(NUMBER_OF_TEST_USERS)]
+            for user in users:
+                session.add(user)
+            session.commit()
+
+            yield [row2dict(user) for user in users]
+
+            for user in users:
+                session.delete(user)
             session.commit()
