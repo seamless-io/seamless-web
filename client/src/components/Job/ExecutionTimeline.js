@@ -9,14 +9,13 @@ import Logs from './Logs';
 const ExecutionTimeline = (props) => {
 
   const [logs, setLogs] = useState('logs...');
-
+  
   useEffect(() => {
     if (props.recentExecutions && props.recentExecutions.length > 0) {
       var last_exec = props.recentExecutions[0];
-      console.log('Updating with :', last_exec);
       updateLogs(last_exec.run_id);
     }
-  }, []);
+  }, [props.recentExecutions]);
 
   const timelineSeparator = () => {
     if (props.futureExecutions && props.futureExecutions.length > 0) {
@@ -33,7 +32,6 @@ const ExecutionTimeline = (props) => {
   };
 
   const updateLogs = (run_id) => {
-    console.log('Updating logs: ', run_id);
     getJobRunLogs(props.job_id, run_id)
       .then(payload => {
         var msgs = [];

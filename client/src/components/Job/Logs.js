@@ -3,7 +3,6 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 
 
 const Logs = (props) => {
-  console.log("re-render logs");
   
   return (
     <Col sm={8} className="smls-job-main-info-section">
