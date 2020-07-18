@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import io from 'socket.io-client';
 import {
   Row,
   Col,
@@ -13,14 +12,11 @@ import {
 } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
+import { socket } from '../../socket';
 import { triggerJobRun } from '../../api';
 
 import './toggle.css';
 import play from '../../images/play-filled.svg';
-
-const socket = io(
-  location.protocol + '//' + document.domain + ':' + location.port + '/socket'
-);
 
 const JobLine = ({ name, human_cron, status, id }) => {
   const history = useHistory();
@@ -31,6 +27,15 @@ const JobLine = ({ name, human_cron, status, id }) => {
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
   const [showNotification, setShowNotification] = useState(false);
 
+  if (scheduleValue === 'None') {
+    setScheduleValue('Not scheduled');
+    setScheduleClassName('smls-muted');
+  }
+
+  const openJob = () => {
+    history.push(`jobs/${id}`);
+  };
+
   useEffect(() => {
     socket.on('status', job => updateJobStatus(job));
   }, []);
@@ -39,15 +44,6 @@ const JobLine = ({ name, human_cron, status, id }) => {
     if (job.job_id === id) {
       setStatusValue(job.status);
     }
-  };
-
-  if (scheduleValue === 'None') {
-    setScheduleValue('Not scheduled');
-    setScheduleClassName('smls-muted');
-  }
-
-  const openJob = () => {
-    history.push(`jobs/${id}`);
   };
 
   const runJob = () => {
