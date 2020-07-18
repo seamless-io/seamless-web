@@ -25,9 +25,6 @@ const ExecutionTimeline  = (recentExecutions, futureExecutions) => {
       futureExecutionsContent.push(<JobLineItem execution={execution} />)
     }
   }
-  
-
-  console.log(futureExecutions);
 
   return (
     <Row className="smls-job-main-info">
