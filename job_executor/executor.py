@@ -27,7 +27,8 @@ def _ensure_requirements(job_directory):
     """
     path_to_requirements = f"{job_directory}/{REQUIREMENTS_FILENAME}"
     if not os.path.exists(path_to_requirements):
-        with open(path_to_requirements, 'w'): pass
+        with open(path_to_requirements, 'w'):
+            pass
 
 
 def _run_container(path_to_job_files: str, tag: str) -> Tuple[Iterable[bytes], bool]:
@@ -105,8 +106,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
                 emit('status', {'job_id': job_id,
                                 'job_run_id': job_run_id,
                                 'status': job_status.value},
-                     namespace='/socket',
-                     broadcast=True)
+                     namespace='/socket')
 
     thread = Thread(target=run_in_thread, kwargs={'app': current_app._get_current_object()})
     thread.start()
