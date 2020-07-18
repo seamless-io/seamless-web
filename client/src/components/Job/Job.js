@@ -6,6 +6,7 @@ import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
 import { getJob, triggerJobRun } from '../../api';
+import ExecutionTimeline from './ExecutionTimeline';
 
 import './style.css';
 import '../Jobs/toggle.css';
@@ -25,6 +26,8 @@ const Job = () => {
   const [statusValue, setStatusValue] = useState(null);
   const [runDateTime, setRunDateTime] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [recentExecutions, setRecentExecutions] = useState([]);
+  const [futureExecutions, setFutureExecutions] = useState([]);
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -51,6 +54,14 @@ const Job = () => {
         setStatusValue(payload.status);
         setRunDateTime(payload.created_at);
 
+        setRecentExecutions([
+          ...recentExecutions,
+          {
+            status: statusValue,
+            run_datetime: runDateTime,
+          },
+        ]);
+
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
           setScheduleClassName('smls-muted');
@@ -69,8 +80,17 @@ const Job = () => {
     triggerJobRun(job.id)
       .then(() => {})
       .catch(payload => {
-        alert(payload);
+        alert(payload); // TODO: do not show on production
       });
+
+    // TODO: fetch jobRunId from `triggerJobRun` and provide it here
+    // setRecentExecutions([
+    //   ...recentExecutions,
+    //   {
+    //     status: statusValue,
+    //     run_datetime: runDateTime
+    //   }
+    // ]);
   };
 
   const runButtonContent = () => {
@@ -155,68 +175,10 @@ const Job = () => {
           </div>
         </Col>
       </Row>
-      <Row className="smls-job-main-info">
-        <Col
-          sm={4}
-          className="smls-job-main-info-section"
-          style={{ borderRight: '2px solid #ebedf0' }}
-        >
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col">
-                <h5>Execution Timeline</h5>
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-scheduled">
-                <div className="smls-job-info-section-col-scheduled-text">
-                  Devember 25, 2020, 05:08
-                </div>
-                <div className="smls-job-info-section-col-scheduled-badge">
-                  <span>scheduled</span>
-                </div>
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-hr">
-                <hr />
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-scheduled">
-                <div className="smls-job-info-section-col-scheduled-text">
-                  {runDateTime}
-                </div>
-                <div className="smls-job-info-section-col-scheduled-badge">
-                  <span>{statusValue}</span>
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Col>
-        <Col sm={8} className="smls-job-main-info-section">
-          <Row>
-            <Col sm={12}>
-              <h5 className="smls-job-main-info-section-header">Logs</h5>
-            </Col>
-            <Col sm={12}>
-              <div className="smls-job-container">
-                {logs.map((log, i) => (
-                  <span key={i} style={{ display: 'block' }}>
-                    {log}
-                  </span>
-                ))}
-              </div>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+      <ExecutionTimeline
+        recentExecutions={recentExecutions}
+        futureExecutions={futureExecutions}
+      />
     </>
   );
 };
