@@ -4,7 +4,6 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import JobLineItem from './JobLineItem';
 
 const ExecutionTimeline  = (recentExecutions) => {
-
   return (
     <Row className="smls-job-main-info">
         <Col
@@ -27,7 +26,9 @@ const ExecutionTimeline  = (recentExecutions) => {
               </div>
             </Col>
           </Row>
-          <JobLineItem />
+          {recentExecutions['recentExecutions'].map(execution => (
+            <JobLineItem execution={execution} />
+          ))}
         </Col>
         <Col sm={8} className="smls-job-main-info-section">
           <Row>
