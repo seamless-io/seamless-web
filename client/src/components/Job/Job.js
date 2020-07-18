@@ -26,8 +26,14 @@ const Job = () => {
   const [runDateTime, setRunDateTime] = useState(null);
 
   useEffect(() => {
-    socket.on('status', job => setStatusValue(job.status));
+    socket.on('status', jobRunning => updateJobStatus(jobRunning));
   }, []);
+
+  const updateJobStatus = jobRunning => {
+    if (jobRunning.job_id === job.id) {
+      setStatusValue(jobRunning.status);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
