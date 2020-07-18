@@ -4,7 +4,8 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-EXISTING_DB = ('SEAMLESS',)
+DB_PREFIX = 'SEAMLESS'
+EXISTING_DB = ('SEAMLESS', 'INTEGRATION_TEST')
 
 _base = None
 
@@ -57,7 +58,7 @@ _engine = None
 def get_engine():
     global _engine
     if not _engine:
-        _engine = _get_engine('SEAMLESS')
+        _engine = _get_engine(DB_PREFIX)
     return _engine
 
 
