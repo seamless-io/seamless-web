@@ -25,6 +25,7 @@ const Job = () => {
   const [loading, setLoading] = useState(null);
   const [statusValue, setStatusValue] = useState(null);
   const [runDateTime, setRunDateTime] = useState(null);
+  const [recentExecutions, setRecentExecutions] = useState([]);
 
   useEffect(() => {
     socket.on('status', job => setStatusValue(job.status));
@@ -37,6 +38,15 @@ const Job = () => {
         setName(payload.name);
         setStatusValue(payload.status);
         setRunDateTime(payload.created_at);
+
+        setRecentExecutions([
+          ...recentExecutions,
+          {
+            id: job.id,
+            status: statusValue,
+            run_datetime: runDateTime
+          }
+        ]);
 
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
@@ -55,8 +65,16 @@ const Job = () => {
     triggerJobRun(job.id)
       .then(() => {})
       .catch(payload => {
-        alert(payload);
+        alert(payload);  // TODO: do not show on production
       });
+
+    setRecentExecutions([
+      ...recentExecutions,
+      {
+        status: statusValue,
+        run_datetime: runDateTime
+      }
+    ]);
   };
 
   const runButtonContent = () => {
@@ -141,7 +159,7 @@ const Job = () => {
           </div>
         </Col>
       </Row>
-      <ExecutionTimeline />
+      <ExecutionTimeline recentExecutions={recentExecutions} />
     </>
   );
 };

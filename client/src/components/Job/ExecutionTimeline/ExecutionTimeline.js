@@ -1,12 +1,7 @@
-import  useEffect  from "react";
-import getJobRunLogs from "../../../api";
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Spinner } from 'react-bootstrap';
 
-const ExecutionTimeline  = () => {
-  const [logs, setLogs] = useState('');
-
-  // useEffect(() => {
-  //   getJobRunLogs(job.id)
-  // }, []);
+const ExecutionTimeline  = (recentExecutions) => {
 
   return (
     <Row className="smls-job-main-info">
@@ -45,10 +40,12 @@ const ExecutionTimeline  = () => {
             <Col>
               <div className="smls-job-info-section-col-scheduled">
                 <div className="smls-job-info-section-col-scheduled-text">
-                  {runDateTime}
+                  {/* {runDateTime} */}
+                  Somehwerw
                 </div>
                 <div className="smls-job-info-section-col-scheduled-badge">
-                  <span>{statusValue}</span>
+                  {/* <span>{statusValue}</span> */}
+                  <span>Made up status</span>
                 </div>
               </div>
             </Col>
