@@ -6,7 +6,7 @@ import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
 import { getJob, triggerJobRun } from '../../api';
-import ExecutionTimeline from './ExecutionTimeline/ExecutionTimeline';
+import ExecutionTimeline from './ExecutionTimeline';
 
 import './style.css';
 import '../Jobs/toggle.css';

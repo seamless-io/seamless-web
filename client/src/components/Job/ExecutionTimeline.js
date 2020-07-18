@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Spinner } from 'react-bootstrap';
 
+import JobLineItem from './JobLineItem';
+
 const ExecutionTimeline  = (recentExecutions) => {
 
   return (
