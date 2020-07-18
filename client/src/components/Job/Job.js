@@ -24,15 +24,22 @@ const Job = () => {
   const [loading, setLoading] = useState(null);
   const [statusValue, setStatusValue] = useState(null);
   const [runDateTime, setRunDateTime] = useState(null);
+  const [logs, setLogs] = useState([]);
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
-    socket.on('logs', logs => console.log(logs));
+    socket.on('logs', jobLogLine => updateJobLogs(jobLogLine));
   }, []);
 
   const updateJobStatus = jobRunning => {
     if (jobRunning.job_id === job.id) {
       setStatusValue(jobRunning.status);
+    }
+  };
+
+  const updateJobLogs = jobLogLine => {
+    if (jobLogLine.job_id === job.id) {
+      setLogs(logs => [...logs, jobLogLine.log_line]);
     }
   };
 
@@ -58,6 +65,7 @@ const Job = () => {
 
   const runJob = () => {
     setStatusValue('EXECUTING');
+    setLogs([]);
     triggerJobRun(job.id)
       .then(() => {})
       .catch(payload => {
@@ -198,7 +206,13 @@ const Job = () => {
               <h5 className="smls-job-main-info-section-header">Logs</h5>
             </Col>
             <Col sm={12}>
-              <div className="smls-job-container">logs....</div>
+              <div className="smls-job-container">
+                {logs.map((log, i) => (
+                  <span key={i} style={{ display: 'block' }}>
+                    {log}
+                  </span>
+                ))}
+              </div>
             </Col>
           </Row>
         </Col>

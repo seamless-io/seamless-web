@@ -1,7 +1,6 @@
 import logging
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
-from flask_socketio import emit
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
