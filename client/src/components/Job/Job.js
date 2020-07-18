@@ -26,6 +26,7 @@ const Job = () => {
   const [statusValue, setStatusValue] = useState(null);
   const [runDateTime, setRunDateTime] = useState(null);
   const [recentExecutions, setRecentExecutions] = useState([]);
+  const [futureExecutions, setFutureExecutions] = useState([]);
 
   useEffect(() => {
     socket.on('status', job => setStatusValue(job.status));
@@ -42,7 +43,6 @@ const Job = () => {
         setRecentExecutions([
           ...recentExecutions,
           {
-            id: job.id,
             status: statusValue,
             run_datetime: runDateTime
           }
@@ -68,13 +68,14 @@ const Job = () => {
         alert(payload);  // TODO: do not show on production
       });
 
-    setRecentExecutions([
-      ...recentExecutions,
-      {
-        status: statusValue,
-        run_datetime: runDateTime
-      }
-    ]);
+    // TODO: fetch jobRunId from `triggerJobRun` and provide it here
+    // setRecentExecutions([
+    //   ...recentExecutions,
+    //   {
+    //     status: statusValue,
+    //     run_datetime: runDateTime
+    //   }
+    // ]);
   };
 
   const runButtonContent = () => {
@@ -159,7 +160,7 @@ const Job = () => {
           </div>
         </Col>
       </Row>
-      <ExecutionTimeline recentExecutions={recentExecutions} />
+      <ExecutionTimeline recentExecutions={recentExecutions} futureExecutions={futureExecutions} />
     </>
   );
 };
