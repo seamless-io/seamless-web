@@ -3,10 +3,10 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 
 import JobLineItem from './JobLineItem';
 
-const ExecutionTimeline  = (recentExecutions, futureExecutions) => {
+const ExecutionTimeline  = (props) => {
 
   const timelineSeparator = () => {
-    if (futureExecutions['futureExecutions']) {
+    if (props.futureExecutions) {
       return (
         <Row>
           <Col>
@@ -18,13 +18,6 @@ const ExecutionTimeline  = (recentExecutions, futureExecutions) => {
       );
     }
   };
-
-  const futureExecutionsContent = [];
-  if (futureExecutions['futureExecutions']) {
-    for (const execution of futureExecutions['futureExecutions']) {
-      futureExecutionsContent.push(<JobLineItem execution={execution} />)
-    }
-  }
 
   return (
     <Row className="smls-job-main-info">
@@ -40,11 +33,9 @@ const ExecutionTimeline  = (recentExecutions, futureExecutions) => {
               </div>
             </Col>
           </Row>
-          {futureExecutionsContent}
+          {props.futureExecutions.map(exec => ( <JobLineItem execution={exec} /> ))}
           {timelineSeparator()}
-          {recentExecutions['recentExecutions'].map(execution => (
-            <JobLineItem execution={execution} />
-          ))}
+          {props.recentExecutions.map(exec => ( <JobLineItem execution={exec} /> ))}
         </Col>
         <Col sm={8} className="smls-job-main-info-section">
           <Row>

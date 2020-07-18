@@ -5,7 +5,7 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
-import { getJob, triggerJobRun } from '../../api';
+import { getJob, triggerJobRun, getLastExecutions } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
 
 import './style.css';
@@ -54,24 +54,28 @@ const Job = () => {
         setStatusValue(payload.status);
         setRunDateTime(payload.created_at);
 
-        setRecentExecutions([
-          ...recentExecutions,
-          {
-            status: statusValue,
-            run_datetime: runDateTime,
-          },
-        ]);
-
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
           setScheduleClassName('smls-muted');
         }
-
-        setLoading(false);
       })
       .catch(() => {
         alert('Error!');
       });
+    
+    getLastExecutions(job.id)
+      .then(payload => {
+        const executions = [];
+        for (const execution of payload) {
+          executions.push({status: execution.status, run_datetime: execution.created_at});
+        }
+        setRecentExecutions(executions);
+      })
+      .catch(() => {
+        alert('Error!')
+      });
+    
+    setLoading(false);
   }, []);
 
   const runJob = () => {
