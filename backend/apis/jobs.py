@@ -1,7 +1,6 @@
 import logging
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
-from flask_socketio import emit
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -98,7 +97,6 @@ def get_job_logs(job_id: str, job_run_id: str):
             return "Job Not Found", 404
         job_run = db_session.query(JobRun).get(job_run_id)
         logs = [row2dict(log_record) for log_record in job_run.logs]
-
         return jsonify(logs), 200
 
 
@@ -195,11 +193,6 @@ def _run_job(job_id, type_, user_id=None):
         db_session.add(job_run)
         db_session.commit()
 
-        emit('status', {'job_id': job_id,
-                        'job_run_id': job_run.id,
-                        'status': job.status},
-             namespace='/socket',
-             broadcast=True)
         path_to_job_files = get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
         executor.execute_and_stream_to_db(path_to_job_files, str(job.id), str(job_run.id))
 
