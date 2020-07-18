@@ -4,17 +4,21 @@ from time import sleep
 
 import requests
 
+from backend.db import session_scope
+from backend.db.models import Job
 from tests.integration.conftest import JOBS_PER_USER
 
 PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"
 DELETE_URL = f"https://staging-app.seamlesscloud.io/api/v1/jobs/"
 PACKAGE_NAME = "seamless_package.tar.gz"
 TEST_SCHEDULE = "* * * * *"
-TEST_RUNS = 1
+TEST_RUNS = 5
 WAIT_FOR_EXECUTION_SECONDS = 60 * (TEST_RUNS + 1)  # Add a buffer so we don't miss executions
 
 
 def test_load(test_users):
+
+    # Create test jobs using the API
     tar = tarfile.open(PACKAGE_NAME, "w:gz")
     tar.add("tests/integration/test_seamless_project", ".")
     tar.close()
@@ -29,11 +33,31 @@ def test_load(test_users):
             resp.raise_for_status()
             created_job_ids_by_user_id[user['id']].append(resp.json()['job_id'])
 
+    # Wait until they are all executed
     sleep(WAIT_FOR_EXECUTION_SECONDS)
 
-    for user in test_users:
-        created_job_ids = created_job_ids_by_user_id[user['id']]
-        for job_id in created_job_ids:
-            resp = requests.delete(f"{DELETE_URL}{job_id}",
-                                   headers={'Authorization': user['api_key']})
-            resp.raise_for_status()
+    try:
+        with session_scope() as db_session:
+            for user in test_users:
+                for job_id in created_job_ids_by_user_id[user['id']]:
+                    job = db_session.query(Job).get(job_id)
+                    job_runs = list(job.runs)
+
+                    # Each job should be executed at least TEST_RUNS times
+                    # But no more than TEST_RUNS + 1 because of WAIT_FOR_EXECUTION_SECONDS
+                    assert TEST_RUNS <= len(job_runs) <= TEST_RUNS + 1
+
+                    for run in job_runs:
+                        logs = list(run.logs)
+
+                        # Logs recorded for each job should be exactly like this
+                        assert logs[0].message == 'SciPy version: 1.5.1\n'
+                        assert logs[1].message == 'Executing...\n'
+                        assert logs[2].message == 'Finished\n'
+    finally:
+        # Remove all test jobs using the API
+        for user in test_users:
+            for job_id in created_job_ids_by_user_id[user['id']]:
+                resp = requests.delete(f"{DELETE_URL}{job_id}",
+                                       headers={'Authorization': user['api_key']})
+                resp.raise_for_status()
