@@ -7,7 +7,7 @@ from backend.db import session_scope
 from backend.db.models import User
 from backend.helpers import row2dict
 
-NUMBER_OF_TEST_USERS = 100
+NUMBER_OF_TEST_USERS = 2
 JOBS_PER_USER = 2
 DB_PREFIX = "INTEGRATION_TEST"
 

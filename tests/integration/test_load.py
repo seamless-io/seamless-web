@@ -8,6 +8,7 @@ from backend.db import session_scope
 from backend.db.models import Job
 from backend.db.models.job_runs import JobRunResult
 from backend.helpers import row2dict
+from job_executor.scheduler import remove_job_schedule
 from tests.integration.conftest import JOBS_PER_USER
 
 PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"
@@ -69,3 +70,6 @@ def test_load(test_users):
                 resp = requests.delete(f"{DELETE_URL}{job_id}",
                                        headers={'Authorization': user['api_key']})
                 resp.raise_for_status()
+
+    # for i in range(327, 347):
+    #     remove_job_schedule(str(i))
