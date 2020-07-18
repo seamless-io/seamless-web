@@ -17,18 +17,7 @@ const ExecutionTimeline  = (recentExecutions) => {
               </div>
             </Col>
           </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-scheduled">
-                <div className="smls-job-info-section-col-scheduled-text">
-                  Devember 25, 2020, 05:08
-                </div>
-                <div className="smls-job-info-section-col-scheduled-badge">
-                  <span>scheduled</span>
-                </div>
-              </div>
-            </Col>
-          </Row>
+          <JobLineItem />
           <Row>
             <Col>
               <div className="smls-job-info-section-col-hr">
@@ -36,20 +25,7 @@ const ExecutionTimeline  = (recentExecutions) => {
               </div>
             </Col>
           </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-scheduled">
-                <div className="smls-job-info-section-col-scheduled-text">
-                  {/* {runDateTime} */}
-                  Somehwerw
-                </div>
-                <div className="smls-job-info-section-col-scheduled-badge">
-                  {/* <span>{statusValue}</span> */}
-                  <span>Made up status</span>
-                </div>
-              </div>
-            </Col>
-          </Row>
+          <JobLineItem />
         </Col>
         <Col sm={8} className="smls-job-main-info-section">
           <Row>
