@@ -27,7 +27,7 @@ const Job = () => {
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
-    socket.on('logs', log => console.log(log));
+    socket.on('logs', logs => console.log(logs));
   }, []);
 
   const updateJobStatus = jobRunning => {

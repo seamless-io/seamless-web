@@ -85,6 +85,10 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
             job_status = JobStatus.Ok
             for line in logstream:
                 l = str(line, "utf-8")
+                with app.app_context():
+                    emit('logs', {'log_line': l},
+                         namespace='/socket',
+                         broadcast=True)
                 if "error" in l.lower():
                     job_run_result = JobRunResult.Failed
                     job_status = JobStatus.Failed
@@ -106,7 +110,8 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
                 emit('status', {'job_id': job_id,
                                 'job_run_id': job_run_id,
                                 'status': job_status.value},
-                     namespace='/socket')
+                     namespace='/socket',
+                     broadcast=True)
 
     thread = Thread(target=run_in_thread, kwargs={'app': current_app._get_current_object()})
     thread.start()
