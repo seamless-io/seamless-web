@@ -6,7 +6,7 @@ import JobLineItem from './JobLineItem';
 const ExecutionTimeline  = (props) => {
 
   const timelineSeparator = () => {
-    if (props.futureExecutions) {
+    if (props.futureExecutions && props.futureExecutions.length > 0) {
       return (
         <Row>
           <Col>
