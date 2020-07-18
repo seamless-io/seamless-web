@@ -67,7 +67,11 @@ const Job = () => {
       .then(payload => {
         const executions = [];
         for (const execution of payload) {
-          executions.push({status: execution.status, run_datetime: execution.created_at});
+          executions.push({
+            status: execution.status,
+            run_datetime: execution.created_at,
+            run_id: execution.run_id
+          });
         }
         setRecentExecutions(executions);
       })
@@ -182,6 +186,7 @@ const Job = () => {
       <ExecutionTimeline
         recentExecutions={recentExecutions}
         futureExecutions={futureExecutions}
+        job_id={job.id}
       />
     </>
   );

@@ -115,7 +115,9 @@ def get_job_executions(job_id: str):
         runs = db_session.query(JobRun).filter_by(
             job_id=job_id).order_by(JobRun.created_at.desc()
         ).limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
-        return jsonify([{'status': run.status, 'created_at': run.created_at} for run in runs]), 200
+        return jsonify([{'status': run.status,
+                         'created_at': run.created_at,
+                         'run_id': run.id} for run in runs]), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])

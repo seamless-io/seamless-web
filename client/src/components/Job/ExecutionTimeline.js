@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Spinner } from 'react-bootstrap';
 
-import JobLineItem from './JobLineItem';
+import { getJobRunLogs } from '../../api';
 
-const ExecutionTimeline  = (props) => {
+import JobLineItem from './JobLineItem';
+import Logs from './Logs';
+
+const ExecutionTimeline = (props) => {
+
+  const [logs, setLogs] = useState('logs...');
+
+  useEffect(() => {
+    if (props.recentExecutions && props.recentExecutions.length > 0) {
+      var last_exec = props.recentExecutions[0];
+      console.log('Updating with :', last_exec);
+      updateLogs(last_exec.run_id);
+    }
+  }, []);
 
   const timelineSeparator = () => {
     if (props.futureExecutions && props.futureExecutions.length > 0) {
@@ -19,6 +32,21 @@ const ExecutionTimeline  = (props) => {
     }
   };
 
+  const updateLogs = (run_id) => {
+    console.log('Updating logs: ', run_id);
+    getJobRunLogs(props.job_id, run_id)
+      .then(payload => {
+        var msgs = [];
+        for (const item of payload) {
+          msgs.push(item.message);
+        }
+        setLogs(msgs);
+      })
+      .catch((something) => {
+        alert('errors!');
+      });
+  }
+
   return (
     <Row className="smls-job-main-info">
         <Col
@@ -33,20 +61,17 @@ const ExecutionTimeline  = (props) => {
               </div>
             </Col>
           </Row>
-          {props.futureExecutions.map(exec => ( <JobLineItem execution={exec} /> ))}
+          {props.futureExecutions.map(exec => (
+            <JobLineItem execution={exec} />
+          ))}
           {timelineSeparator()}
-          {props.recentExecutions.map(exec => ( <JobLineItem execution={exec} /> ))}
+          {props.recentExecutions.map(exec => (
+            <span onClick={() => updateLogs(exec.run_id) }>
+              <JobLineItem execution={exec} />
+            </span>
+          ))}
         </Col>
-        <Col sm={8} className="smls-job-main-info-section">
-          <Row>
-            <Col sm={12}>
-              <h5 className="smls-job-main-info-section-header">Logs</h5>
-            </Col>
-            <Col sm={12}>
-              <div className="smls-job-container">logs....</div>
-            </Col>
-          </Row>
-        </Col>
+        <Logs logs={logs} />
       </Row>
   )
 }
