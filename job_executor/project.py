@@ -13,12 +13,14 @@ from typing import Optional
 import boto3
 from werkzeug.datastructures import FileStorage
 
+from config import STAGE
+
 ALLOWED_EXTENSION = "tar.gz"
 UPLOAD_FOLDER = "user_projects"
 DATETIME_FOLDER_NAME_FORMAT = "%m_%d_%Y_%H_%M_%S"
 
 s3 = boto3.client('s3', region_name=os.getenv('AWS_REGION_NAME'))
-USER_PROJECTS_S3_BUCKET = "web-prod-jobs"
+USER_PROJECTS_S3_BUCKET = f"web-{STAGE}-jobs"
 
 
 class JobType(Enum):
@@ -39,8 +41,16 @@ def get_path_to_job(job_type: JobType,
 
 
 def save_project_to_s3(fileobj, job_id):
-    s3.upload_fileobj(fileobj, USER_PROJECTS_S3_BUCKET, f"{job_id}.{ALLOWED_EXTENSION}")
+    s3.upload_fileobj(Fileobj=fileobj,
+                      Bucket=USER_PROJECTS_S3_BUCKET,
+                      Key=f"{job_id}.{ALLOWED_EXTENSION}")
     logging.info(f"Files of job {job_id} saved to {USER_PROJECTS_S3_BUCKET} s3 bucket")
+
+
+def remove_project_from_s3(job_id):
+    s3.delete_object(Bucket=USER_PROJECTS_S3_BUCKET,
+                     Key=f"{job_id}.{ALLOWED_EXTENSION}")
+    logging.info(f"Files of job {job_id} removed from {USER_PROJECTS_S3_BUCKET} s3 bucket")
 
 
 def create(fileobj: FileStorage,

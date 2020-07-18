@@ -48,3 +48,11 @@ def enable_job_schedule(job_id: str):
 def disable_job_schedule(job_id: str):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     events.disable_rule(Name=job_id)
+
+
+def remove_job_schedule(job_id: str):
+    events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
+    cloudwatch_rule_name = _generate_cloudwatch_rule_name(job_id, config.STAGE)
+    events.remove_targets(Rule=cloudwatch_rule_name,
+                          Ids=[config.LAMBDA_PROXY_NAME])
+    events.delete_rule(Name=cloudwatch_rule_name)
