@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.7
 
 ADD requirements.txt /tmp/requirements.txt
 RUN cd /tmp && pip install -U -r requirements.txt

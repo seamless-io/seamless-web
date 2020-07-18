@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import openSocket from 'socket.io-client';
 import { Row, Col, Spinner } from 'react-bootstrap';
 
-import { getJobs, updateJob } from '../../api';
+import { getJobs, updateJob, getUserInfo } from '../../api';
 import JobLine from './JobLine';
-
 import './style.css';
 
 import linkExternal from '../../images/link-external.svg';
@@ -15,6 +13,17 @@ const Jobs = () => {
   const [jobs, setjobs] = useState([]);
   const [noJobsStyle, setNoJobsStyle] = useState('');
   const [loading, setLoading] = useState(null);
+  const [apiKey, setApiKey] = useState('');
+
+  useEffect(() => {
+    getUserInfo()
+      .then(payload => {
+        setApiKey(payload.api_key);
+      })
+      .catch(() => {
+        alert('Error!');
+      });
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -81,11 +90,10 @@ const Jobs = () => {
                 further instractions:
               </p>
               <div>
-                <code className="smls-jobs-code">pip install seamless-cli</code>
+                <code className="smls-jobs-code">pip install smls</code>
                 <code className="smls-jobs-code">
-                  seamless-cli configure api_key=23i485765834012
+                  {`smls init --api-key ${apiKey}`}
                 </code>
-                <code className="smls-jobs-code">seamless init</code>
               </div>
               <p className="smls-jobs-python-requirement">
                 * Requires Python 3.6 or higher

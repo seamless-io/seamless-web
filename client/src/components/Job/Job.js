@@ -4,7 +4,8 @@ import { useParams } from 'react-router-dom';
 import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
-import { getJob } from '../../api';
+import { socket } from '../../socket';
+import { getJob, triggerJobRun } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline/ExecutionTimeline';
 
 import './style.css';
@@ -15,20 +16,29 @@ import pencil from '../../images/pencil-create.svg';
 
 const Job = () => {
   const job = useParams();
+  const downloadJobLink = `/api/v1/jobs/${job.id}/code`;
   const [name, setName] = useState('');
   const [schedule, setSchedule] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
   const [scheduleClassName, setScheduleClassName] = useState('');
   const [loading, setLoading] = useState(null);
+  const [statusValue, setStatusValue] = useState(null);
+  const [runDateTime, setRunDateTime] = useState(null);
+
+  useEffect(() => {
+    socket.on('status', job => setStatusValue(job.status));
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     getJob(job.id)
       .then(payload => {
         setName(payload.name);
+        setStatusValue(payload.status);
+        setRunDateTime(payload.created_at);
 
-        if (payload.schedule === 'None') {
+        if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
           setScheduleClassName('smls-muted');
         }
@@ -39,6 +49,35 @@ const Job = () => {
         alert('Error!');
       });
   }, []);
+
+  const runJob = () => {
+    setStatusValue('EXECUTING');
+    triggerJobRun(job.id)
+      .then(() => {})
+      .catch(payload => {
+        alert(payload);
+      });
+  };
+
+  const runButtonContent = () => {
+    if (statusValue === 'EXECUTING') {
+      return (
+        <Spinner
+          as="span"
+          animation="border"
+          size="sm"
+          role="status"
+          aria-hidden="true"
+        />
+      );
+    }
+
+    return (
+      <>
+        <span className="smls-job-run-button-text">Run</span>
+      </>
+    );
+  };
 
   if (loading) {
     return (
@@ -66,19 +105,20 @@ const Job = () => {
           <div className="smls-job-header-buttons">
             <button
               className="smls-job-run-button"
-              onClick={() => alert('Not working yet.')}
+              type="button"
+              disabled={statusValue === 'EXECUTING'}
+              onClick={runJob}
             >
-              <span className="smls-job-run-button-text">Run</span>
+              {runButtonContent()}
             </button>
-            <button
-              className="smls-job-download-code-button"
-              onClick={() => alert('Not working yet.')}
-            >
-              <img src={download} alt="Download code" />
-              <span className="smls-job-download-code-button-text">
-                Download Code
-              </span>
-            </button>
+            <a href={downloadJobLink}>
+              <button className="smls-job-download-code-button">
+                <img src={download} alt="Download code" />
+                <span className="smls-job-download-code-button-text">
+                  Download Code
+                </span>
+              </button>
+            </a>
           </div>
         </Col>
       </Row>

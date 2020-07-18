@@ -1,22 +1,21 @@
 import logging
 
-from flask import Blueprint, Response, jsonify, session, request
+from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_socketio import emit
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
-from backend.db.helpers import row2dict
+from backend.helpers import row2dict, parse_cron
 from backend.db.models import Job, User, JobRun
 from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
 from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
-from backend.config import SCHEDULE_PASSWORD
+import config
 from job_executor import project, executor
-from job_executor.project import get_path_to_job, JobType
+from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule
-
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -30,7 +29,8 @@ def verify_password(username, password):
     """
     We are going to authenticate scheduler using hardcoded password
     """
-    if username == 'schedule' and check_password_hash(generate_password_hash(SCHEDULE_PASSWORD), password):
+    if username == 'schedule' and check_password_hash(
+            generate_password_hash(config.LAMBDA_PROXY_PASSWORD), password):
         return username
 
 
@@ -102,6 +102,13 @@ def get_job_logs(job_id: str, job_run_id: str):
         return jsonify(logs), 200
 
 
+@jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
+@requires_auth
+def get_job_code(job_id: str):
+    job_code = fetch_project_from_s3(job_id)
+    return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
+
+
 @jobs_bp.route('/publish', methods=['PUT'])
 def create_job():
     api_key = request.headers.get('Authorization')
@@ -132,18 +139,27 @@ def create_job():
                 job = j
                 break
         if job:  # The user re-publishes an existing job
+            existing_job = True
             if cron_schedule:
-                job.schedule = cron_schedule
+                aws_cron, human_cron = parse_cron(cron_schedule)
+                job.cron = cron_schedule
+                job.aws_cron = aws_cron
+                job.human_cron = human_cron
                 if job.schedule_is_active is None:
                     job.schedule_is_active = True
         else:  # The user publishes the new job
+            existing_job = False
             job_attributes = {
                 'name': job_name,
                 'user_id': user.id
             }
             if cron_schedule:
-                job_attributes.update({"schedule": cron_schedule,
-                                       "schedule_is_active": True})
+                aws_cron, human_cron = parse_cron(cron_schedule)
+                job_attributes.update({
+                    "cron": cron_schedule,
+                    "aws_cron": aws_cron,
+                    "human_cron": human_cron,
+                    "schedule_is_active": True})
             job = Job(**job_attributes)
             session.add(job)
 
@@ -157,7 +173,7 @@ def create_job():
         return Response(str(exc), 400)
 
     return jsonify({'job_id': job_id,
-                    'existing_job': job is not None}), 200
+                    'existing_job': existing_job}), 200
 
 
 def _run_job(job_id, type_, user_id=None):

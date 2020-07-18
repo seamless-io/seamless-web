@@ -67,12 +67,16 @@ def create(fileobj: FileStorage,
     return path
 
 
-def restore_project_from_s3(path_to_job_files: str, job_id: str):
-    Path(path_to_job_files).mkdir(parents=True, exist_ok=True)
+def fetch_project_from_s3(job_id: str) -> io.BytesIO:
     s3_response_object = s3.get_object(Bucket=USER_PROJECTS_S3_BUCKET,
                                        Key=f"{job_id}.{ALLOWED_EXTENSION}")
 
-    io_bytes = io.BytesIO(s3_response_object['Body'].read())
+    return io.BytesIO(s3_response_object['Body'].read())
+
+
+def restore_project_from_s3(path_to_job_files: str, job_id: str):
+    Path(path_to_job_files).mkdir(parents=True, exist_ok=True)
+    io_bytes = fetch_project_from_s3(job_id)
     tar = tarfile.open(fileobj=io_bytes, mode='r')
     tar.extractall(path=path_to_job_files)
     tar.close()

@@ -47,7 +47,7 @@ services:
 
   # Database
   postgres:
-    image: postgres:9.6
+    image: postgres:10.9
     environment:
       - POSTGRES_PASSWORD=root
     volumes:

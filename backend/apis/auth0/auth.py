@@ -8,7 +8,7 @@ import jwt
 from flask import request, _request_ctx_stack # type: ignore
 from jwt.algorithms import RSAAlgorithm
 
-from backend import config
+import config
 
 ALGORITHMS = ["RS256"]
 

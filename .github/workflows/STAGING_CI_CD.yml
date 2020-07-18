@@ -1,0 +1,107 @@
+name: STAGING_CI_CD
+
+env:
+  WEB_APPLICATION_NAME       : "web-staging"
+  WEB_ENVIRONMENT_NAME       : "web-staging-env"
+
+  PACKAGE_S3_BUCKET_NAME : "web-staging-packages"
+  DEPLOY_PACKAGE_NAME    : "web_${{ github.sha }}.zip"
+  
+  AWS_REGION_NAME           : "us-east-1"
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  ci_cd:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r test_requirements.txt
+
+    ### TESTS START ###
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Check with mypy
+      run: mypy .
+
+    - name: Test with pytest
+      run: pytest tests
+
+    ### TESTS END ###
+
+    ### DB MIGRATION START ###
+
+    - name: Set up db credentials
+      uses: allenevans/set-env@v1.0.0
+      with:
+        SEAMLESS_DB_USER: root
+        SEAMLESS_DB_PASSWORD: ${{ secrets.SEAMLESS_STAGING_DB_PASSWORD }}
+        SEAMLESS_DB_HOST: web-staging-rds.cfwcqupm4ywp.us-east-1.rds.amazonaws.com
+        PYTHONPATH: . # alembic upgrade head won't be able to import core module without this
+
+    - name: Migrate db
+      run: |
+        sudo apt install alembic
+        alembic upgrade head
+
+    ### DB MIGRATION END ###
+
+    ### CREATING PACKAGE START ###
+
+    - name: Build client
+      run: cd client && npm install -g parcel && npm install && npm run build
+
+    - name: Create ZIP deployment package
+      run: zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git* -x __pycache__/\* -x .pytest_cache/\* -x *.mypy* -x tests/\* -x test_requirements.txt -x Dockerfile* -x client/\*
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION_NAME }}
+
+    - name: Upload package to S3 bucket
+      run: aws s3 cp ${{ env.DEPLOY_PACKAGE_NAME }} s3://${{ env.PACKAGE_S3_BUCKET_NAME }}/
+
+    ### CREATING PACKAGE END ###
+
+    ### DEPLOYING TO WEB ENVIRONMENT START ###
+
+    - name: Create new ElasticBeanstalk Application Version
+      run: |
+        aws elasticbeanstalk create-application-version \
+        --application-name ${{ env.WEB_APPLICATION_NAME }} \
+        --source-bundle S3Bucket="${{ env.PACKAGE_S3_BUCKET_NAME }}",S3Key="${{ env.DEPLOY_PACKAGE_NAME }}" \
+        --version-label "ver-${{ github.sha }}" \
+        --description "commit-sha-${{ github.sha }}"
+
+    - name: Deploy new ElasticBeanstalk Application Version
+      run: aws elasticbeanstalk update-environment --environment-name ${{ env.WEB_ENVIRONMENT_NAME }} --version-label "ver-${{ github.sha }}"
+
+    ### DEPLOYING TO WEB ENVIRONMENT END ###

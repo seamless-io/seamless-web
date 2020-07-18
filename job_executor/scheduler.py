@@ -4,18 +4,22 @@ import logging
 
 import boto3
 
-LAMBDA_NAME = 'schedule_events_proxy'
-LAMBDA_ARN = f'arn:aws:lambda:us-east-1:202868668807:function:{LAMBDA_NAME}'
+import config
+
+
+def _generate_cloudwatch_rule_name(job_id: str, stage: str) -> str:
+    return f"{stage}-job-{job_id}"
 
 
 def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     """
     TODO: do not use project_path as an identifier for events
     """
+    cloudwatch_rule_name = _generate_cloudwatch_rule_name(job_id, config.STAGE)
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     logging.info(f"Scheduling job (id:{job_id}): {cron_schedule} (active: {is_active})")
     result = events.put_rule(
-        Name=job_id,
+        Name=cloudwatch_rule_name,
         ScheduleExpression=f"cron({cron_schedule})",  # TODO: convert default cron to AWS cron
         State='ENABLED' if is_active else 'DISABLED'
     )
@@ -23,11 +27,11 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     logging.info(f"Cloudwatch Event Rule was configured succesfully. Rule ARN: {rule_arn}")
 
     res = events.put_targets(
-        Rule=job_id,
+        Rule=cloudwatch_rule_name,
         Targets=[
             {
-                'Id': LAMBDA_NAME,
-                'Arn': LAMBDA_ARN,
+                'Id': config.LAMBDA_PROXY_NAME,
+                'Arn': config.LAMBDA_PROXY_ARN,
                 'Input': json.dumps({'job_id': job_id}),
             }
         ]
