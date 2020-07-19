@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 
@@ -13,6 +13,10 @@ const ExecutionTimeline = ({
   jobId,
   schedule,
 }) => {
+  const [logs, setLogs] = useState([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [initialScreen, setInitialScreen] = useState(true);
+
   const renderExecutionTimeLine = () => {
     if (loadingExecutionTimeLine) {
       return (
@@ -67,9 +71,12 @@ const ExecutionTimeline = ({
   };
 
   const showLogs = run_id => {
+    setInitialScreen(false);
+    setLoadingLogs(true);
     getJobRunLogs(jobId, run_id)
       .then(payload => {
-        console.log(payload);
+        setLogs(payload);
+        setLoadingLogs(false);
       })
       .catch(payload => {
         alert(payload); // TODO: create a notification component
@@ -95,10 +102,14 @@ const ExecutionTimeline = ({
       <Col sm={8} className="smls-job-main-info-section">
         <Row>
           <Col sm={12}>
-            <h5 className="smls-job-main-info-section-header">Logs</h5>
+            <h5>Logs</h5>
           </Col>
           <Col sm={12}>
-            <Logs />
+            <Logs
+              logs={logs}
+              loadingLogs={loadingLogs}
+              initialScreen={initialScreen}
+            />
           </Col>
         </Row>
       </Col>
