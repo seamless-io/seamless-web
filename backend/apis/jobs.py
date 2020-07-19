@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_httpauth import HTTPBasicAuth
+from flask_socketio import emit
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
@@ -205,6 +206,11 @@ def _run_job(job_id, type_, user_id=None):
                          type=type_)
         db_session.add(job_run)
         db_session.commit()
+
+        emit('status', {'job_id': job_id,
+                        'status': job.status},
+             namespace='/socket',
+             broadcast=True)
 
         path_to_job_files = get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
         executor.execute_and_stream_to_db(path_to_job_files, str(job.id), str(job_run.id))

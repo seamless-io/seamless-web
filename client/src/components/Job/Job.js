@@ -62,7 +62,10 @@ const Job = () => {
       .catch(() => {
         alert('Error!');
       });
-    
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
     getLastExecutions(job.id)
       .then(payload => {
         const executions = [];
@@ -78,15 +81,15 @@ const Job = () => {
       .catch(() => {
         alert('Error!')
       });
-    
-    setLoading(false);
-  }, []);
+  }, [statusValue]);
 
   const runJob = () => {
-    setStatusValue('EXECUTING');
+    console.log('Something is happening');
     setLogs([]);
     triggerJobRun(job.id)
-      .then(() => {})
+      .then(payload => {
+        console.log('runJob payload: ', payload);
+      })
       .catch(payload => {
         alert(payload); // TODO: do not show on production
       });
@@ -96,7 +99,7 @@ const Job = () => {
     //   ...recentExecutions,
     //   {
     //     status: statusValue,
-    //     run_datetime: runDateTime
+    //     run_datetime: runDateTime,
     //   }
     // ]);
   };
