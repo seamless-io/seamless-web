@@ -1,16 +1,16 @@
 import React from 'react';
 import { Row, Col } from 'react-bootstrap';
 
-const JobExecutionItem = props => {
+const JobExecutionItem = ({ time, status }) => {
   return (
-    <Row>
+    <Row className="smls-job-executiontimeline-time">
       <Col>
         <div className="smls-job-info-section-col-scheduled">
           <div className="smls-job-info-section-col-scheduled-text">
-            <span>{props.execution.created_at}</span>
+            <span>{time}</span>
           </div>
           <div className="smls-job-info-section-col-scheduled-badge">
-            <span>{props.execution.status}</span>
+            <span>{status}</span>
           </div>
         </div>
       </Col>

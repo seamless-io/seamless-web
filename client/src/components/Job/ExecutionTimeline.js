@@ -19,7 +19,11 @@ const ExecutionTimeline = props => {
 
   const renderLastFiveExecutions = () => {
     return props.lastFiveExecutions.map(execution => (
-      <JobExecutionItem key={execution.run_id} execution={execution} />
+      <JobExecutionItem
+        key={execution.run_id}
+        time={execution.created_at}
+        status={execution.status}
+      />
     ));
   };
 
@@ -34,6 +38,15 @@ const ExecutionTimeline = props => {
           <Col>
             <div className="smls-job-info-section-col">
               <h5>Execution Timeline</h5>
+            </div>
+          </Col>
+        </Row>
+        {/* TODO: create an endopint for fetching the scheduled run */}
+        <JobExecutionItem time={'2020-20-20'} status={'scheduled'} />
+        <Row>
+          <Col>
+            <div className="smls-job-info-section-col-hr">
+              <hr />
             </div>
           </Col>
         </Row>
