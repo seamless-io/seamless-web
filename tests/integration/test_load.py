@@ -1,6 +1,5 @@
 import tarfile
 from collections import defaultdict
-from datetime import timedelta
 from time import sleep
 
 import requests
@@ -9,7 +8,6 @@ from backend.db import session_scope
 from backend.db.models import Job
 from backend.db.models.job_runs import JobRunResult
 from backend.helpers import row2dict
-from job_executor.scheduler import remove_job_schedule
 from tests.integration.test_seamless_project.function import pi, PI_DIGITS
 
 PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"
@@ -20,8 +18,8 @@ TEST_RUNS = 3
 JOBS_PER_USER = 2
 
 # Add a 2-minute buffer so we don't miss executions
-# It could take up to 2 minutes from the job publishing to first event
-WAIT_FOR_EXECUTION_SECONDS = 60 * (TEST_RUNS + 2)
+# It could take up to 1 minutes from the job publishing to first event
+WAIT_FOR_EXECUTION_SECONDS = 60 * (TEST_RUNS + 1)
 
 # Seems like a limitation of postgres, but I'm not sure
 MAX_LOGS_ROW_LENGTH = 16384
@@ -61,13 +59,13 @@ def test_load(test_users):
                     print([row2dict(l) for l in job_runs])
 
                     # Each job should be executed at least TEST_RUNS times
-                    # But no more than TEST_RUNS + 2 because of WAIT_FOR_EXECUTION_SECONDS
-                    assert TEST_RUNS <= len(job_runs) <= TEST_RUNS + 2
+                    # But no more than TEST_RUNS + 1 because of WAIT_FOR_EXECUTION_SECONDS
+                    assert TEST_RUNS <= len(job_runs) <= TEST_RUNS + 1
 
                     # Make sure runs are 1 minute +/- 5 seconds from each other
                     timestamps = [r.created_at for r in job_runs]
                     for i in range(len(timestamps) - 1):
-                        assert (timestamps[i + 1] - timestamps[i]).total_seconds() < 5
+                        assert abs((timestamps[i + 1] - timestamps[i]).total_seconds() - 60) < 5
 
                     for run in job_runs:
                         logs = list(run.logs)
@@ -94,6 +92,3 @@ def test_load(test_users):
                 resp = requests.delete(f"{DELETE_URL}{job_id}",
                                        headers={'Authorization': user['api_key']})
                 resp.raise_for_status()
-
-    # for i in range(327, 347):
-    #     remove_job_schedule(str(i))
