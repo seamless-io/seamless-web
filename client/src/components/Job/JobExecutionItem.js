@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Spinner } from 'react-bootstrap';
+import React from 'react';
+import { Row, Col } from 'react-bootstrap';
 
-const JobLineItem = (props) => {
+const JobExecutionItem = props => {
   return (
     <Row>
       <Col>
         <div className="smls-job-info-section-col-scheduled">
           <div className="smls-job-info-section-col-scheduled-text">
-            <span>{props.execution.run_datetime}</span>
+            <span>{props.execution.created_at}</span>
           </div>
           <div className="smls-job-info-section-col-scheduled-badge">
             <span>{props.execution.status}</span>
@@ -15,7 +15,7 @@ const JobLineItem = (props) => {
         </div>
       </Col>
     </Row>
-  )
-}
+  );
+};
 
-export default JobLineItem;
+export default JobExecutionItem;

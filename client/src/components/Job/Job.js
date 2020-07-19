@@ -26,8 +26,10 @@ const Job = () => {
   const [statusValue, setStatusValue] = useState(null);
   const [runDateTime, setRunDateTime] = useState(null);
   const [logs, setLogs] = useState([]);
-  const [recentExecutions, setRecentExecutions] = useState([]);
-  const [futureExecutions, setFutureExecutions] = useState([]);
+  const [lastFiveExecutions, setLastFiveExecutions] = useState([]);
+  const [loadingExecutionTimeLine, setLoadingExecutionTimeLine] = useState(
+    false
+  );
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -58,40 +60,32 @@ const Job = () => {
           setSchedule('Not scheduled');
           setScheduleClassName('smls-muted');
         }
+
+        setLoading(false);
       })
       .catch(() => {
-        alert('Error!');
+        alert('Error!'); // TODO: create a notification component
       });
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     getLastExecutions(job.id)
       .then(payload => {
-        const executions = [];
-        for (const execution of payload) {
-          executions.push({
-            status: execution.status,
-            run_datetime: execution.created_at,
-            run_id: execution.run_id
-          });
-        }
-        setRecentExecutions(executions);
+        setLastFiveExecutions(payload.last_executions);
+        setLoadingExecutionTimeLine(false);
       })
       .catch(() => {
-        alert('Error!')
+        alert('Error!'); // TODO: create a notification component
       });
   }, [statusValue]);
 
   const runJob = () => {
-    console.log('Something is happening');
     setLogs([]);
+    setLoadingExecutionTimeLine(true);
     triggerJobRun(job.id)
-      .then(payload => {
-        console.log('runJob payload: ', payload);
-      })
+      .then(() => {})
       .catch(payload => {
-        alert(payload); // TODO: do not show on production
+        alert(payload); // TODO: create a notification component
       });
 
     // TODO: fetch jobRunId from `triggerJobRun` and provide it here
@@ -187,9 +181,9 @@ const Job = () => {
         </Col>
       </Row>
       <ExecutionTimeline
-        recentExecutions={recentExecutions}
-        futureExecutions={futureExecutions}
-        job_id={job.id}
+        loadingExecutionTimeLine={loadingExecutionTimeLine}
+        lastFiveExecutions={lastFiveExecutions}
+        jobId={job.id}
       />
     </>
   );
