@@ -117,7 +117,7 @@ def get_job_executions(job_id: str):
             job_id=job_id).order_by(JobRun.created_at.desc()
                                     ).limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
         return jsonify({'last_executions': [{'status': run.status,
-                                             'created_at': run.created_at,
+                                             'created_at': run.created_at.strftime('%B %d, %Y, %H:%M:%S'),
                                              'run_id': run.id} for run in runs]}), 200
 
 

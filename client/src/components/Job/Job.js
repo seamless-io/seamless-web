@@ -184,6 +184,7 @@ const Job = () => {
         loadingExecutionTimeLine={loadingExecutionTimeLine}
         lastFiveExecutions={lastFiveExecutions}
         jobId={job.id}
+        schedule={schedule}
       />
     </>
   );

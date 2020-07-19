@@ -5,11 +5,15 @@ const JobExecutionItem = ({ time, status }) => {
   return (
     <Row className="smls-job-executiontimeline-time">
       <Col>
-        <div className="smls-job-info-section-col-scheduled">
-          <div className="smls-job-info-section-col-scheduled-text">
+        <div
+          className={`smls-job-info-section-execution-item smls-execution-${status.toLowerCase()}`}
+        >
+          <div className="smls-job-info-section-execution-item-text">
             <span>{time}</span>
           </div>
-          <div className="smls-job-info-section-col-scheduled-badge">
+          <div
+            className={`smls-job-info-section-execution-item-badge smls-execution-badge-${status.toLowerCase()}`}
+          >
             <span>{status}</span>
           </div>
         </div>
