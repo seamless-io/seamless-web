@@ -33,4 +33,4 @@ class JobRun(base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def __repr__(self):
-        return '<JobRun %r %r %r>' % (self.id, self.type, self.result)
+        return '<JobRun %r %r %r>' % (self.id, self.type, self.status)
