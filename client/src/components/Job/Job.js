@@ -24,7 +24,6 @@ const Job = () => {
   const [scheduleClassName, setScheduleClassName] = useState('');
   const [loading, setLoading] = useState(null);
   const [statusValue, setStatusValue] = useState(null);
-  const [runDateTime, setRunDateTime] = useState(null);
   const [logs, setLogs] = useState([]);
   const [lastFiveExecutions, setLastFiveExecutions] = useState([]);
   const [loadingExecutionTimeLine, setLoadingExecutionTimeLine] = useState(
@@ -54,7 +53,6 @@ const Job = () => {
       .then(payload => {
         setName(payload.name);
         setStatusValue(payload.status);
-        setRunDateTime(payload.created_at);
 
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
@@ -87,15 +85,6 @@ const Job = () => {
       .catch(payload => {
         alert(payload); // TODO: create a notification component
       });
-
-    // TODO: fetch jobRunId from `triggerJobRun` and provide it here
-    // setRecentExecutions([
-    //   ...recentExecutions,
-    //   {
-    //     status: statusValue,
-    //     run_datetime: runDateTime,
-    //   }
-    // ]);
   };
 
   const runButtonContent = () => {

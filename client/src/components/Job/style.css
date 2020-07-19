@@ -123,6 +123,7 @@
   border-radius: 4px;
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .smls-job-info-section-execution-item-text {
@@ -214,4 +215,14 @@
 
 .smls-execution-badge-failed {
   color: #e63629;
+}
+
+.smls-job-executiontimelie-no-runs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #bec4cc;
+  font-size: 20px;
+  font-weight: 600;
 }

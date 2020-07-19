@@ -2,11 +2,19 @@ import React from 'react';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 
+import Logs from './Logs';
 import JobExecutionItem from './JobExecutionItem';
 
-const ExecutionTimeline = props => {
+import { getJobRunLogs } from '../../api';
+
+const ExecutionTimeline = ({
+  loadingExecutionTimeLine,
+  lastFiveExecutions,
+  jobId,
+  schedule,
+}) => {
   const renderExecutionTimeLine = () => {
-    if (props.loadingExecutionTimeLine) {
+    if (loadingExecutionTimeLine) {
       return (
         <div className="smls-job-executiontimeline-spinner-container">
           <Spinner animation="border" role="status"></Spinner>
@@ -16,19 +24,32 @@ const ExecutionTimeline = props => {
 
     return (
       <>
-        {renderNextExecution(props.schedule)}
-        {props.lastFiveExecutions.map(execution => (
-          <JobExecutionItem
-            key={execution.run_id}
-            time={execution.created_at}
-            status={execution.status}
-          />
-        ))}
+        {renderNextExecution()}
+        {renderLastFiveExecutions()}
       </>
     );
   };
 
-  const renderNextExecution = schedule => {
+  const renderLastFiveExecutions = () => {
+    if (lastFiveExecutions && lastFiveExecutions.length > 0) {
+      return lastFiveExecutions.map(execution => (
+        <JobExecutionItem
+          key={execution.run_id}
+          time={execution.created_at}
+          status={execution.status}
+          showLogs={() => showLogs(execution.run_id)}
+        />
+      ));
+    }
+
+    return (
+      <div className="smls-job-executiontimelie-no-runs">
+        This job was not run yet.
+      </div>
+    );
+  };
+
+  const renderNextExecution = () => {
     if (schedule !== 'Not scheduled') {
       return (
         <>
@@ -43,6 +64,16 @@ const ExecutionTimeline = props => {
         </>
       );
     }
+  };
+
+  const showLogs = run_id => {
+    getJobRunLogs(jobId, run_id)
+      .then(payload => {
+        console.log(payload);
+      })
+      .catch(payload => {
+        alert(payload); // TODO: create a notification component
+      });
   };
 
   return (
@@ -60,6 +91,16 @@ const ExecutionTimeline = props => {
           </Col>
         </Row>
         {renderExecutionTimeLine()}
+      </Col>
+      <Col sm={8} className="smls-job-main-info-section">
+        <Row>
+          <Col sm={12}>
+            <h5 className="smls-job-main-info-section-header">Logs</h5>
+          </Col>
+          <Col sm={12}>
+            <Logs />
+          </Col>
+        </Row>
       </Col>
     </Row>
   );
