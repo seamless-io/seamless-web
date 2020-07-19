@@ -13,8 +13,8 @@ from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
 import config
 from job_executor import project, executor
-from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3
-from job_executor.scheduler import enable_job_schedule, disable_job_schedule
+from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3, remove_project_from_s3
+from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -240,3 +240,22 @@ def run() -> Response:
     logstream = executor.execute_and_stream_back(project_path, api_key)
 
     return Response(logstream)
+
+
+@jobs_bp.route('/jobs/<job_id>', methods=['DELETE'])
+def delete_job(job_id):
+    api_key = request.headers.get('Authorization')
+    if not api_key:
+        return Response('Not authorized request', 401)
+
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job:
+            return "Job Not Found", 404
+
+        remove_job_schedule(job_id)
+        remove_project_from_s3(job_id)
+
+        db_session.delete(job)
+        db_session.commit()
+    return f"Successfully deleted job {job_id}", 200
