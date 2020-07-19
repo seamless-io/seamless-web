@@ -19,7 +19,7 @@ JOBS_PER_USER = 2
 
 # Add a 2-minute buffer so we don't miss executions
 # It could take up to 1 minutes from the job publishing to first event
-WAIT_FOR_EXECUTION_SECONDS = 60 * (TEST_RUNS + 1)
+WAIT_FOR_EXECUTION_SECONDS = 60 * (TEST_RUNS + 2)
 
 # Seems like a limitation of postgres, but I'm not sure
 MAX_LOGS_ROW_LENGTH = 16384
@@ -60,7 +60,7 @@ def test_load(test_users):
 
                     # Each job should be executed at least TEST_RUNS times
                     # But no more than TEST_RUNS + 1 because of WAIT_FOR_EXECUTION_SECONDS
-                    assert TEST_RUNS <= len(job_runs) <= TEST_RUNS + 1
+                    assert TEST_RUNS <= len(job_runs) <= TEST_RUNS + 2
 
                     # Make sure runs are 1 minute +/- 5 seconds from each other
                     timestamps = [r.created_at for r in job_runs]

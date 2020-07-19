@@ -2,7 +2,7 @@ import decimal
 
 import scipy
 
-PI_DIGITS = 50000
+PI_DIGITS = 20000
 
 
 def pi():
