@@ -1,9 +1,13 @@
+from datetime import datetime
 from typing import Tuple
 
 from cron_descriptor import get_description
 
 
 # https://stackoverflow.com/questions/1958219/convert-sqlalchemy-row-object-to-python-dict
+from croniter import croniter
+
+
 def row2dict(row):
     d = {}
     for column in row.__table__.columns:
@@ -47,3 +51,8 @@ def _cron_to_aws_cron(expression: str) -> str:
 
 class CronConversionException(Exception):
     pass
+
+
+def get_cron_next_execution(expression: str) -> str:
+    cron = croniter(expression, datetime.utcnow())
+    return cron.get_next(datetime)
