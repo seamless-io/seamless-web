@@ -55,6 +55,11 @@ const Job = () => {
         setName(payload.name);
         setStatusValue(payload.status);
         setRunDateTime(payload.created_at);
+        setIsScheduleOn(payload.schedule_is_active);
+        setIsToggleDisabled(!Boolean(payload.aws_cron));
+
+        console.log("Schedule is acitgve: ", payload.schedule_is_active, " and ", isScheduleOn);
+        console.log("is Toggle disabled ", payload.aws_cron, " and ", isToggleDisabled);
 
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
