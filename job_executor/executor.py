@@ -92,7 +92,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
             JobRunLog(
                 job_run_id=job_run_id,
                 timestamp=datetime.utcnow(),
-                message=str(l, "utf-8")
+                message=l
             )
         )
         db_session.commit()
