@@ -20,7 +20,6 @@ const Job = () => {
   const [schedule, setSchedule] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
-  const [scheduleClassName, setScheduleClassName] = useState('');
   const [loading, setLoading] = useState(null);
   const [statusValue, setStatusValue] = useState(null);
   const [runDateTime, setRunDateTime] = useState(null);
@@ -48,6 +47,12 @@ const Job = () => {
     // TODO: make an API call to enable/disable a job
   };
 
+  const scheduleClassName = () => {
+    if (!isScheduleOn) {
+      return 'smls-muted'
+    }
+  }
+
   useEffect(() => {
     setLoading(true);
     getJob(job.id)
@@ -64,7 +69,6 @@ const Job = () => {
 
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
-          setScheduleClassName('smls-muted');
         }
         else {
           setSchedule(payload.human_cron);
@@ -159,7 +163,7 @@ const Job = () => {
               disabled={isToggleDisabled}
               onChange={handleToggleSwitch}
             />
-            <span className={scheduleClassName}>{schedule}</span>
+            <span className={scheduleClassName()}>{schedule}</span>
           </div>
         </Col>
         <Col style={{ paddingRight: '0px' }}>
