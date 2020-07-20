@@ -60,10 +60,14 @@ const Job = () => {
 
         console.log("Schedule is acitgve: ", payload.schedule_is_active, " and ", isScheduleOn);
         console.log("is Toggle disabled ", payload.aws_cron, " and ", isToggleDisabled);
+        console.log('Humna cron ', payload.human_cron);
 
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
           setScheduleClassName('smls-muted');
+        }
+        else {
+          setSchedule(payload.human_cron);
         }
 
         setLoading(false);
