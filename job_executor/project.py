@@ -70,8 +70,9 @@ def create(fileobj: FileStorage,
     tar.extractall(path=path)
     tar.close()
 
-    io_bytes.seek(0)
-    save_project_to_s3(io_bytes, job_id)
+    if job_id:
+        io_bytes.seek(0)
+        save_project_to_s3(io_bytes, job_id)
 
     logging.info(f"File saved to {path}")
     return path
