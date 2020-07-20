@@ -5,7 +5,7 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
-import { getJob, triggerJobRun, enableJobSchedule, disableJobSchedule } from '../../api';
+import { getJob, triggerJobRun, enableJobSchedule, disableJobSchedule, getLastExecutions } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
 
 import './style.css';
