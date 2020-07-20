@@ -103,6 +103,10 @@ def get_job_logs(job_id: str, job_run_id: str):
 @jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
 @requires_auth
 def get_job_code(job_id: str):
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
     job_code = fetch_project_from_s3(job_id)
     return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
@@ -250,7 +254,7 @@ def delete_job(job_id):
 
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
-        if not job:
+        if not job or job.user.api_key != api_key:
             return "Job Not Found", 404
 
         remove_job_schedule(job_id)
