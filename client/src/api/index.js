@@ -40,4 +40,17 @@ export const getJobRunLogs = async (job_id, job_run_id) => {
 export const getLastExecutions = async job_id => {
   let response = await axios.get(`/api/v1/jobs/${job_id}/executions`);
   return response.data;
+
+export const enableJobSchedule = async (job_id) => {
+  let response = await axios.put(
+    '/api/v1/jobs/' + job_id + '/enable'
+  );
+  return response.data
+};
+
+export const disableJobSchedule = async (job_id) => {
+  let response = await axios.put(
+    '/api/v1/jobs/' + job_id + '/disable'
+  );
+  return response.data
 };

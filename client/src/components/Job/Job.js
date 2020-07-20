@@ -5,7 +5,7 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
-import { getJob, triggerJobRun, getLastExecutions } from '../../api';
+import { getJob, triggerJobRun, enableJobSchedule, disableJobSchedule } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
 
 import './style.css';
@@ -21,7 +21,6 @@ const Job = () => {
   const [schedule, setSchedule] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
-  const [scheduleClassName, setScheduleClassName] = useState('');
   const [loading, setLoading] = useState(null);
   const [statusValue, setStatusValue] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -47,6 +46,32 @@ const Job = () => {
     }
   };
 
+  const handleToggleSwitch = (e) => {
+    var initialScheduleOn = isScheduleOn;
+    
+    setIsScheduleOn(!isScheduleOn);
+    if (!e.target.checked) {
+      disableJobSchedule(job.id)
+        .catch(error => {
+          console.log('Error disabling a job...\n', error);
+          setIsScheduleOn(initialScheduleOn);
+        });
+    }
+    else {
+      enableJobSchedule(job.id)
+        .catch(error => {
+          console.log('Error enabling a job...\n', error);
+          setIsScheduleOn(initialScheduleOn);
+        });
+    }
+  };
+
+  const scheduleClassName = () => {
+    if (!isScheduleOn) {
+      return 'smls-muted'
+    }
+  }
+
   useEffect(() => {
     setLoading(true);
     getJob(job.id)
@@ -54,9 +79,19 @@ const Job = () => {
         setName(payload.name);
         setStatusValue(payload.status);
 
+        if (payload.schedule_is_active === 'None' || payload.schedule_is_active === 'False') {
+          setIsScheduleOn(false);
+        }
+        else {
+          setIsScheduleOn(true)
+        }
+        setIsToggleDisabled(Boolean(payload.aws_cron === 'None'));
+
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
-          setScheduleClassName('smls-muted');
+        }
+        else {
+          setSchedule(payload.human_cron);
         }
 
         setLoading(false);
@@ -154,12 +189,12 @@ const Job = () => {
         <Col style={{ paddingLeft: '0px' }}>
           <div className="smls-job-extra-info-section">
             <Toggle
-              defaultChecked={isScheduleOn}
+              checked={isScheduleOn}
               icons={false}
               disabled={isToggleDisabled}
-              onChange={() => alert('Not working yet.')}
+              onChange={handleToggleSwitch}
             />
-            <span className={scheduleClassName}>{schedule}</span>
+            <span className={scheduleClassName()}>{schedule}</span>
           </div>
         </Col>
         <Col style={{ paddingRight: '0px' }}>

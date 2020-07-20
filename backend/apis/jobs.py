@@ -6,7 +6,7 @@ from flask_socketio import emit
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
-from backend.helpers import row2dict, parse_cron
+from backend.helpers import row2dict, parse_cron, get_cron_next_execution
 from backend.db.models import Job, User, JobRun
 from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
@@ -14,8 +14,8 @@ from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
 import config
 from job_executor import project, executor
-from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3
-from job_executor.scheduler import enable_job_schedule, disable_job_schedule
+from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3, remove_project_from_s3
+from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -78,6 +78,40 @@ def update_job(job_id):
         return jsonify(row2dict(job)), 200
 
 
+def _switch_schedule(job_id, enable):
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
+        
+        job.schedule_is_active = bool(enable)
+        if bool(enable):
+            enable_job_schedule(job_id)
+        else:
+            disable_job_schedule(job_id)
+        
+        db_session.commit()
+
+
+@jobs_bp.route('/jobs/<job_id>/enable', methods=['PUT'])
+@requires_auth
+def enable_job(job_id):
+    """
+    If job is scheduled - enables schedule
+    """
+    _switch_schedule(job_id, True)
+    return jsonify(job_id), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/disable', methods=['PUT'])
+def disabled_job(job_id):
+    """
+    If job is scheduled - disable schedule
+    """
+    _switch_schedule(job_id, False)
+    return jsonify(job_id), 200
+
+
 @jobs_bp.route('/jobs/<job_id>/runs', methods=['GET'])
 @requires_auth
 def get_job_runs(job_id: str):
@@ -105,6 +139,10 @@ def get_job_logs(job_id: str, job_run_id: str):
 @jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
 @requires_auth
 def get_job_code(job_id: str):
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
     job_code = fetch_project_from_s3(job_id)
     return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
@@ -142,8 +180,6 @@ def create_job():
         account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
         jobs_limit = account_limits.jobs
         jobs = list(user.jobs)
-        if len(jobs) >= jobs_limit:
-            return Response('You have reached the limit of jobs for your account', 400)
 
         job = None
         for j in jobs:
@@ -160,6 +196,8 @@ def create_job():
                 if job.schedule_is_active is None:
                     job.schedule_is_active = True
         else:  # The user publishes the new job
+            if len(jobs) >= jobs_limit:
+                return Response('You have reached the limit of jobs for your account', 400)
             existing_job = False
             job_attributes = {
                 'name': job_name,
@@ -259,3 +297,40 @@ def run() -> Response:
     logstream = executor.execute_and_stream_back(project_path, api_key)
 
     return Response(logstream)
+
+
+@jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])
+def delete_job(job_name):
+    api_key = request.headers.get('Authorization')
+    if not api_key:
+        return Response('Not authorized request', 401)
+
+    with session_scope() as db_session:
+        user = User.get_user_from_api_key(api_key, db_session)
+        job = None
+        for j in user.jobs:
+            if j.name == job_name:
+                job = j
+                break
+
+        if not job:
+            return "Job Not Found", 404
+
+        remove_job_schedule(job.id)
+        remove_project_from_s3(job.id)
+
+        db_session.delete(job)
+        db_session.commit()
+        return f"Successfully deleted job {job.id}", 200
+
+
+@jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])
+@requires_auth
+def get_next_job_execution(job_id):
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
+        if not job.schedule_is_active:
+            return jsonify({"result": "Job is not scheduled"}), 400
+        return jsonify({"result": get_cron_next_execution(job.cron)}), 200

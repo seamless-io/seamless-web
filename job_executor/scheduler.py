@@ -3,6 +3,7 @@ import json
 import logging
 
 import boto3
+from botocore.exceptions import ClientError
 
 import config
 
@@ -42,9 +43,24 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
 
 def enable_job_schedule(job_id: str):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
-    events.enable_rule(Name=job_id)
+    events.enable_rule(Name=_generate_cloudwatch_rule_name(job_id, config.STAGE))
 
 
 def disable_job_schedule(job_id: str):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
-    events.disable_rule(Name=job_id)
+    events.disable_rule(Name=_generate_cloudwatch_rule_name(job_id, config.STAGE))
+
+
+def remove_job_schedule(job_id: str):
+    events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
+    cloudwatch_rule_name = _generate_cloudwatch_rule_name(job_id, config.STAGE)
+    try:
+        events.remove_targets(Rule=cloudwatch_rule_name,
+                              Ids=[config.LAMBDA_PROXY_NAME])
+        events.delete_rule(Name=cloudwatch_rule_name)
+    except ClientError as e:
+        error_code = e.response.get("Error", {}).get("Code")
+        if error_code == "ResourceNotFoundException":
+            pass
+        else:
+            raise e
