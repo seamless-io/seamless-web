@@ -5,7 +5,7 @@ from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
-from backend.helpers import row2dict, parse_cron
+from backend.helpers import row2dict, parse_cron, get_cron_next_execution
 from backend.db.models import Job, User, JobRun
 from backend.db.models.job_runs import JobRunType
 from backend.db.models.jobs import JobStatus
@@ -269,3 +269,15 @@ def delete_job(job_name):
         db_session.delete(job)
         db_session.commit()
         return f"Successfully deleted job {job.id}", 200
+
+
+@jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])
+@requires_auth
+def get_next_job_execution(job_id):
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
+        if not job.schedule_is_active:
+            return jsonify({"result": "Job is not scheduled"}), 400
+        return jsonify({"result": get_cron_next_execution(job.cron)}), 200
