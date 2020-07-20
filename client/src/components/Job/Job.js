@@ -75,12 +75,14 @@ const Job = () => {
         setName(payload.name);
         setStatusValue(payload.status);
         setRunDateTime(payload.created_at);
-        setIsScheduleOn(payload.schedule_is_active);
-        setIsToggleDisabled(!Boolean(payload.aws_cron));
 
-        console.log("Schedule is acitgve: ", payload.schedule_is_active, " and ", isScheduleOn);
-        console.log("is Toggle disabled ", payload.aws_cron, " and ", isToggleDisabled);
-        console.log('Humna cron ', payload.human_cron);
+        if (payload.schedule_is_active === 'None' || !payload.schedule_is_active) {
+          setIsScheduleOn(false);
+        }
+        else {
+          setIsScheduleOn(true)
+        }
+        setIsToggleDisabled(Boolean(payload.aws_cron === 'None'));
 
         if (payload.human_cron === 'None') {
           setSchedule('Not scheduled');
