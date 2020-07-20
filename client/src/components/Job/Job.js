@@ -43,6 +43,11 @@ const Job = () => {
     }
   };
 
+  const handleToggleSwitch = () => {
+    setIsScheduleOn(!isScheduleOn);
+    // TODO: make an API call to enable/disable a job
+  };
+
   useEffect(() => {
     setLoading(true);
     getJob(job.id)
@@ -143,7 +148,7 @@ const Job = () => {
               defaultChecked={isScheduleOn}
               icons={false}
               disabled={isToggleDisabled}
-              onChange={() => alert('Not working yet.')}
+              onChange={handleToggleSwitch}
             />
             <span className={scheduleClassName}>{schedule}</span>
           </div>
