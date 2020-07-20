@@ -16,26 +16,30 @@ export const getJob = async job_id => {
 };
 
 export const updateJob = async (job_id, data) => {
-  let response = await axios.put('/api/v1/jobs/' + job_id, data);
+  let response = await axios.put(`/api/v1/jobs/${job_id}`, data);
   return response.data;
 };
 
 export const triggerJobRun = async job_id => {
-  let response = await axios.post('/api/v1/jobs/' + job_id + '/run');
+  let response = await axios.post(`/api/v1/jobs/${job_id}/run`);
   return response.data;
 };
 
 export const getJobRuns = async job_id => {
-  let response = await axios.get('/api/v1/jobs/' + job_id + '/runs');
+  let response = await axios.get(`/api/v1/jobs/${job_id}/runs`);
   return response.data;
 };
 
 export const getJobRunLogs = async (job_id, job_run_id) => {
   let response = await axios.get(
-    '/api/v1/jobs/' + job_id + '/runs/' + job_run_id + '/logs'
+    `/api/v1/jobs/${job_id}/runs/${job_run_id}/logs`
   );
   return response.data;
 };
+
+export const getLastExecutions = async job_id => {
+  let response = await axios.get(`/api/v1/jobs/${job_id}/executions`);
+  return response.data;
 
 export const enableJobSchedule = async (job_id) => {
   let response = await axios.put(

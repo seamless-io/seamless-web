@@ -6,6 +6,7 @@ import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
 import { getJob, triggerJobRun, enableJobSchedule, disableJobSchedule } from '../../api';
+import ExecutionTimeline from './ExecutionTimeline';
 
 import './style.css';
 import '../Jobs/toggle.css';
@@ -22,8 +23,11 @@ const Job = () => {
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
   const [loading, setLoading] = useState(null);
   const [statusValue, setStatusValue] = useState(null);
-  const [runDateTime, setRunDateTime] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [lastFiveExecutions, setLastFiveExecutions] = useState([]);
+  const [loadingExecutionTimeLine, setLoadingExecutionTimeLine] = useState(
+    false
+  );
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -74,7 +78,6 @@ const Job = () => {
       .then(payload => {
         setName(payload.name);
         setStatusValue(payload.status);
-        setRunDateTime(payload.created_at);
 
         if (payload.schedule_is_active === 'None' || payload.schedule_is_active === 'False') {
           setIsScheduleOn(false);
@@ -94,17 +97,28 @@ const Job = () => {
         setLoading(false);
       })
       .catch(() => {
-        alert('Error!');
+        alert('Error!'); // TODO: create a notification component
       });
   }, []);
 
+  useEffect(() => {
+    getLastExecutions(job.id)
+      .then(payload => {
+        setLastFiveExecutions(payload.last_executions);
+        setLoadingExecutionTimeLine(false);
+      })
+      .catch(() => {
+        alert('Error!'); // TODO: create a notification component
+      });
+  }, [statusValue]);
+
   const runJob = () => {
-    setStatusValue('EXECUTING');
     setLogs([]);
+    setLoadingExecutionTimeLine(true);
     triggerJobRun(job.id)
       .then(() => {})
       .catch(payload => {
-        alert(payload);
+        alert(payload); // TODO: create a notification component
       });
   };
 
@@ -190,68 +204,12 @@ const Job = () => {
           </div>
         </Col>
       </Row>
-      <Row className="smls-job-main-info">
-        <Col
-          sm={4}
-          className="smls-job-main-info-section"
-          style={{ borderRight: '2px solid #ebedf0' }}
-        >
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col">
-                <h5>Execution Timeline</h5>
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-scheduled">
-                <div className="smls-job-info-section-col-scheduled-text">
-                  Devember 25, 2020, 05:08
-                </div>
-                <div className="smls-job-info-section-col-scheduled-badge">
-                  <span>scheduled</span>
-                </div>
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-hr">
-                <hr />
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-scheduled">
-                <div className="smls-job-info-section-col-scheduled-text">
-                  {runDateTime}
-                </div>
-                <div className="smls-job-info-section-col-scheduled-badge">
-                  <span>{statusValue}</span>
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Col>
-        <Col sm={8} className="smls-job-main-info-section">
-          <Row>
-            <Col sm={12}>
-              <h5 className="smls-job-main-info-section-header">Logs</h5>
-            </Col>
-            <Col sm={12}>
-              <div className="smls-job-container">
-                {logs.map((log, i) => (
-                  <span key={i} style={{ display: 'block' }}>
-                    {log}
-                  </span>
-                ))}
-              </div>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+      <ExecutionTimeline
+        loadingExecutionTimeLine={loadingExecutionTimeLine}
+        lastFiveExecutions={lastFiveExecutions}
+        jobId={job.id}
+        schedule={schedule}
+      />
     </>
   );
 };

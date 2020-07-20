@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_httpauth import HTTPBasicAuth
+from flask_socketio import emit
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
@@ -19,6 +20,7 @@ from job_executor.scheduler import enable_job_schedule, disable_job_schedule, re
 jobs_bp = Blueprint('jobs', __name__)
 
 TIMESTAMP_FOR_LOGS_FORMAT = "%m_%d_%Y_%H_%M_%S_%f"
+EXECUTION_TIMELINE_HISTORY_LIMIT = 5
 
 auth = HTTPBasicAuth()
 
@@ -145,6 +147,18 @@ def get_job_code(job_id: str):
     return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
+@jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
+@requires_auth
+def get_job_executions(job_id: str):
+    with session_scope() as db_session:
+        runs = db_session.query(JobRun).filter_by(
+            job_id=job_id).order_by(JobRun.created_at.desc()
+                                    ).limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
+        return jsonify({'last_executions': [{'status': run.status,
+                                             'created_at': run.created_at.strftime('%B %d, %Y, %H:%M:%S'),
+                                             'run_id': run.id} for run in runs]}), 200
+
+
 @jobs_bp.route('/publish', methods=['PUT'])
 def create_job():
     api_key = request.headers.get('Authorization')
@@ -230,6 +244,11 @@ def _run_job(job_id, type_, user_id=None):
                          type=type_)
         db_session.add(job_run)
         db_session.commit()
+
+        emit('status', {'job_id': job_id,
+                        'status': job.status},
+             namespace='/socket',
+             broadcast=True)
 
         path_to_job_files = get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
         executor.execute_and_stream_to_db(path_to_job_files, str(job.id), str(job_run.id))
