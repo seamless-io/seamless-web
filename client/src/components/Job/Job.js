@@ -76,7 +76,7 @@ const Job = () => {
         setStatusValue(payload.status);
         setRunDateTime(payload.created_at);
 
-        if (payload.schedule_is_active === 'None' || !payload.schedule_is_active) {
+        if (payload.schedule_is_active === 'None' || payload.schedule_is_active === 'False') {
           setIsScheduleOn(false);
         }
         else {

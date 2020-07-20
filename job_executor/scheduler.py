@@ -43,12 +43,12 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
 
 def enable_job_schedule(job_id: str):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
-    events.enable_rule(Name=job_id)
+    events.enable_rule(Name=_generate_cloudwatch_rule_name(job_id, config.STAGE))
 
 
 def disable_job_schedule(job_id: str):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
-    events.disable_rule(Name=job_id)
+    events.disable_rule(Name=_generate_cloudwatch_rule_name(job_id, config.STAGE))
 
 
 def remove_job_schedule(job_id: str):

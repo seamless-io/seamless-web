@@ -89,7 +89,6 @@ def _switch_schedule(job_id, enable):
             disable_job_schedule(job_id)
         
         db_session.commit()
-        return job
 
 
 @jobs_bp.route('/jobs/<job_id>/enable', methods=['PUT'])
@@ -99,7 +98,7 @@ def enable_job(job_id):
     If job is scheduled - enables schedule
     """
     _switch_schedule(job_id, True)
-    return jsonify(row2dict(job)), 200
+    return jsonify(job_id), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/disable', methods=['PUT'])
@@ -108,7 +107,7 @@ def disabled_job(job_id):
     If job is scheduled - disable schedule
     """
     _switch_schedule(job_id, False)
-    return jsonify(row2dict(job)), 200
+    return jsonify(job_id), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/runs', methods=['GET'])
