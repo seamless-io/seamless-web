@@ -128,8 +128,6 @@ def create_job():
         account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
         jobs_limit = account_limits.jobs
         jobs = list(user.jobs)
-        if len(jobs) >= jobs_limit:
-            return Response('You have reached the limit of jobs for your account', 400)
 
         job = None
         for j in jobs:
@@ -146,6 +144,8 @@ def create_job():
                 if job.schedule_is_active is None:
                     job.schedule_is_active = True
         else:  # The user publishes the new job
+            if len(jobs) >= jobs_limit:
+                return Response('You have reached the limit of jobs for your account', 400)
             existing_job = False
             job_attributes = {
                 'name': job_name,
