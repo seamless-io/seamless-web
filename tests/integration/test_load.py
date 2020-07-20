@@ -35,15 +35,18 @@ def test_load(test_users):
     tar.add("tests/integration/test_seamless_project", ".")
     tar.close()
     created_job_ids_by_user_id = defaultdict(list)
+    created_job_names_by_user_id = defaultdict(list)
     for user in test_users:
         for i in range(JOBS_PER_USER):
+            job_name = f"user_{user['id']}_job_{i}"
             resp = requests.put(PUBLISH_URL,
-                                params={"name": f"user_{user['id']}_job_{i}",
+                                params={"name": job_name,
                                         "schedule": TEST_SCHEDULE},
                                 headers={'Authorization': user['api_key']},
                                 files={'seamless_project': open(PACKAGE_NAME, 'rb')})
             resp.raise_for_status()
             created_job_ids_by_user_id[user['id']].append(resp.json()['job_id'])
+            created_job_names_by_user_id[user['id']].append(job_name)
 
     # Wait until they are all executed
     sleep(WAIT_FOR_EXECUTION_SECONDS)
@@ -88,7 +91,7 @@ def test_load(test_users):
     finally:
         # Remove all test jobs using the API
         for user in test_users:
-            for job_id in created_job_ids_by_user_id[user['id']]:
-                resp = requests.delete(f"{DELETE_URL}{job_id}",
+            for job_name in created_job_names_by_user_id[user['id']]:
+                resp = requests.delete(f"{DELETE_URL}{job_name}",
                                        headers={'Authorization': user['api_key']})
                 resp.raise_for_status()
