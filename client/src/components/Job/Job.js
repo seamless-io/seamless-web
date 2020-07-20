@@ -42,13 +42,23 @@ const Job = () => {
     }
   };
 
-  const handleToggleSwitch = () => {
+  const handleToggleSwitch = (e) => {
+    var initialScheduleOn = isScheduleOn;
+    
     setIsScheduleOn(!isScheduleOn);
-    if (isScheduleOn) {
-      enableJobSchedule(job.id);
+    if (!e.target.checked) {
+      disableJobSchedule(job.id)
+        .catch(error => {
+          console.log('Error disabling a job...\n', error);
+          setIsScheduleOn(initialScheduleOn);
+        });
     }
     else {
-      disableJobSchedule(job.id);
+      enableJobSchedule(job.id)
+        .catch(error => {
+          console.log('Error enabling a job...\n', error);
+          setIsScheduleOn(initialScheduleOn);
+        });
     }
   };
 
@@ -163,7 +173,7 @@ const Job = () => {
         <Col style={{ paddingLeft: '0px' }}>
           <div className="smls-job-extra-info-section">
             <Toggle
-              defaultChecked={isScheduleOn}
+              checked={isScheduleOn}
               icons={false}
               disabled={isToggleDisabled}
               onChange={handleToggleSwitch}
