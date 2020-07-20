@@ -7,6 +7,7 @@ from typing import Iterable, Tuple
 
 import docker
 from docker.errors import BuildError
+from docker.models.containers import Container
 from docker.types import Mount
 from flask_socketio import emit
 
@@ -32,7 +33,7 @@ def _ensure_requirements(job_directory):
             pass
 
 
-def _run_container(path_to_job_files: str, tag: str):
+def _run_container(path_to_job_files: str, tag: str) -> Container:
     _ensure_requirements(path_to_job_files)
     docker_client = docker.from_env()
     copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), DOCKER_FILE_NAME),
