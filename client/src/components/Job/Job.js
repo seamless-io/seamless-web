@@ -5,7 +5,7 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
-import { getJob, triggerJobRun } from '../../api';
+import { getJob, triggerJobRun, enableJobSchedule, disableJobSchedule } from '../../api';
 
 import './style.css';
 import '../Jobs/toggle.css';
@@ -44,7 +44,12 @@ const Job = () => {
 
   const handleToggleSwitch = () => {
     setIsScheduleOn(!isScheduleOn);
-    // TODO: make an API call to enable/disable a job
+    if (isScheduleOn) {
+      enableJobSchedule(job.id);
+    }
+    else {
+      disableJobSchedule(job.id);
+    }
   };
 
   const scheduleClassName = () => {
