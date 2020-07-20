@@ -10,8 +10,6 @@ const Logs = ({ logs, loadingLogs, initialScreen }) => {
     );
   }
 
-  console.log(initialScreen);
-
   if (initialScreen) {
     return (
       <div className="smls-job-logs-initial-screen-container">

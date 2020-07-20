@@ -114,6 +114,7 @@
   display: flex;
   align-items: center;
   cursor: pointer;
+  border: solid 2px #ebedf0;
 }
 
 .smls-job-info-section-execution-item-text {
@@ -174,7 +175,7 @@
   margin-top: 16px;
 }
 
-.smls-execution-ok {
+.smls-execution-active-itme {
   box-shadow: 0 2px 10px 0 rgba(0, 189, 60, 0.15);
   border: solid 2px #00bd3c;
   background-color: #e5f8eb;
@@ -183,28 +184,38 @@
 
 .smls-execution-badge-ok {
   color: #00a334;
+  background-color: #e5f8eb;
 }
 
-.smls-execution-executing {
+.smls-execution-active-itme-ok {
+  box-shadow: 0 2px 10px 0 rgba(0, 189, 60, 0.15);
+  border: solid 2px #00bd3c;
+  background-color: #e5f8eb;
+  color: #1a1a1a;
+}
+
+.smls-execution-badge-executing {
+  color: #db8400;
+  background-color: #fef4e5;
+}
+
+.smls-execution-active-itme-executing {
   box-shadow: 0 2px 10px 0 rgba(245, 147, 0, 0.15);
   border: solid 2px #f59300;
   background-color: #fef4e5;
   color: #1a1a1a;
 }
 
-.smls-execution-badge-executing {
-  color: #db8400;
+.smls-execution-badge-failed {
+  color: #e63629;
+  background-color: #ffebea;
 }
 
-.smls-execution-failed {
+.smls-execution-active-itme-failed {
   box-shadow: 0 2px 10px 0 rgba(255, 60, 46, 0.15);
   border: solid 2px #ff3c2e;
   background-color: #ffebea;
   color: #1a1a1a;
-}
-
-.smls-execution-badge-failed {
-  color: #e63629;
 }
 
 .smls-job-executiontimelie-no-runs {

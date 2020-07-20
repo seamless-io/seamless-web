@@ -16,6 +16,7 @@ const ExecutionTimeline = ({
   const [logs, setLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [initialScreen, setInitialScreen] = useState(true);
+  const [activeItem, setActiveItem] = useState(null);
 
   const renderExecutionTimeLine = () => {
     if (loadingExecutionTimeLine) {
@@ -41,6 +42,7 @@ const ExecutionTimeline = ({
           key={execution.run_id}
           time={execution.created_at}
           status={execution.status}
+          active={execution.run_id === activeItem}
           showLogs={() => showLogs(execution.run_id)}
         />
       ));
@@ -73,6 +75,7 @@ const ExecutionTimeline = ({
   const showLogs = run_id => {
     setInitialScreen(false);
     setLoadingLogs(true);
+    setActiveItem(run_id);
     getJobRunLogs(jobId, run_id)
       .then(payload => {
         setLogs(payload);
