@@ -76,6 +76,41 @@ def update_job(job_id):
         return jsonify(row2dict(job)), 200
 
 
+def _switch_schedule(job_id, enable):
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != session['profile']['internal_user_id']:
+            return "Job Not Found", 404
+        
+        job.schedule_is_active = bool(enable)
+        if bool(enable):
+            enable_job_schedule(job_id)
+        else:
+            disable_job_schedule(job_id)
+        
+        db_session.commit()
+        return job
+
+
+@jobs_bp.route('/jobs/<job_id>/enable', methods=['PUT'])
+@requires_auth
+def enable_job(job_id):
+    """
+    If job is scheduled - enables schedule
+    """
+    _switch_schedule(job_id, True)
+    return jsonify(row2dict(job)), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/disable', methods=['PUT'])
+def disabled_job(job_id):
+    """
+    If job is scheduled - disable schedule
+    """
+    _switch_schedule(job_id, False)
+    return jsonify(row2dict(job)), 200
+
+
 @jobs_bp.route('/jobs/<job_id>/runs', methods=['GET'])
 @requires_auth
 def get_job_runs(job_id: str):
