@@ -94,6 +94,7 @@ const Jobs = () => {
                 <code className="smls-jobs-code">
                   {`smls init --api-key ${apiKey}`}
                 </code>
+                <code className="smls-jobs-code">smls example</code>
               </div>
               <p className="smls-jobs-python-requirement">
                 * Requires Python 3.6 or higher
