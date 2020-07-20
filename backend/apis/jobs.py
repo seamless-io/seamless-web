@@ -246,20 +246,26 @@ def run() -> Response:
     return Response(logstream)
 
 
-@jobs_bp.route('/jobs/<job_id>', methods=['DELETE'])
-def delete_job(job_id):
+@jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])
+def delete_job(job_name):
     api_key = request.headers.get('Authorization')
     if not api_key:
         return Response('Not authorized request', 401)
 
     with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user.api_key != api_key:
+        user = User.get_user_from_api_key(api_key, db_session)
+        job = None
+        for j in user.jobs:
+            if j.name == job_name:
+                job = j
+                break
+
+        if not job:
             return "Job Not Found", 404
 
-        remove_job_schedule(job_id)
-        remove_project_from_s3(job_id)
+        remove_job_schedule(job.id)
+        remove_project_from_s3(job.id)
 
         db_session.delete(job)
         db_session.commit()
-    return f"Successfully deleted job {job_id}", 200
+        return f"Successfully deleted job {job.id}", 200
