@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
+import moment from 'moment';
 
 import { socket } from '../../socket';
 import {
@@ -19,7 +20,6 @@ import './style.css';
 import '../Jobs/toggle.css';
 import download from '../../images/cloud-download.svg';
 import timeHistory from '../../images/time-history.svg';
-import pencil from '../../images/pencil-create.svg';
 
 const Job = () => {
   const job = useParams();
@@ -36,6 +36,7 @@ const Job = () => {
     false
   );
   const [nextExecution, setNextExecution] = useState('');
+  const [updatedAt, setUpdatedAt] = useState('');
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -77,6 +78,7 @@ const Job = () => {
       .then(payload => {
         setName(payload.name);
         setStatusValue(payload.status);
+        setUpdatedAt(moment(payload.updated_at).format('MMM DD, YYYY, HH:mm'));
         setIsScheduleOn(payload.schedule_is_active === 'True');
         setIsToggleDisabled(payload.aws_cron === 'None');
         setSchedule(
@@ -154,12 +156,6 @@ const Job = () => {
         <Col className="smls-job-name-header">
           <div className="smls-job-heade-container">
             <h1 className="smls-job-name-h1">{name}</h1>
-            <button
-              className="smls-job-name-pencil"
-              onClick={() => alert('Not working yet.')}
-            >
-              <img src={pencil} alt="Updated at" />
-            </button>
           </div>
         </Col>
         <Col className="smls-job-header-buttons-container">
@@ -200,7 +196,7 @@ const Job = () => {
         <Col style={{ paddingRight: '0px' }}>
           <div className="smls-job-extra-info-section">
             <img src={timeHistory} alt="Updated at" />
-            <span>Code updated on May 19, 2020, 14:56</span>
+            <span>{`Code updated on ${updatedAt}`}</span>
           </div>
         </Col>
       </Row>
