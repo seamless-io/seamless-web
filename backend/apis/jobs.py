@@ -248,6 +248,7 @@ def _run_job(job_id, type_, user_id=None):
         db_session.commit()
 
         emit('status', {'job_id': job_id,
+                        'job_run_id': job_run.id,
                         'status': job.status},
              namespace='/socket',
              broadcast=True)

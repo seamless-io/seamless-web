@@ -1,7 +1,7 @@
 import React from 'react';
 import { Spinner } from 'react-bootstrap';
 
-const Logs = ({ logs, loadingLogs, initialScreen }) => {
+const Logs = ({ logs, loadingLogs }) => {
   if (loadingLogs) {
     return (
       <div className="smls-job-logs-loading-container">
@@ -10,7 +10,7 @@ const Logs = ({ logs, loadingLogs, initialScreen }) => {
     );
   }
 
-  if (initialScreen) {
+  if (!logs.length) {
     return (
       <div className="smls-job-logs-initial-screen-container">
         Click Execution Timeline to see logs.
@@ -20,8 +20,8 @@ const Logs = ({ logs, loadingLogs, initialScreen }) => {
 
   return (
     <div className="smls-job-container">
-      {logs.map(log => (
-        <span key={log.id} style={{ display: 'block' }}>
+      {logs.map((log, i) => (
+        <span key={i} style={{ display: 'block' }}>
           {log.message}
         </span>
       ))}

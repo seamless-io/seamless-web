@@ -1,24 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 
 import Logs from './Logs';
 import JobExecutionItem from './JobExecutionItem';
 
-import { getJobRunLogs } from '../../api';
-
 const ExecutionTimeline = ({
   loadingExecutionTimeLine,
   lastFiveExecutions,
-  jobId,
-  schedule,
   nextExecution,
+  logs,
+  showLogs,
+  loadingLogs,
+  activeItem,
 }) => {
-  const [logs, setLogs] = useState([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-  const [initialScreen, setInitialScreen] = useState(true);
-  const [activeItem, setActiveItem] = useState(null);
-
   const renderExecutionTimeLine = () => {
     if (loadingExecutionTimeLine) {
       return (
@@ -38,7 +33,7 @@ const ExecutionTimeline = ({
 
   const renderLastFiveExecutions = () => {
     if (lastFiveExecutions && lastFiveExecutions.length > 0) {
-      return lastFiveExecutions.map(execution => (
+      return lastFiveExecutions.map((execution, i) => (
         <JobExecutionItem
           key={execution.run_id}
           time={execution.created_at}
@@ -73,20 +68,6 @@ const ExecutionTimeline = ({
     }
   };
 
-  const showLogs = run_id => {
-    setInitialScreen(false);
-    setLoadingLogs(true);
-    setActiveItem(run_id);
-    getJobRunLogs(jobId, run_id)
-      .then(payload => {
-        setLogs(payload);
-        setLoadingLogs(false);
-      })
-      .catch(payload => {
-        alert(payload); // TODO: create a notification component
-      });
-  };
-
   return (
     <Row className="smls-job-main-info">
       <Col
@@ -109,11 +90,7 @@ const ExecutionTimeline = ({
             <h5>Logs</h5>
           </Col>
           <Col sm={12}>
-            <Logs
-              logs={logs}
-              loadingLogs={loadingLogs}
-              initialScreen={initialScreen}
-            />
+            <Logs logs={logs} loadingLogs={loadingLogs} />
           </Col>
         </Row>
       </Col>
