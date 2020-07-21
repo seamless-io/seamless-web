@@ -5,7 +5,14 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
-import { getJob, triggerJobRun, enableJobSchedule, disableJobSchedule, getLastExecutions } from '../../api';
+import {
+  getJob,
+  triggerJobRun,
+  enableJobSchedule,
+  disableJobSchedule,
+  getLastExecutions,
+  getNextJobExecution,
+} from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
 
 import './style.css';
@@ -28,6 +35,7 @@ const Job = () => {
   const [loadingExecutionTimeLine, setLoadingExecutionTimeLine] = useState(
     false
   );
+  const [nextExecution, setNextExecution] = useState('');
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -46,31 +54,22 @@ const Job = () => {
     }
   };
 
-  const handleToggleSwitch = (e) => {
+  const handleToggleSwitch = e => {
     var initialScheduleOn = isScheduleOn;
-    
+
     setIsScheduleOn(!isScheduleOn);
     if (!e.target.checked) {
-      disableJobSchedule(job.id)
-        .catch(error => {
-          console.log('Error disabling a job...\n', error);
-          setIsScheduleOn(initialScheduleOn);
-        });
-    }
-    else {
-      enableJobSchedule(job.id)
-        .catch(error => {
-          console.log('Error enabling a job...\n', error);
-          setIsScheduleOn(initialScheduleOn);
-        });
+      disableJobSchedule(job.id).catch(error => {
+        console.log('Error disabling a job...\n', error);
+        setIsScheduleOn(initialScheduleOn);
+      });
+    } else {
+      enableJobSchedule(job.id).catch(error => {
+        console.log('Error enabling a job...\n', error);
+        setIsScheduleOn(initialScheduleOn);
+      });
     }
   };
-
-  const scheduleClassName = () => {
-    if (!isScheduleOn) {
-      return 'smls-muted'
-    }
-  }
 
   useEffect(() => {
     setLoading(true);
@@ -78,22 +77,11 @@ const Job = () => {
       .then(payload => {
         setName(payload.name);
         setStatusValue(payload.status);
-
-        if (payload.schedule_is_active === 'None' || payload.schedule_is_active === 'False') {
-          setIsScheduleOn(false);
-        }
-        else {
-          setIsScheduleOn(true)
-        }
-        setIsToggleDisabled(Boolean(payload.aws_cron === 'None'));
-
-        if (payload.human_cron === 'None') {
-          setSchedule('Not scheduled');
-        }
-        else {
-          setSchedule(payload.human_cron);
-        }
-
+        setIsScheduleOn(payload.schedule_is_active === 'True');
+        setIsToggleDisabled(payload.aws_cron === 'None');
+        setSchedule(
+          payload.human_cron === 'None' ? 'Not scheduled' : payload.human_cron
+        );
         setLoading(false);
       })
       .catch(() => {
@@ -111,6 +99,16 @@ const Job = () => {
         alert('Error!'); // TODO: create a notification component
       });
   }, [statusValue]);
+
+  useEffect(() => {
+    getNextJobExecution(job.id)
+      .then(payload => {
+        setNextExecution(payload.result);
+      })
+      .catch(() => {
+        alert('Error!'); // TODO: create a notification component
+      });
+  }, []);
 
   const runJob = () => {
     setLogs([]);
@@ -194,7 +192,9 @@ const Job = () => {
               disabled={isToggleDisabled}
               onChange={handleToggleSwitch}
             />
-            <span className={scheduleClassName()}>{schedule}</span>
+            <span className={!isScheduleOn ? 'smls-muted' : ''}>
+              {schedule}
+            </span>
           </div>
         </Col>
         <Col style={{ paddingRight: '0px' }}>
@@ -209,6 +209,7 @@ const Job = () => {
         lastFiveExecutions={lastFiveExecutions}
         jobId={job.id}
         schedule={schedule}
+        nextExecution={nextExecution}
       />
     </>
   );

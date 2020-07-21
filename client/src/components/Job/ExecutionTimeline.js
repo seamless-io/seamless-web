@@ -12,6 +12,7 @@ const ExecutionTimeline = ({
   lastFiveExecutions,
   jobId,
   schedule,
+  nextExecution,
 }) => {
   const [logs, setLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
@@ -56,10 +57,10 @@ const ExecutionTimeline = ({
   };
 
   const renderNextExecution = () => {
-    if (schedule !== 'Not scheduled') {
+    if (nextExecution !== 'Not scheduled') {
       return (
         <>
-          <JobExecutionItem time={'2020-20-20'} status={'scheduled'} />
+          <JobExecutionItem time={nextExecution} status={'scheduled'} />
           <Row>
             <Col>
               <div className="smls-job-info-section-col-hr">

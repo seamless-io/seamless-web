@@ -55,4 +55,4 @@ class CronConversionException(Exception):
 
 def get_cron_next_execution(expression: str) -> str:
     cron = croniter(expression, datetime.utcnow())
-    return cron.get_next(datetime)
+    return cron.get_next(datetime).strftime('%B %d, %Y, %H:%M:%S')

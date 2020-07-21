@@ -218,6 +218,12 @@
   color: #1a1a1a;
 }
 
+.smls-execution-badge-scheduled {
+  border-radius: 2px;
+  background-color: #ebedf0;
+  color: #9299a3;
+}
+
 .smls-job-executiontimelie-no-runs {
   display: flex;
   align-items: center;
