@@ -33,7 +33,7 @@ const ExecutionTimeline = ({
 
   const renderLastFiveExecutions = () => {
     if (lastFiveExecutions && lastFiveExecutions.length > 0) {
-      return lastFiveExecutions.map((execution, i) => (
+      return lastFiveExecutions.map(execution => (
         <JobExecutionItem
           key={execution.run_id}
           time={execution.created_at}
