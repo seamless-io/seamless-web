@@ -37,6 +37,7 @@ class Job(base):
     human_cron = Column(Text)
     schedule_is_active = Column(Boolean)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def schedule_job(self):
         if self.aws_cron and self.schedule_is_active:
