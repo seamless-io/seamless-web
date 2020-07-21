@@ -253,3 +253,9 @@
   font-size: 20px;
   font-weight: 600;
 }
+
+.smls-job-executiontimeline-logs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

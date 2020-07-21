@@ -13,6 +13,7 @@ import {
   disableJobSchedule,
   getLastExecutions,
   getNextJobExecution,
+  getJobRunLogs,
 } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
 
@@ -37,6 +38,9 @@ const Job = () => {
   );
   const [nextExecution, setNextExecution] = useState('');
   const [updatedAt, setUpdatedAt] = useState('');
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [activeItem, setActiveItem] = useState(null);
+  const [loadingStreamingLogs, setLoadingStreamingLogs] = useState(false);
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -45,13 +49,15 @@ const Job = () => {
 
   const updateJobStatus = jobRunning => {
     if (jobRunning.job_id === job.id) {
+      setActiveItem(Number(jobRunning.job_run_id));
       setStatusValue(jobRunning.status);
+      setLoadingStreamingLogs(jobRunning.status === 'EXECUTING');
     }
   };
 
   const updateJobLogs = jobLogLine => {
     if (jobLogLine.job_id === job.id) {
-      setLogs(logs => [...logs, jobLogLine.log_line]);
+      setLogs(logs => [...logs, jobLogLine]);
     }
   };
 
@@ -115,6 +121,7 @@ const Job = () => {
   const runJob = () => {
     setLogs([]);
     setLoadingExecutionTimeLine(true);
+    setLoadingStreamingLogs(true);
     triggerJobRun(job.id)
       .then(() => {})
       .catch(payload => {
@@ -140,6 +147,19 @@ const Job = () => {
         <span className="smls-job-run-button-text">Run</span>
       </>
     );
+  };
+
+  const showLogs = run_id => {
+    setLoadingLogs(true);
+    setActiveItem(run_id);
+    getJobRunLogs(job.id, run_id)
+      .then(payload => {
+        setLogs(payload);
+        setLoadingLogs(false);
+      })
+      .catch(payload => {
+        alert(payload); // TODO: create a notification component
+      });
   };
 
   if (loading) {
@@ -203,9 +223,12 @@ const Job = () => {
       <ExecutionTimeline
         loadingExecutionTimeLine={loadingExecutionTimeLine}
         lastFiveExecutions={lastFiveExecutions}
-        jobId={job.id}
-        schedule={schedule}
         nextExecution={nextExecution}
+        logs={logs}
+        showLogs={showLogs}
+        loadingLogs={loadingLogs}
+        activeItem={activeItem}
+        loadingStreamingLogs={loadingStreamingLogs}
       />
     </>
   );
