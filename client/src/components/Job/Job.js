@@ -40,6 +40,7 @@ const Job = () => {
   const [updatedAt, setUpdatedAt] = useState('');
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [activeItem, setActiveItem] = useState(null);
+  const [loadingStreamingLogs, setLoadingStreamingLogs] = useState(false);
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -50,6 +51,7 @@ const Job = () => {
     if (jobRunning.job_id === job.id) {
       setActiveItem(Number(jobRunning.job_run_id));
       setStatusValue(jobRunning.status);
+      setLoadingStreamingLogs(jobRunning.status === 'EXECUTING');
     }
   };
 
@@ -119,6 +121,7 @@ const Job = () => {
   const runJob = () => {
     setLogs([]);
     setLoadingExecutionTimeLine(true);
+    setLoadingStreamingLogs(true);
     triggerJobRun(job.id)
       .then(() => {})
       .catch(payload => {
@@ -225,6 +228,7 @@ const Job = () => {
         showLogs={showLogs}
         loadingLogs={loadingLogs}
         activeItem={activeItem}
+        loadingStreamingLogs={loadingStreamingLogs}
       />
     </>
   );

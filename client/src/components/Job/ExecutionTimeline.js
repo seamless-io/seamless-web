@@ -13,6 +13,7 @@ const ExecutionTimeline = ({
   showLogs,
   loadingLogs,
   activeItem,
+  loadingStreamingLogs,
 }) => {
   const renderExecutionTimeLine = () => {
     if (loadingExecutionTimeLine) {
@@ -68,6 +69,19 @@ const ExecutionTimeline = ({
     }
   };
 
+  const loadStreamingLogs = () => {
+    if (loadingStreamingLogs) {
+      return (
+        <Spinner
+          animation="border"
+          role="status"
+          size="sm"
+          style={{ marginBottom: '8px' }}
+        ></Spinner>
+      );
+    }
+  };
+
   return (
     <Row className="smls-job-main-info">
       <Col
@@ -87,7 +101,10 @@ const ExecutionTimeline = ({
       <Col sm={8} className="smls-job-main-info-section">
         <Row>
           <Col sm={12}>
-            <h5>Logs</h5>
+            <div className="smls-job-executiontimeline-logs-header">
+              <h5>Logs</h5>
+              {loadStreamingLogs()}
+            </div>
           </Col>
           <Col sm={12}>
             <Logs logs={logs} loadingLogs={loadingLogs} />
