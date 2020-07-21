@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_httpauth import HTTPBasicAuth
@@ -188,6 +189,7 @@ def create_job():
                 break
         if job:  # The user re-publishes an existing job
             existing_job = True
+            job.updated_at = datetime.utcnow()
             if cron_schedule:
                 aws_cron, human_cron = parse_cron(cron_schedule)
                 job.cron = cron_schedule
