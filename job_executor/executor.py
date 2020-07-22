@@ -112,6 +112,15 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
                         job_run_result = JobRunResult.Failed
                         job_status = JobStatus.Failed
                     handle_log_line(l, app, db_session)
+
+                result = container.wait()
+                status_code = result["StatusCode"]
+                if status_code != 0:
+                    message = f"Container failed with the exit code {status_code}\n"
+                    handle_log_line(message, app, db_session)
+                    job_run_result = JobRunResult.Failed
+                    job_status = JobStatus.Failed
+
                 job = db_session.query(Job).get(job_id)
                 job_run = db_session.query(JobRun).get(job_run_id)
                 job.status = job_status.value
