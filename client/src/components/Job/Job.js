@@ -10,7 +10,6 @@ import {
   getJob,
   triggerJobRun,
   enableJobSchedule,
-  disableJobSchedule,
   getLastExecutions,
   getNextJobExecution,
   getJobRunLogs,
@@ -41,6 +40,7 @@ const Job = () => {
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [activeItem, setActiveItem] = useState(null);
   const [loadingStreamingLogs, setLoadingStreamingLogs] = useState(false);
+  const [loadingToggleSwitch, setLoadingToggleSwitch] = useState(false);
 
   useEffect(() => {
     socket.on('status', jobRunning => updateJobStatus(jobRunning));
@@ -62,19 +62,27 @@ const Job = () => {
   };
 
   const handleToggleSwitch = e => {
-    var initialScheduleOn = isScheduleOn;
+    setLoadingToggleSwitch(true);
+    setIsScheduleOn(e.target.checked);
+    enableJobSchedule(job.id, e.target.checked)
+      .then(payload => {
+        setLoadingToggleSwitch(false);
+      })
+      .catch(payload => {});
+  };
 
-    setIsScheduleOn(!isScheduleOn);
-    if (!e.target.checked) {
-      disableJobSchedule(job.id).catch(error => {
-        console.log('Error disabling a job...\n', error);
-        setIsScheduleOn(initialScheduleOn);
-      });
-    } else {
-      enableJobSchedule(job.id).catch(error => {
-        console.log('Error enabling a job...\n', error);
-        setIsScheduleOn(initialScheduleOn);
-      });
+  const loadToggleSwitch = () => {
+    if (loadingToggleSwitch) {
+      return (
+        <div className="smls-job-toggle-switch-container">
+          <Spinner
+            animation="border"
+            role="status"
+            size="sm"
+            style={{ marginBottom: '8px' }}
+          ></Spinner>
+        </div>
+      );
     }
   };
 
@@ -201,7 +209,10 @@ const Job = () => {
       </Row>
       <Row className="smls-job-extra-info">
         <Col style={{ paddingLeft: '0px' }}>
-          <div className="smls-job-extra-info-section">
+          <div
+            className="smls-job-extra-info-section"
+            style={{ position: 'absolute' }}
+          >
             <Toggle
               checked={isScheduleOn}
               icons={false}
@@ -212,6 +223,7 @@ const Job = () => {
               {schedule}
             </span>
           </div>
+          {loadToggleSwitch()}
         </Col>
         <Col style={{ paddingRight: '0px' }}>
           <div className="smls-job-extra-info-section">

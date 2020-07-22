@@ -100,16 +100,8 @@ def enable_job(job_id):
     """
     If job is scheduled - enables schedule
     """
-    _switch_schedule(job_id, True)
-    return jsonify(job_id), 200
-
-
-@jobs_bp.route('/jobs/<job_id>/disable', methods=['PUT'])
-def disabled_job(job_id):
-    """
-    If job is scheduled - disable schedule
-    """
-    _switch_schedule(job_id, False)
+    is_enabled = True if request.args.get('is_enabled') == 'true' else False
+    _switch_schedule(job_id, is_enabled)
     return jsonify(job_id), 200
 
 

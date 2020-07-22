@@ -79,6 +79,7 @@
   background-color: #ffffff;
   padding-left: 28px;
   height: 100%;
+  width: 100%;
 }
 
 .smls-job-extra-info-section span {
@@ -258,4 +259,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.smls-job-toggle-switch-container {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.75);
 }

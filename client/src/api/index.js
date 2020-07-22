@@ -42,13 +42,10 @@ export const getLastExecutions = async job_id => {
   return response.data;
 };
 
-export const enableJobSchedule = async job_id => {
-  let response = await axios.put(`/api/v1/jobs/${job_id}/enable`);
-  return response.data;
-};
-
-export const disableJobSchedule = async job_id => {
-  let response = await axios.put(`/api/v1/jobs/${job_id}/disable`);
+export const enableJobSchedule = async (job_id, is_enabled) => {
+  let response = await axios.put(
+    `/api/v1/jobs/${job_id}/enable?is_enabled=${is_enabled}`
+  );
   return response.data;
 };
 
