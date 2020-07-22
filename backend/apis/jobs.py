@@ -84,13 +84,13 @@ def _switch_schedule(job_id, enable):
         job = db_session.query(Job).get(job_id)
         if not job or job.user_id != session['profile']['internal_user_id']:
             return "Job Not Found", 404
-        
+
         job.schedule_is_active = bool(enable)
         if bool(enable):
             enable_job_schedule(job_id)
         else:
             disable_job_schedule(job_id)
-        
+
         db_session.commit()
 
 
@@ -248,6 +248,7 @@ def _run_job(job_id, type_, user_id=None):
         db_session.commit()
 
         emit('status', {'job_id': job_id,
+                        'job_run_id': job_run.id,
                         'status': job.status},
              namespace='/socket',
              broadcast=True)
@@ -334,5 +335,5 @@ def get_next_job_execution(job_id):
         if not job or job.user_id != session['profile']['internal_user_id']:
             return "Job Not Found", 404
         if not job.schedule_is_active:
-            return jsonify({"result": "Job is not scheduled"}), 400
+            return jsonify({"result": "Not scheduled"}), 200
         return jsonify({"result": get_cron_next_execution(job.cron)}), 200

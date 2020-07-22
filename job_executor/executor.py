@@ -84,7 +84,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
         with app.app_context():
             emit(
                 'logs',
-                {'job_id': job_id, 'log_line': l},
+                {'job_id': job_id, 'message': l},
                 namespace='/socket',
                 broadcast=True
             )

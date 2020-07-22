@@ -1,23 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 
 import Logs from './Logs';
 import JobExecutionItem from './JobExecutionItem';
 
-import { getJobRunLogs } from '../../api';
-
 const ExecutionTimeline = ({
   loadingExecutionTimeLine,
   lastFiveExecutions,
-  jobId,
-  schedule,
+  nextExecution,
+  logs,
+  showLogs,
+  loadingLogs,
+  activeItem,
+  loadingStreamingLogs,
 }) => {
-  const [logs, setLogs] = useState([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-  const [initialScreen, setInitialScreen] = useState(true);
-  const [activeItem, setActiveItem] = useState(null);
-
   const renderExecutionTimeLine = () => {
     if (loadingExecutionTimeLine) {
       return (
@@ -56,10 +53,10 @@ const ExecutionTimeline = ({
   };
 
   const renderNextExecution = () => {
-    if (schedule !== 'Not scheduled') {
+    if (nextExecution !== 'Not scheduled') {
       return (
         <>
-          <JobExecutionItem time={'2020-20-20'} status={'scheduled'} />
+          <JobExecutionItem time={nextExecution} status={'scheduled'} />
           <Row>
             <Col>
               <div className="smls-job-info-section-col-hr">
@@ -72,18 +69,17 @@ const ExecutionTimeline = ({
     }
   };
 
-  const showLogs = run_id => {
-    setInitialScreen(false);
-    setLoadingLogs(true);
-    setActiveItem(run_id);
-    getJobRunLogs(jobId, run_id)
-      .then(payload => {
-        setLogs(payload);
-        setLoadingLogs(false);
-      })
-      .catch(payload => {
-        alert(payload); // TODO: create a notification component
-      });
+  const loadStreamingLogs = () => {
+    if (loadingStreamingLogs) {
+      return (
+        <Spinner
+          animation="border"
+          role="status"
+          size="sm"
+          style={{ marginBottom: '8px' }}
+        ></Spinner>
+      );
+    }
   };
 
   return (
@@ -105,14 +101,13 @@ const ExecutionTimeline = ({
       <Col sm={8} className="smls-job-main-info-section">
         <Row>
           <Col sm={12}>
-            <h5>Logs</h5>
+            <div className="smls-job-executiontimeline-logs-header">
+              <h5>Logs</h5>
+              {loadStreamingLogs()}
+            </div>
           </Col>
           <Col sm={12}>
-            <Logs
-              logs={logs}
-              loadingLogs={loadingLogs}
-              initialScreen={initialScreen}
-            />
+            <Logs logs={logs} loadingLogs={loadingLogs} />
           </Col>
         </Row>
       </Col>

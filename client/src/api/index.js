@@ -42,16 +42,17 @@ export const getLastExecutions = async job_id => {
   return response.data;
 };
 
-export const enableJobSchedule = async (job_id) => {
-  let response = await axios.put(
-    '/api/v1/jobs/' + job_id + '/enable'
-  );
-  return response.data
+export const enableJobSchedule = async job_id => {
+  let response = await axios.put(`/api/v1/jobs/${job_id}/enable`);
+  return response.data;
 };
 
-export const disableJobSchedule = async (job_id) => {
-  let response = await axios.put(
-    '/api/v1/jobs/' + job_id + '/disable'
-  );
-  return response.data
+export const disableJobSchedule = async job_id => {
+  let response = await axios.put(`/api/v1/jobs/${job_id}/disable`);
+  return response.data;
+};
+
+export const getNextJobExecution = async job_id => {
+  let response = await axios.get(`/api/v1/jobs/${job_id}/next_execution`);
+  return response.data;
 };

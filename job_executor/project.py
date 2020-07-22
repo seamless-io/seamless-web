@@ -81,7 +81,6 @@ def create(fileobj: FileStorage,
 def fetch_project_from_s3(job_id: str) -> io.BytesIO:
     s3_response_object = s3.get_object(Bucket=USER_PROJECTS_S3_BUCKET,
                                        Key=f"{job_id}.{ALLOWED_EXTENSION}")
-
     return io.BytesIO(s3_response_object['Body'].read())
 
 
