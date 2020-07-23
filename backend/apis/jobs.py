@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_httpauth import HTTPBasicAuth
 from flask_socketio import emit
+from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
@@ -168,7 +169,11 @@ def create_job():
     logging.info(f"Received 'publish': job_name={job_name}, schedule={cron_schedule}")
 
     with session_scope() as session:
-        user = User.get_user_from_api_key(api_key, session)
+        try:
+            user = User.get_user_from_api_key(api_key, session)
+        except NoResultFound:
+            return Response('API Key is wrong, please go to our account https://app.seamlesscloud.io/account,'
+                            ' copy the API Key field and run "smls init --api-key <copied value>"', 400)
 
         account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
         jobs_limit = account_limits.jobs
