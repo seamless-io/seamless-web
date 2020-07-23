@@ -165,8 +165,13 @@ def create_job():
 
     job_name = request.args.get('name')
     cron_schedule = request.args.get('schedule')
+    entrypoint = request.args.get('entrypoint')
+    requirements = request.args.get('requirements')
 
-    logging.info(f"Received 'publish': job_name={job_name}, schedule={cron_schedule}")
+    logging.info(
+        f"Received 'publish': job_name={job_name}, schedule={cron_schedule}, "
+        f"entrypoint={entrypoint}, requirements={requirements}"
+    )
 
     with session_scope() as session:
         try:
@@ -192,6 +197,10 @@ def create_job():
                 job.cron = cron_schedule
                 job.aws_cron = aws_cron
                 job.human_cron = human_cron
+                
+                job.entrypoint = entrypoint
+                job.requirements = requirements
+
                 if job.schedule_is_active is None:
                     job.schedule_is_active = True
         else:  # The user publishes the new job
@@ -200,7 +209,9 @@ def create_job():
             existing_job = False
             job_attributes = {
                 'name': job_name,
-                'user_id': user.id
+                'user_id': user.id,
+                'entrypoint': entrypoint,
+                'requirements': requirements
             }
             if cron_schedule:
                 aws_cron, human_cron = parse_cron(cron_schedule)
@@ -235,6 +246,10 @@ def _run_job(job_id, type_, user_id=None):
     """
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
+        
+        entrypoint = job.entrypoint or config.DEFAULT_ENTRYPOINT
+        requirements = job.requirements or config.DEFAULT_REQUIREMENTS
+        
         if not job or (user_id and job.user_id != user_id):
             return "Job Not Found", 404
 
@@ -251,7 +266,7 @@ def _run_job(job_id, type_, user_id=None):
              broadcast=True)
 
         path_to_job_files = get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
-        executor.execute_and_stream_to_db(path_to_job_files, str(job.id), str(job_run.id))
+        executor.execute_and_stream_to_db(path_to_job_files, str(job.id), str(job_run.id), entrypoint, requirements)
 
 
 @jobs_bp.route('/jobs/execute', methods=['POST'])
@@ -286,6 +301,10 @@ def run() -> Response:
         return Response('Not authorized request', 401)
 
     file = request.files.get('seamless_project')
+    
+    entrypoint = request.args.get('entrypoint')
+    requirements = request.args.get('requirements')
+    
     if not file:
         return Response('File not provided', 400)
 
@@ -294,7 +313,7 @@ def run() -> Response:
     except project.ProjectValidationError as exc:
         return Response(str(exc), 400)
 
-    logstream = executor.execute_and_stream_back(project_path, api_key)
+    logstream = executor.execute_and_stream_back(project_path, api_key, entrypoint, requirements)
 
     return Response(logstream, content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
 

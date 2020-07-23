@@ -24,18 +24,18 @@ REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
 
-def _ensure_requirements(job_directory):
+def _ensure_requirements(job_directory, requirements):
     """
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
     """
-    path_to_requirements = f"{job_directory}/{REQUIREMENTS_FILENAME}"
+    path_to_requirements = f"{job_directory}/{requirements}"
     if not os.path.exists(path_to_requirements):
         with open(path_to_requirements, 'w'):
             pass
 
 
-def _run_container(path_to_job_files: str, tag: str) -> Container:
-    _ensure_requirements(path_to_job_files)
+def _run_container(path_to_job_files: str, tag: str, entrypoint: str, path_to_requirements: str) -> Container:
+    _ensure_requirements(path_to_job_files, path_to_requirements)
     docker_client = docker.from_env()
     copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), DOCKER_FILE_NAME),
              os.path.join(path_to_job_files, DOCKER_FILE_NAME))
@@ -49,7 +49,7 @@ def _run_container(path_to_job_files: str, tag: str) -> Container:
 
     container = docker_client.containers.run(
         image=image,
-        command="bash -c \"python -u function.py\"",
+        command=f"bash -c \"python -u -c 'import {{ entrypoint }}; {{ entrypoint }}()'\"",
         mounts=[Mount(target='/src',
                       source=path_to_job_files,
                       type='bind')],
@@ -73,9 +73,9 @@ def _capture_stderr(container):
     return logs
 
 
-def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[bytes]:
+def execute_and_stream_back(path_to_job_files: str, api_key: str, entrypoint: str, requirements: str) -> Iterable[bytes]:
     try:
-        container = _run_container(path_to_job_files, api_key)
+        container = _run_container(path_to_job_files, api_key, entrypoint, requirements)
 
         # We actually use only element [0] which will be the exit code of the container
         res: List[int] = []
@@ -114,7 +114,7 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
                 yield line
 
 
-def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str):
+def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str, entrypoint: str, requirements: str):
     def handle_log_line(l, app, db_session):
         # Streaming logs line by line
         with app.app_context():
@@ -139,7 +139,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
 
         with session_scope() as db_session:
             try:
-                container = _run_container(path_to_job_files, job_id)
+                container = _run_container(path_to_job_files, job_id, entrypoint, requirements)
 
                 res = []
                 thread_in_thread = Thread(target=thread_wrapper,
