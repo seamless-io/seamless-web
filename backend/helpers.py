@@ -56,3 +56,9 @@ class CronConversionException(Exception):
 def get_cron_next_execution(expression: str) -> str:
     cron = croniter(expression, datetime.utcnow())
     return cron.get_next(datetime).strftime('%B %d, %Y, %H:%M:%S')
+
+
+# This is a helper wrapper for getting results from threaded functions
+# https://stackoverflow.com/questions/5324718/python-returning-data-from-a-threaded-def
+def thread_wrapper(func, args, res):
+    res.append(func(*args))

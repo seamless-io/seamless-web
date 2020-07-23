@@ -2,20 +2,20 @@ import os
 from datetime import datetime
 from shutil import copyfile
 from threading import Thread
-from time import sleep
-from typing import Iterable, Tuple
+from typing import Iterable
 
 import docker
 from docker.errors import BuildError
 from docker.models.containers import Container
 from docker.types import Mount
+from flask import current_app
 from flask_socketio import emit
 
-from flask import current_app
 from backend.db import session_scope
 from backend.db.models.job_run_logs import JobRunLog
 from backend.db.models.job_runs import JobRunResult, JobRun
 from backend.db.models.jobs import JobStatus, Job
+from backend.helpers import thread_wrapper
 from job_executor.project import restore_project_from_s3
 
 DOCKER_FILE_NAME = "Dockerfile"
@@ -53,6 +53,8 @@ def _run_container(path_to_job_files: str, tag: str) -> Container:
                       source=path_to_job_files,
                       type='bind')],
         auto_remove=True,
+        stderr=True,
+        # stdout=True,
         detach=True,
         mem_limit='128m',
         memswap_limit='128m'
@@ -60,15 +62,45 @@ def _run_container(path_to_job_files: str, tag: str) -> Container:
     return container
 
 
+def _wait_for_exit_code(container):
+    result = container.wait()
+    return result["StatusCode"]
+
+
+def _capture_stderr(container):
+    logs = container.logs(stream=True, stdout=False, stderr=True)
+    return logs
+
+
 def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[bytes]:
     try:
         container = _run_container(path_to_job_files, api_key)
-        for line in container.logs(stream=True):
+        res = []
+        thread_in_thread = Thread(target=thread_wrapper,
+                                  args=(_wait_for_exit_code, (container,), res))
+        thread_in_thread.start()
+
+        res_2 = []
+        thread_in_thread_2 = Thread(target=thread_wrapper,
+                                    args=(_capture_stderr, (container,), res_2))
+        thread_in_thread_2.start()
+
+        # Print stdout first
+        for line in container.logs(stream=True, stdout=True, stderr=False):
             yield line
-        result = container.wait()
-        status_code = result["StatusCode"]
-        if status_code != 0:
-            message = f"Container failed with the exit code {status_code}\n"
+
+        # Wait for error logs if there are some and output them only after stdout is finished
+        # Otherwise log records will be mixed with each other because stdout and stderr use different buffers
+        thread_in_thread_2.join()
+        error_logs = res_2[0]
+        for line in error_logs:
+            yield line
+
+        # Wait for container to stop and get the exit code
+        thread_in_thread.join()
+        exit_code = res[0]
+        if exit_code != 0:
+            message = f"Job failed with the exit code {exit_code}\n"
             yield message.encode()
     except BuildError as e:
         yield b"Job build failed! Error logs:\n"
@@ -101,45 +133,67 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
         if not os.path.exists(path_to_job_files):
             restore_project_from_s3(path_to_job_files, job_id)
 
-        try:
-            container = _run_container(path_to_job_files, job_id)
-            with session_scope() as db_session:
+        with session_scope() as db_session:
+            try:
+                container = _run_container(path_to_job_files, job_id)
+
+                res = []
+                thread_in_thread = Thread(target=thread_wrapper,
+                                          args=(_wait_for_exit_code, (container,), res))
+                thread_in_thread.start()
+
+                res_2 = []
+                thread_in_thread_2 = Thread(target=thread_wrapper,
+                                            args=(_capture_stderr, (container,), res_2))
+                thread_in_thread_2.start()
+
+
                 job_run_result = JobRunResult.Ok
                 job_status = JobStatus.Ok
-                for line in container.logs(stream=True):
+                # Save stdout first
+                for line in container.logs(stream=True, stdout=True, stderr=False):
                     l = str(line, "utf-8")
-                    if "error" in l.lower():
-                        job_run_result = JobRunResult.Failed
-                        job_status = JobStatus.Failed
                     handle_log_line(l, app, db_session)
 
-                result = container.wait()
-                status_code = result["StatusCode"]
+                # Wait for error logs if there are some and output them only after stdout is finished
+                # Otherwise log records will be mixed with each other because stdout and stderr use different buffers
+                thread_in_thread_2.join()
+                error_logs = res_2[0]
+                for line in error_logs:
+                    l = str(line, "utf-8")
+                    handle_log_line(l, app, db_session)
+
+                    # Wait for container to stop and get the exit code
+                thread_in_thread.join()
+                status_code = res[0]
                 if status_code != 0:
-                    message = f"Container failed with the exit code {status_code}\n"
+                    message = f"Job failed with the exit code {status_code}\n"
                     handle_log_line(message, app, db_session)
                     job_run_result = JobRunResult.Failed
                     job_status = JobStatus.Failed
 
-                job = db_session.query(Job).get(job_id)
-                job_run = db_session.query(JobRun).get(job_run_id)
-                job.status = job_status.value
-                job_run.status = job_run_result.value
-                db_session.commit()
+            except BuildError as e:
+                handle_log_line("Job build failed! Error logs:\n", app, db_session)
+                for log_entry in e.build_log:
+                    line = log_entry.get('stream')
+                    if line:
+                        handle_log_line(line, app, db_session)
+                job_run_result = JobRunResult.Failed
+                job_status = JobStatus.Failed
 
-                # Streaming status
-                with app.app_context():
-                    emit('status', {'job_id': job_id,
-                                    'job_run_id': job_run_id,
-                                    'status': job_status.value},
-                         namespace='/socket',
-                         broadcast=True)
-        except BuildError as e:
-            handle_log_line(b"Job build failed! Error logs:\n", app, db_session)
-            for log_entry in e.build_log:
-                line = log_entry.get('stream')
-                if line:
-                    handle_log_line(l, app, db_session)
+            job = db_session.query(Job).get(job_id)
+            job_run = db_session.query(JobRun).get(job_run_id)
+            job.status = job_status.value
+            job_run.status = job_run_result.value
+            db_session.commit()
+
+            # Streaming status
+            with app.app_context():
+                emit('status', {'job_id': job_id,
+                                'job_run_id': job_run_id,
+                                'status': job_status.value},
+                     namespace='/socket',
+                     broadcast=True)
 
     thread = Thread(target=run_in_thread, kwargs={'app': current_app._get_current_object()})
     thread.start()
