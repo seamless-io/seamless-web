@@ -120,19 +120,6 @@ const Jobs = () => {
         <Col className="smls-my-jobs-header">
           <h1 className="smls-my-jobs-h1">My Jobs</h1>
         </Col>
-        <Col className="smls-jobs-header-buttons-container">
-          <div className="smls-jobs-header-buttons">
-            <button
-              className="smls-button-add-jobs"
-              onClick={() => alert('Not working yet.')}
-            >
-              <img src={linkExternal} alt="External link" />
-              <span className="smls-jobs-leaen-add-jobs-text">
-                Learn how to create jobs
-              </span>
-            </button>
-          </div>
-        </Col>
       </Row>
       {renderJobs()}
     </>
