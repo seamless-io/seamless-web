@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { Spinner } from 'react-bootstrap';
+import moment from 'moment';
 
 const Logs = ({ logs, loadingLogs }) => {
   if (loadingLogs) {
@@ -21,9 +23,12 @@ const Logs = ({ logs, loadingLogs }) => {
   return (
     <div className="smls-job-container">
       {logs.map((log, i) => (
-        <span key={i} style={{ display: 'block' }}>
-          {log.message}
-        </span>
+        <div key={i}>
+          <span className="smls-job-logs-timestamp">
+            {moment.utc(log.timestamp).format('YYYY-MM-DD HH:mm:ss')}
+          </span>
+          <span className="smls-job-logs-message">{log.message.trim()}</span>
+        </div>
       ))}
     </div>
   );

@@ -270,3 +270,13 @@
   height: 100%;
   background-color: rgba(255, 255, 255, 0.75);
 }
+
+.smls-job-logs-timestamp {
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 10px;
+}
+
+.smls-job-logs-message {
+  font-size: 12px;
+}
