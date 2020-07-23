@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from shutil import copyfile
 from threading import Thread
-from typing import Iterable
+from typing import Iterable, List
 
 import docker
 from docker.errors import BuildError
@@ -75,12 +75,15 @@ def _capture_stderr(container):
 def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[bytes]:
     try:
         container = _run_container(path_to_job_files, api_key)
-        res = []
+
+        # We actually use only element [0] which will be the exit code of the container
+        res: List[int] = []
         thread_in_thread = Thread(target=thread_wrapper,
                                   args=(_wait_for_exit_code, (container,), res))
         thread_in_thread.start()
 
-        res_2 = []
+        # We actually use only element [0] which will be the list of logs from container's stderr
+        res_2: List[List[str]] = []
         thread_in_thread_2 = Thread(target=thread_wrapper,
                                     args=(_capture_stderr, (container,), res_2))
         thread_in_thread_2.start()
