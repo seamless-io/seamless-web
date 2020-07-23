@@ -65,10 +65,10 @@ const Job = () => {
     setLoadingToggleSwitch(true);
     setIsScheduleOn(e.target.checked);
     enableJobSchedule(job.id, e.target.checked)
-      .then(payload => {
+      .then(() => {
         setLoadingToggleSwitch(false);
       })
-      .catch(payload => {});
+      .catch(() => {});
   };
 
   const loadToggleSwitch = () => {
