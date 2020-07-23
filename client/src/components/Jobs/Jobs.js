@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Spinner } from 'react-bootstrap';
 
-import { getJobs, updateJob, getUserInfo } from '../../api';
+import { getJobs, getUserInfo } from '../../api';
 import JobLine from './JobLine';
 import './style.css';
 
-import linkExternal from '../../images/link-external.svg';
 import jobsLogo from '../../images/lightning.svg';
 import terminal from '../../images/terminal.svg';
 
@@ -62,7 +61,7 @@ const Jobs = () => {
         <Row className="smls-no-jobs">
           <Col className="smls-no-jobs-icon-container">
             <div className="smls-no-jobs-icon blue">
-              <img src={jobsLogo} className="smls-jobs" alt="Jobs"></img>
+              <img src={jobsLogo} className="smls-jobs" alt="Jobs" />
             </div>
             <div className="smls-no-jobs-message">
               <div>
@@ -77,12 +76,13 @@ const Jobs = () => {
         <Row className="smls-no-jobs">
           <Col className="smls-no-jobs-icon-container">
             <div className="smls-no-jobs-icon green">
-              <img src={terminal} className="smls-jobs" alt="Terminal"></img>
+              <img src={terminal} className="smls-jobs" alt="Terminal" />
             </div>
             <div className="smls-no-jobs-message">
               <p>
                 <strong>
-                  Installation Guide<sup>*</sup>
+                  Installation Guide
+                  <sup>*</sup>
                 </strong>
               </p>
               <p>
@@ -109,7 +109,7 @@ const Jobs = () => {
   if (loading) {
     return (
       <div className="smls-jobs-spinner-container">
-        <Spinner animation="border" role="status"></Spinner>
+        <Spinner animation="border" role="status" />
       </div>
     );
   }
