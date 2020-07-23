@@ -21,7 +21,7 @@ const Jobs = () => {
         setApiKey(payload.api_key);
       })
       .catch(() => {
-        alert('Error!');
+        alert('Error!'); // TODO: create a notification component
       });
   }, []);
 
@@ -36,7 +36,7 @@ const Jobs = () => {
         setLoading(false);
       })
       .catch(() => {
-        alert('Error!');
+        alert('Error!'); // TODO: create a notification component
       });
   }, []);
 

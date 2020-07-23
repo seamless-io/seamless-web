@@ -13,24 +13,18 @@ import {
 import Toggle from 'react-toggle';
 
 import { socket } from '../../socket';
-import { triggerJobRun } from '../../api';
+import { triggerJobRun, enableJobSchedule } from '../../api';
 
 import './toggle.css';
 import play from '../../images/play-filled.svg';
 
-const JobLine = ({ name, human_cron, status, id }) => {
+const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
   const history = useHistory();
-  const [scheduleValue, setScheduleValue] = useState(human_cron);
   const [statusValue, setStatusValue] = useState(status);
-  const [scheduleClassName, setScheduleClassName] = useState('');
-  const [isScheduleOn, setIsScheduleOn] = useState(false);
-  const [isToggleDisabled, setIsToggleDisabled] = useState(true);
+  const [isScheduleOn, setIsScheduleOn] = useState(
+    schedule_is_active === 'True'
+  );
   const [showNotification, setShowNotification] = useState(false);
-
-  if (scheduleValue === 'None') {
-    setScheduleValue('Not scheduled');
-    setScheduleClassName('smls-muted');
-  }
 
   const openJob = () => {
     history.push(`jobs/${id}`);
@@ -52,7 +46,7 @@ const JobLine = ({ name, human_cron, status, id }) => {
     triggerJobRun(id)
       .then(() => {})
       .catch(payload => {
-        alert(payload);
+        alert(payload); // TODO: create a notification component
       });
   };
 
@@ -90,6 +84,25 @@ const JobLine = ({ name, human_cron, status, id }) => {
     );
   };
 
+  const handleToggleSwitch = e => {
+    setIsScheduleOn(e.target.checked);
+    enableJobSchedule(id, e.target.checked)
+      .then(payload => {
+        alert(`Job "${name}" turned ${!isScheduleOn ? 'on' : 'off'}`); // TODO: create a notification component
+      })
+      .catch(payload => {
+        alert('Something went wrong...'); // TODO: create a notification component
+      });
+  };
+
+  const showTooltipContent = () => {
+    if (human_cron === 'None') {
+      return 'Needs to be triggered manually';
+    }
+
+    return `Job is ${isScheduleOn ? 'on' : 'off'}`;
+  };
+
   return (
     <Row className="smls-job-line">
       <Col sm={4} onClick={openJob} className="smls-job-line-name-container">
@@ -101,19 +114,23 @@ const JobLine = ({ name, human_cron, status, id }) => {
           placement="top"
           overlay={
             <Tooltip id={`tooltip-${id}`} className="smls-job-line-tooltip">
-              Needs to be triggered manually.
+              {showTooltipContent()}
             </Tooltip>
           }
         >
           <div className="smls-job-line-toggle-container">
             <Toggle
               defaultChecked={isScheduleOn}
-              disabled={isToggleDisabled}
+              disabled={human_cron === 'None'}
               icons={false}
-              onChange={() => alert('Not working yet.')}
+              onChange={handleToggleSwitch}
             />
-            <span className={`smls-job-line-schedule ${scheduleClassName}`}>
-              {scheduleValue}
+            <span
+              className={`smls-job-line-schedule ${
+                human_cron === 'None' ? 'smls-muted' : ''
+              }`}
+            >
+              {human_cron === 'None' ? 'Not scheduled' : human_cron}
             </span>
           </div>
         </OverlayTrigger>
