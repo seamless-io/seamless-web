@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 
@@ -15,11 +16,28 @@ const ExecutionTimeline = ({
   activeItem,
   loadingStreamingLogs,
 }) => {
+  const renderNextExecution = () => {
+    if (nextExecution !== 'Not scheduled') {
+      return (
+        <>
+          <JobExecutionItem time={nextExecution} status={'scheduled'} />
+          <Row>
+            <Col>
+              <div className="smls-job-info-section-col-hr">
+                <hr />
+              </div>
+            </Col>
+          </Row>
+        </>
+      );
+    }
+  };
+
   const renderExecutionTimeLine = () => {
     if (loadingExecutionTimeLine) {
       return (
         <div className="smls-job-executiontimeline-spinner-container">
-          <Spinner animation="border" role="status"></Spinner>
+          <Spinner animation="border" role="status" />
         </div>
       );
     }
@@ -52,23 +70,6 @@ const ExecutionTimeline = ({
     );
   };
 
-  const renderNextExecution = () => {
-    if (nextExecution !== 'Not scheduled') {
-      return (
-        <>
-          <JobExecutionItem time={nextExecution} status={'scheduled'} />
-          <Row>
-            <Col>
-              <div className="smls-job-info-section-col-hr">
-                <hr />
-              </div>
-            </Col>
-          </Row>
-        </>
-      );
-    }
-  };
-
   const loadStreamingLogs = () => {
     if (loadingStreamingLogs) {
       return (
@@ -77,7 +78,7 @@ const ExecutionTimeline = ({
           role="status"
           size="sm"
           style={{ marginBottom: '8px' }}
-        ></Spinner>
+        />
       );
     }
   };
@@ -116,3 +117,14 @@ const ExecutionTimeline = ({
 };
 
 export default ExecutionTimeline;
+
+ExecutionTimeline.propTypes = {
+  loadingExecutionTimeLine: PropTypes.bool,
+  lastFiveExecutions: PropTypes.array,
+  nextExecution: PropTypes.string,
+  logs: PropTypes.array,
+  showLogs: PropTypes.func,
+  loadingLogs: PropTypes.bool,
+  activeItem: PropTypes.number,
+  loadingStreamingLogs: PropTypes.bool,
+};
