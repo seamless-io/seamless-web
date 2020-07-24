@@ -40,6 +40,16 @@ body {
   margin-left: auto;
 }
 
+.smls-header-link {
+  font-size: 14px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
 .smls-logo {
   object-fit: contain;
 }
@@ -48,8 +58,19 @@ body {
   width: 24px;
   height: 24px;
   object-fit: contain;
+  margin-right: 5px;
 }
 
 .smls-header {
   height: 60px;
+}
+
+.smls-header-jobs-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.smls-header-active {
+  border-bottom: 2px solid #016bff;
 }
