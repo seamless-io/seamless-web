@@ -91,8 +91,7 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
 
         # Print stdout first
         for line in container.logs(stream=True, stdout=True, stderr=False):
-            logging.info(str(line))
-            yield line
+            yield line.decode('utf8')
 
         # Wait for error logs if there are some and output them only after stdout is finished
         # Otherwise log records will be mixed with each other because stdout and stderr use different buffers

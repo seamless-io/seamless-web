@@ -296,7 +296,7 @@ def run() -> Response:
 
     logstream = executor.execute_and_stream_back(project_path, api_key)
 
-    return Response(logstream)
+    return Response(logstream, content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
 
 
 @jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])
