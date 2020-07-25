@@ -101,6 +101,8 @@
 .smls-job-container {
   border: 2px solid #ebedf0;
   padding: 10px;
+  max-height: 450px;
+  overflow: auto;
 }
 
 .smls-job-info-section-col {
