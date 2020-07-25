@@ -42,11 +42,6 @@ const Job = () => {
   const [loadingStreamingLogs, setLoadingStreamingLogs] = useState(false);
   const [loadingToggleSwitch, setLoadingToggleSwitch] = useState(false);
 
-  useEffect(() => {
-    socket.on('status', jobRunning => updateJobStatus(jobRunning));
-    socket.on('logs', jobLogLine => updateJobLogs(jobLogLine));
-  }, []);
-
   const updateJobStatus = jobRunning => {
     if (jobRunning.job_id === job.id) {
       setActiveItem(Number(jobRunning.job_run_id));
@@ -57,9 +52,14 @@ const Job = () => {
 
   const updateJobLogs = jobLogLine => {
     if (jobLogLine.job_id === job.id) {
-      setLogs(logs => [...logs, jobLogLine]);
+      setLogs(jobLogs => [...jobLogs, jobLogLine]);
     }
   };
+
+  useEffect(() => {
+    socket.on('status', jobRunning => updateJobStatus(jobRunning));
+    socket.on('logs', jobLogLine => updateJobLogs(jobLogLine));
+  }, []);
 
   const handleToggleSwitch = e => {
     setLoadingToggleSwitch(true);
@@ -80,7 +80,7 @@ const Job = () => {
             role="status"
             size="sm"
             style={{ marginBottom: '8px' }}
-          ></Spinner>
+          />
         </div>
       );
     }
@@ -92,7 +92,9 @@ const Job = () => {
       .then(payload => {
         setName(payload.name);
         setStatusValue(payload.status);
-        setUpdatedAt(moment(payload.updated_at).format('MMM DD, YYYY, HH:mm'));
+        setUpdatedAt(
+          moment.utc(payload.updated_at).local().format('MMM DD, YYYY, HH:mm')
+        );
         setIsScheduleOn(payload.schedule_is_active === 'True');
         setIsToggleDisabled(payload.aws_cron === 'None');
         setSchedule(
@@ -157,10 +159,10 @@ const Job = () => {
     );
   };
 
-  const showLogs = run_id => {
+  const showLogs = runId => {
     setLoadingLogs(true);
-    setActiveItem(run_id);
-    getJobRunLogs(job.id, run_id)
+    setActiveItem(runId);
+    getJobRunLogs(job.id, runId)
       .then(payload => {
         setLogs(payload);
         setLoadingLogs(false);
@@ -173,7 +175,7 @@ const Job = () => {
   if (loading) {
     return (
       <div className="smls-jobs-spinner-container">
-        <Spinner animation="border" role="status"></Spinner>
+        <Spinner animation="border" role="status" />
       </div>
     );
   }
@@ -197,7 +199,7 @@ const Job = () => {
               {runButtonContent()}
             </button>
             <a href={downloadJobLink}>
-              <button className="smls-job-download-code-button">
+              <button className="smls-job-download-code-button" type="button">
                 <img src={download} alt="Download code" />
                 <span className="smls-job-download-code-button-text">
                   Download Code
