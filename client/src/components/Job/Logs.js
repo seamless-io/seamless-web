@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { Spinner } from 'react-bootstrap';
 import moment from 'moment';
@@ -7,7 +8,7 @@ const Logs = ({ logs, loadingLogs }) => {
   if (loadingLogs) {
     return (
       <div className="smls-job-logs-loading-container">
-        <Spinner animation="border" role="status"></Spinner>
+        <Spinner animation="border" role="status" />
       </div>
     );
   }
@@ -35,3 +36,13 @@ const Logs = ({ logs, loadingLogs }) => {
 };
 
 export default Logs;
+
+Logs.propTypes = {
+  logs: PropTypes.array,
+  loadingLogs: PropTypes.bool,
+};
+
+Logs.defaultProps = {
+  logs: [],
+  loadingLogs: null,
+};
