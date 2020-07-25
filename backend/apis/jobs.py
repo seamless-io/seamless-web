@@ -178,7 +178,7 @@ def create_job():
             user = User.get_user_from_api_key(api_key, session)
         except NoResultFound:
             return Response('API Key is wrong, please go to our account https://app.seamlesscloud.io/account,'
-                            ' copy the API Key field and run "smls init --api-key <copied value>"', 400)
+                            ' copy the API Key field and run "smls init <api key>"', 400)
 
         account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
         jobs_limit = account_limits.jobs
