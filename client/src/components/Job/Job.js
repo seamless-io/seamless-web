@@ -93,7 +93,7 @@ const Job = () => {
         setName(payload.name);
         setStatusValue(payload.status);
         setUpdatedAt(
-          moment.utc(payload.updated_at).local().format('MMM DD, YYYY, HH:mm')
+          moment.utc(payload.updated_at).format('MMM DD, YYYY, HH:mm')
         );
         setIsScheduleOn(payload.schedule_is_active === 'True');
         setIsToggleDisabled(payload.aws_cron === 'None');
@@ -102,8 +102,8 @@ const Job = () => {
         );
         setLoading(false);
       })
-      .catch(() => {
-        alert('Error!'); // TODO: create a notification component
+      .catch(e => {
+        alert(e); // TODO: create a notification component
       });
   }, []);
 
