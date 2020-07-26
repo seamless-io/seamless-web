@@ -62,8 +62,25 @@ const Account = () => {
           </Col>
           <Col sm={12}>
             <div className="smls-account-section-text">
-              <img src={atSign} className="smls-account-key" alt="Api key" />
+              <img src={atSign} className="smls-account-key" alt="My email" />
               <span>{email}</span>
+            </div>
+          </Col>
+        </Row>
+      </div>
+      <div className="smls-card">
+        <Row>
+          <Col sm={12} className="smls-account-section-header-container">
+            <h5 className="smls-account-section-header">Contact Support</h5>
+          </Col>
+          <Col sm={12}>
+            <div className="smls-account-section-text">
+              <img
+                src={atSign}
+                className="smls-account-key"
+                alt="Contact support"
+              />
+              <span>hello@seamlesscloud.io</span>
             </div>
           </Col>
         </Row>

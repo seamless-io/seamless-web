@@ -18,7 +18,6 @@ const ApplicationRoot = () => {
     <Router>
       <Favicon url={favicon} />
       <ApplicationHeader />
-
       <Container fluid className="smls-main-container">
         <div className="smls-jobs-container">
           <Switch>
