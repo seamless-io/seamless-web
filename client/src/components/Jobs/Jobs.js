@@ -92,7 +92,7 @@ const Jobs = () => {
               <div>
                 <code className="smls-jobs-code">pip install smls</code>
                 <code className="smls-jobs-code">
-                  {`smls init --api-key ${apiKey}`}
+                  {`smls init ${apiKey}`}
                 </code>
                 <code className="smls-jobs-code">smls example</code>
               </div>
