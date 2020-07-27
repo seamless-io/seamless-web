@@ -20,6 +20,7 @@ from backend.helpers import thread_wrapper
 from job_executor.project import restore_project_from_s3
 
 DOCKER_FILE_NAME = "Dockerfile"
+ENTRYPOINT_FILE_NAME = "__start_smls__.py"
 REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
@@ -38,13 +39,24 @@ def _run_container(path_to_job_files: str, tag: str, entrypoint: str, path_to_re
     dockerfile_contents = f"""
 FROM python:3.8-slim
 WORKDIR /src
-ADD requirements.txt /src/{path_to_requirements}
-RUN pip install -r {path_to_requirements}
+ADD {path_to_requirements} /src/requirements.txt
+RUN pip install -r requirements.txt
+"""
+    entrypoint_contents = f"""
+import importlib
+
+if "." in '{entrypoint}':
+    module = importlib.import_module('{entrypoint.split('.')[0]}')
+    module.{'.'.join(entrypoint.split('.')[1:])}()
+else:
+    {entrypoint}()
 """
     _ensure_requirements(path_to_job_files, path_to_requirements)
     docker_client = docker.from_env()
     with open(os.path.join(path_to_job_files, DOCKER_FILE_NAME), 'w') as dockerfile:
         dockerfile.write(dockerfile_contents)
+    with open(os.path.join(path_to_job_files, ENTRYPOINT_FILE_NAME), 'w') as entrypoint_file:
+        entrypoint_file.write(entrypoint_contents)
     image, logs = docker_client.images.build(
         path=path_to_job_files,
         tag=tag)
@@ -55,7 +67,7 @@ RUN pip install -r {path_to_requirements}
 
     container = docker_client.containers.run(
         image=image,
-        command=f"bash -c \"python -u -c 'import { entrypoint }; { entrypoint }()'\"",
+        command=f"bash -c \"python -u __start_smls__.py\"",
         mounts=[Mount(target='/src',
                       source=path_to_job_files,
                       type='bind')],
