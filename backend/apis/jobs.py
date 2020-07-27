@@ -197,7 +197,7 @@ def create_job():
                 job.cron = cron_schedule
                 job.aws_cron = aws_cron
                 job.human_cron = human_cron
-                
+
                 job.entrypoint = entrypoint
                 job.requirements = requirements
 
@@ -246,10 +246,10 @@ def _run_job(job_id, type_, user_id=None):
     """
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
-        
+
         entrypoint = job.entrypoint or config.DEFAULT_ENTRYPOINT
         requirements = job.requirements or config.DEFAULT_REQUIREMENTS
-        
+
         if not job or (user_id and job.user_id != user_id):
             return "Job Not Found", 404
 
@@ -301,10 +301,10 @@ def run() -> Response:
         return Response('Not authorized request', 401)
 
     file = request.files.get('seamless_project')
-    
-    entrypoint = request.args.get('entrypoint')
-    requirements = request.args.get('requirements')
-    
+
+    entrypoint = str(request.args.get('entrypoint', 'function.main'))
+    requirements = str(request.args.get('requirements', 'requirements.txt'))
+
     if not file:
         return Response('File not provided', 400)
 
