@@ -43,7 +43,8 @@ RUN pip install -r {path_to_requirements}
 """
     _ensure_requirements(path_to_job_files, path_to_requirements)
     docker_client = docker.from_env()
-    open(os.path.join(path_to_job_files, DOCKER_FILE_NAME), 'w').write(dockerfile_contents).close()
+    with open(os.path.join(path_to_job_files, DOCKER_FILE_NAME), 'w') as dockerfile:
+        dockerfile.write(dockerfile_contents)
     image, logs = docker_client.images.build(
         path=path_to_job_files,
         tag=tag)
