@@ -49,7 +49,7 @@ def _run_container(path_to_job_files: str, tag: str, entrypoint: str, path_to_re
 
     container = docker_client.containers.run(
         image=image,
-        command=f"bash -c \"python -u -c 'import {{ entrypoint }}; {{ entrypoint }}()'\"",
+        command=f"bash -c \"python -u -c 'import { entrypoint }; { entrypoint }()'\"",
         mounts=[Mount(target='/src',
                       source=path_to_job_files,
                       type='bind')],
