@@ -35,10 +35,15 @@ def _ensure_requirements(job_directory, requirements):
 
 
 def _run_container(path_to_job_files: str, tag: str, entrypoint: str, path_to_requirements: str) -> Container:
+    dockerfile_contents = f"""
+FROM python:3.8-slim
+WORKDIR /src
+ADD requirements.txt /src/{path_to_requirements}
+RUN pip install -r {path_to_requirements}
+"""
     _ensure_requirements(path_to_job_files, path_to_requirements)
     docker_client = docker.from_env()
-    copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), DOCKER_FILE_NAME),
-             os.path.join(path_to_job_files, DOCKER_FILE_NAME))
+    open(os.path.join(path_to_job_files, DOCKER_FILE_NAME), 'w').write(dockerfile_contents).close()
     image, logs = docker_client.images.build(
         path=path_to_job_files,
         tag=tag)
