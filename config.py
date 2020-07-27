@@ -10,3 +10,5 @@ LAMBDA_PROXY_NAME = os.getenv('LAMBDA_PROXY_NAME')
 LAMBDA_PROXY_ARN = os.getenv('LAMBDA_PROXY_ARN')
 SENTRY_DSN = os.getenv('SENTRY_DSN')
 STAGE = os.getenv('STAGE', 'local')
+DEFAULT_ENTRYPOINT = 'function.main'
+DEFAULT_REQUIREMENTS = 'requirements.txt'

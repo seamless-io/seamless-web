@@ -32,10 +32,14 @@ class Job(base):
     name = Column(Text, nullable=False)
     # Alembic does not work very well with native postgres Enum type so the status column is Text
     status = Column(Text, default=JobStatus.New.value, nullable=False)
+    entrypoint = Column(Text)
+    requirements = Column(Text)
+    
     cron = Column(Text)
     aws_cron = Column(Text)
     human_cron = Column(Text)
     schedule_is_active = Column(Boolean)
+    
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 

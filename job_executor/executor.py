@@ -20,25 +20,43 @@ from backend.helpers import thread_wrapper
 from job_executor.project import restore_project_from_s3
 
 DOCKER_FILE_NAME = "Dockerfile"
+ENTRYPOINT_FILE_NAME = "__start_smls__.py"
 REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
 
-def _ensure_requirements(job_directory):
+def _ensure_requirements(job_directory, requirements):
     """
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
     """
-    path_to_requirements = f"{job_directory}/{REQUIREMENTS_FILENAME}"
+    path_to_requirements = f"{job_directory}/{requirements}"
     if not os.path.exists(path_to_requirements):
         with open(path_to_requirements, 'w'):
             pass
 
 
-def _run_container(path_to_job_files: str, tag: str) -> Container:
-    _ensure_requirements(path_to_job_files)
+def _run_container(path_to_job_files: str, tag: str, entrypoint: str, path_to_requirements: str) -> Container:
+    dockerfile_contents = f"""
+FROM python:3.8-slim
+WORKDIR /src
+ADD {path_to_requirements} /src/requirements.txt
+RUN pip install -r requirements.txt
+"""
+    entrypoint_contents = f"""
+import importlib
+
+if "." in '{entrypoint}':
+    module = importlib.import_module('{entrypoint.split('.')[0]}')
+    module.{'.'.join(entrypoint.split('.')[1:])}()
+else:
+    {entrypoint}()
+"""
+    _ensure_requirements(path_to_job_files, path_to_requirements)
     docker_client = docker.from_env()
-    copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), DOCKER_FILE_NAME),
-             os.path.join(path_to_job_files, DOCKER_FILE_NAME))
+    with open(os.path.join(path_to_job_files, DOCKER_FILE_NAME), 'w') as dockerfile:
+        dockerfile.write(dockerfile_contents)
+    with open(os.path.join(path_to_job_files, ENTRYPOINT_FILE_NAME), 'w') as entrypoint_file:
+        entrypoint_file.write(entrypoint_contents)
     image, logs = docker_client.images.build(
         path=path_to_job_files,
         tag=tag)
@@ -49,7 +67,7 @@ def _run_container(path_to_job_files: str, tag: str) -> Container:
 
     container = docker_client.containers.run(
         image=image,
-        command="bash -c \"python -u function.py\"",
+        command=f"bash -c \"python -u __start_smls__.py\"",
         mounts=[Mount(target='/src',
                       source=path_to_job_files,
                       type='bind')],
@@ -73,9 +91,9 @@ def _capture_stderr(container):
     return logs
 
 
-def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[bytes]:
+def execute_and_stream_back(path_to_job_files: str, api_key: str, entrypoint: str, requirements: str) -> Iterable[bytes]:
     try:
-        container = _run_container(path_to_job_files, api_key)
+        container = _run_container(path_to_job_files, api_key, entrypoint, requirements)
 
         # We actually use only element [0] which will be the exit code of the container
         res: List[int] = []
@@ -114,7 +132,7 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str) -> Iterable[by
                 yield line
 
 
-def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str):
+def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str, entrypoint: str, requirements: str):
     def handle_log_line(l, app, db_session):
         # Streaming logs line by line
         with app.app_context():
@@ -139,7 +157,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
 
         with session_scope() as db_session:
             try:
-                container = _run_container(path_to_job_files, job_id)
+                container = _run_container(path_to_job_files, job_id, entrypoint, requirements)
 
                 res = []
                 thread_in_thread = Thread(target=thread_wrapper,
