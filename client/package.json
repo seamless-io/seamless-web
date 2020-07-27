@@ -8,9 +8,7 @@
     "@testing-library/user-event": "^7.2.1",
     "axios": "^0.19.1",
     "bootstrap": "^4.5.0",
-    "jquery": "^3.5.1",
     "moment": "^2.27.0",
-    "namor": "^2.0.2",
     "parsel": "^0.3.0",
     "popper.js": "^1.16.1",
     "prop-types": "^15.7.2",
@@ -18,13 +16,10 @@
     "react-bootstrap": "^1.1.1",
     "react-dom": "^16.13.1",
     "react-favicon": "0.0.18",
-    "react-moment": "^0.9.7",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
-    "react-table": "^7.2.2",
     "react-toggle": "^4.1.1",
-    "socket.io-client": "^2.3.0",
-    "styles": "^0.2.1"
+    "socket.io-client": "^2.3.0"
   },
   "scripts": {
     "start": "parcel watch ./src/index.html --public-url=/static/ --out-dir='../static'",
