@@ -177,13 +177,16 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
                     job_status = JobStatus.Failed
 
             except BuildError as e:
-                handle_log_line("Job build failed! Error logs:\n", app, db_session)
+                handle_log_line(f"Job {job_id} build failed! Error logs:\n", app, db_session)
                 for log_entry in e.build_log:
                     line = log_entry.get('stream')
                     if line:
                         handle_log_line(line, app, db_session)
                 job_run_result = JobRunResult.Failed
                 job_status = JobStatus.Failed
+            except Exception as e:
+                logging.error(f"Job {job_id} failed with error {str(e)}")
+                raise e
 
             job = db_session.query(Job).get(job_id)
             job_run = db_session.query(JobRun).get(job_run_id)
