@@ -130,7 +130,7 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str, entrypoint: st
             line = log_entry.get('stream')
             if line:
                 yield line
-        yield str(e)
+        yield str(e).encode()
 
 
 def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str, entrypoint: str, requirements: str):
