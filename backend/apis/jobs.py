@@ -335,12 +335,15 @@ def delete_job(job_name):
         if not job:
             return "Job Not Found", 404
 
-        remove_job_schedule(job.id)
-        remove_project_from_s3(job.id)
+        job_id = job.id
+
+        remove_job_schedule(job_id)
+        remove_project_from_s3(job_id)
 
         db_session.delete(job)
         db_session.commit()
-        return f"Successfully deleted job {job.id}", 200
+        logging.info(f"Deleted job {job_id} from the database")
+        return f"Successfully deleted job {job_id}", 200
 
 
 @jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])
