@@ -340,9 +340,7 @@ def delete_job(job_name):
         remove_job_schedule(job_id)
         remove_project_from_s3(job_id)
 
-        logging.info("deleting from db...")
         db_session.delete(job)
-        logging.info("committing...")
         db_session.commit()
         logging.info(f"Deleted job {job_id} from the database")
         return f"Successfully deleted job {job_id}", 200
