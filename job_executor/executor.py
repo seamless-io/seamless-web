@@ -65,6 +65,9 @@ else:
     docker_client.containers.prune()
     docker_client.images.prune(filters={'dangling': True})
 
+    user = os.getlogin()
+    logging.info(f"CURRENT USER: {user}")
+
     container = docker_client.containers.run(
         image=image,
         command=f"bash -c \"python -u __start_smls__.py\"",
@@ -77,7 +80,7 @@ else:
         detach=True,
         mem_limit='128m',
         memswap_limit='128m',
-        user=os.getlogin(),
+        user="webapp"
     )
     return container
 
