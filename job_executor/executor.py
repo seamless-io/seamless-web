@@ -76,7 +76,8 @@ else:
         # stdout=True,
         detach=True,
         mem_limit='128m',
-        memswap_limit='128m'
+        memswap_limit='128m',
+        user=os.getlogin(),
     )
     return container
 
