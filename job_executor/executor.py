@@ -1,3 +1,4 @@
+import getpass
 import logging
 import os
 from datetime import datetime
@@ -65,7 +66,7 @@ else:
     docker_client.containers.prune()
     docker_client.images.prune(filters={'dangling': True})
 
-    user = os.getlogin()
+    user = getpass.getuser()
     logging.info(f"CURRENT USER: {user}")
 
     container = docker_client.containers.run(
@@ -76,11 +77,11 @@ else:
                       type='bind')],
         auto_remove=True,
         stderr=True,
-        # stdout=True,
+        stdout=True,
         detach=True,
         mem_limit='128m',
         memswap_limit='128m',
-        user="webapp"
+        user=getpass.getuser()
     )
     return container
 
