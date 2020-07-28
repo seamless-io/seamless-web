@@ -1,8 +1,6 @@
-import getpass
 import logging
 import os
 from datetime import datetime
-from shutil import copyfile
 from threading import Thread
 from typing import Iterable, List
 
@@ -66,22 +64,19 @@ else:
     docker_client.containers.prune()
     docker_client.images.prune(filters={'dangling': True})
 
-    user = getpass.getuser()
-    logging.info(f"CURRENT USER: {user}")
-
     container = docker_client.containers.run(
         image=image,
         command=f"bash -c \"python -u __start_smls__.py\"",
         mounts=[Mount(target='/src',
                       source=path_to_job_files,
-                      type='bind')],
+                      type='bind',
+                      read_only=True)],
         auto_remove=True,
         stderr=True,
         stdout=True,
         detach=True,
         mem_limit='128m',
         memswap_limit='128m',
-        user=getpass.getuser()
     )
     return container
 
@@ -135,6 +130,7 @@ def execute_and_stream_back(path_to_job_files: str, api_key: str, entrypoint: st
             line = log_entry.get('stream')
             if line:
                 yield line
+        yield str(e)
 
 
 def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str, entrypoint: str, requirements: str):
