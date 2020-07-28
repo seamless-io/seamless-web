@@ -66,6 +66,6 @@ def remove_job_schedule(job_id: str):
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code")
         if error_code == "ResourceNotFoundException":
-            pass
+            logging.info(f"Schedule of job {job_id} was not removed from CloudWatch rules because it's not there")
         else:
             raise e
