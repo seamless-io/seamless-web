@@ -16,7 +16,7 @@ const JobExecutionItem = ({ time, status, showLogs, active }) => {
           role="button"
         >
           <div className="smls-job-info-section-execution-item-text">
-            <span>{moment.utc(time).format('MMMM D, YYYY, HH:mm:ss')}</span>
+            <span>{moment.utc(time).format('MMMM D, YYYY, HH:mm:ss[Z]')}</span>
           </div>
           <div className="smls-job-info-section-execution-item-badge">
             <span className={`smls-execution-badge-${status.toLowerCase()}`}>

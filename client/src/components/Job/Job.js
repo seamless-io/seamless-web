@@ -223,6 +223,8 @@ const Job = () => {
             />
             <span className={!isScheduleOn ? 'smls-muted' : ''}>
               {schedule}
+              {' '}
+              UTC
             </span>
           </div>
           {loadToggleSwitch()}
@@ -230,7 +232,7 @@ const Job = () => {
         <Col style={{ paddingRight: '0px' }}>
           <div className="smls-job-extra-info-section">
             <img src={timeHistory} alt="Updated at" />
-            <span>{`Code updated on ${updatedAt}`}</span>
+            <span>{`Code updated on ${updatedAt} UTC`}</span>
           </div>
         </Col>
       </Row>

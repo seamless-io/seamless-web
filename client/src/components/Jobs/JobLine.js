@@ -130,7 +130,7 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
                 human_cron === 'None' ? 'smls-muted' : ''
               }`}
             >
-              {human_cron === 'None' ? 'Not scheduled' : human_cron}
+              {human_cron === 'None' ? 'Not scheduled' : `${human_cron} UTC`}
             </span>
           </div>
         </OverlayTrigger>
