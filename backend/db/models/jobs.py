@@ -44,7 +44,7 @@ class Job(base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def schedule_job(self):
-        if self.aws_cron and self.schedule_is_active:
+        if self.aws_cron:
             logging.info(f"Scheduling job: ({self.id}, {self.aws_cron}, active: {self.schedule_is_active})")
             scheduler.schedule(self.aws_cron, str(self.id), self.schedule_is_active)
 
