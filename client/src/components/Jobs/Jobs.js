@@ -67,9 +67,7 @@ const Jobs = () => {
               <div>
                 <strong>You have no jobs</strong>
               </div>
-              <div>
-                To proceed - install & configure seamless CLI.
-              </div>
+              <div>To proceed - install & configure seamless CLI.</div>
             </div>
           </Col>
         </Row>
@@ -91,9 +89,7 @@ const Jobs = () => {
               </p>
               <div>
                 <code className="smls-jobs-code">pip install smls</code>
-                <code className="smls-jobs-code">
-                  {`smls auth ${apiKey}`}
-                </code>
+                <code className="smls-jobs-code">{`smls auth ${apiKey}`}</code>
                 <code className="smls-jobs-code">smls example</code>
               </div>
               <p className="smls-jobs-python-requirement">

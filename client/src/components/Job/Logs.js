@@ -26,7 +26,7 @@ const Logs = ({ logs, loadingLogs }) => {
       {logs.map((log, i) => (
         <div key={i}>
           <span className="smls-job-logs-timestamp">
-            {moment.utc(log.timestamp).format('YYYY-MM-DD HH:mm:ss')}
+            {moment.utc(log.timestamp).format('YYYY-MM-DD HH:mm:ss[Z]')}
           </span>
           <span className="smls-job-logs-message">{log.message.trim()}</span>
         </div>
