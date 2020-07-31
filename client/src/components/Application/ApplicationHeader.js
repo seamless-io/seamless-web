@@ -1,6 +1,13 @@
 import React from 'react';
 
-import { Navbar, Nav, Row, Col } from 'react-bootstrap';
+import {
+  Navbar,
+  Nav,
+  Row,
+  Col,
+  OverlayTrigger,
+  Popover,
+} from 'react-bootstrap';
 
 import './style.css';
 import logo from '../../images/seamless-logo-black.svg';
@@ -9,6 +16,7 @@ import userAccount from '../../images/user.svg';
 import userAccountInactive from '../../images/user-inactive.svg';
 import jobsLogo from '../../images/lightning.svg';
 import jobsLogoInactive from '../../images/lightning-inactive.svg';
+import information from '../../images/information.svg';
 
 const ApplicationHeader = () => {
   return (
@@ -54,13 +62,34 @@ const ApplicationHeader = () => {
           </div>
         </Col>
         <Col className="smls-header-logout">
-          <Nav.Link
-            href={`${window.location.origin}/logout`}
-            className="smls-header-right smls-header-link"
-          >
-            <img src={logout} className="smls-logout" alt="Logout" />
-            Logout
-          </Nav.Link>
+          <div style={{ width: '100%' }}>
+            <Nav.Link
+              href={`${window.location.origin}/logout`}
+              className="smls-header-right smls-header-link"
+            >
+              <img src={logout} className="smls-logout" alt="Logout" />
+              Logout
+            </Nav.Link>
+            <div className="smls-header-right smls-header-information nav-link">
+              <OverlayTrigger
+                trigger="click"
+                placement="bottom"
+                overlay={
+                  <Popover>
+                    <Popover.Content>
+                      <strong>Contact support:</strong> hello@seamlesscloud.io
+                    </Popover.Content>
+                  </Popover>
+                }
+              >
+                <img
+                  src={information}
+                  className="smls-information"
+                  alt="Information"
+                />
+              </OverlayTrigger>
+            </div>
+          </div>
         </Col>
       </Row>
     </Navbar>
