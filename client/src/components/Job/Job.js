@@ -33,7 +33,7 @@ const Job = () => {
   const [logs, setLogs] = useState([]);
   const [lastFiveExecutions, setLastFiveExecutions] = useState([]);
   const [loadingExecutionTimeLine, setLoadingExecutionTimeLine] = useState(
-    false
+    true
   );
   const [nextExecution, setNextExecution] = useState('');
   const [updatedAt, setUpdatedAt] = useState('');
@@ -108,6 +108,7 @@ const Job = () => {
   }, []);
 
   useEffect(() => {
+    setLoadingExecutionTimeLine(true);
     getLastExecutions(job.id)
       .then(payload => {
         setLastFiveExecutions(payload.last_executions);
@@ -222,9 +223,7 @@ const Job = () => {
               onChange={handleToggleSwitch}
             />
             <span className={!isScheduleOn ? 'smls-muted' : ''}>
-              {schedule}
-              {' '}
-              UTC
+              {schedule} UTC
             </span>
           </div>
           {loadToggleSwitch()}

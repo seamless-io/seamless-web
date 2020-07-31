@@ -17,10 +17,10 @@ const ExecutionTimeline = ({
   loadingStreamingLogs,
 }) => {
   const renderNextExecution = () => {
-    if (nextExecution !== 'Not scheduled') {
+    if (nextExecution && nextExecution !== 'Not scheduled') {
       return (
         <>
-          <JobExecutionItem time={nextExecution} status={'scheduled'} />
+          <JobExecutionItem time={nextExecution} status="scheduled" />
           <Row>
             <Col>
               <div className="smls-job-info-section-col-hr">
@@ -31,23 +31,6 @@ const ExecutionTimeline = ({
         </>
       );
     }
-  };
-
-  const renderExecutionTimeLine = () => {
-    if (loadingExecutionTimeLine) {
-      return (
-        <div className="smls-job-executiontimeline-spinner-container">
-          <Spinner animation="border" role="status" />
-        </div>
-      );
-    }
-
-    return (
-      <>
-        {renderNextExecution()}
-        {renderLastFiveExecutions()}
-      </>
-    );
   };
 
   const renderLastFiveExecutions = () => {
@@ -67,6 +50,23 @@ const ExecutionTimeline = ({
       <div className="smls-job-executiontimelie-no-runs">
         This job was not run yet.
       </div>
+    );
+  };
+
+  const renderExecutionTimeLine = () => {
+    if (loadingExecutionTimeLine) {
+      return (
+        <div className="smls-job-executiontimeline-spinner-container">
+          <Spinner animation="border" role="status" />
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {renderNextExecution()}
+        {renderLastFiveExecutions()}
+      </>
     );
   };
 
@@ -127,4 +127,15 @@ ExecutionTimeline.propTypes = {
   loadingLogs: PropTypes.bool,
   activeItem: PropTypes.number,
   loadingStreamingLogs: PropTypes.bool,
+};
+
+ExecutionTimeline.defaultProps = {
+  loadingExecutionTimeLine: true,
+  lastFiveExecutions: [],
+  nextExecution: '',
+  logs: [],
+  showLogs: null,
+  loadingLogs: false,
+  activeItem: null,
+  loadingStreamingLogs: true,
 };
