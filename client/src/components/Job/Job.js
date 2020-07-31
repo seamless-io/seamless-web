@@ -28,7 +28,7 @@ const Job = () => {
   const [schedule, setSchedule] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
-  const [loading, setLoading] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [statusValue, setStatusValue] = useState(null);
   const [logs, setLogs] = useState([]);
   const [lastFiveExecutions, setLastFiveExecutions] = useState([]);
@@ -223,7 +223,9 @@ const Job = () => {
               onChange={handleToggleSwitch}
             />
             <span className={!isScheduleOn ? 'smls-muted' : ''}>
-              {schedule} UTC
+              {schedule}
+              {' '}
+              UTC
             </span>
           </div>
           {loadToggleSwitch()}
