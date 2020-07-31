@@ -41,7 +41,7 @@ const ExecutionTimeline = ({
           time={execution.created_at}
           status={execution.status}
           active={execution.run_id === activeItem}
-          showLogs={() => showLogs(execution.run_id)}
+          showLogs={() => showLogs(execution.run_id, execution.status)}
         />
       ));
     }

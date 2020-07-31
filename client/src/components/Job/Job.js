@@ -30,7 +30,6 @@ const Job = () => {
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [statusValue, setStatusValue] = useState(null);
-  const [logs, setLogs] = useState([]);
   const [lastFiveExecutions, setLastFiveExecutions] = useState([]);
   const [loadingExecutionTimeLine, setLoadingExecutionTimeLine] = useState(
     true
@@ -41,6 +40,9 @@ const Job = () => {
   const [activeItem, setActiveItem] = useState(null);
   const [loadingStreamingLogs, setLoadingStreamingLogs] = useState(false);
   const [loadingToggleSwitch, setLoadingToggleSwitch] = useState(false);
+  const [streamingLogs, setStreamingLogs] = useState([]);
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [statusRun, setStatusRun] = useState('');
 
   const updateJobStatus = jobRunning => {
     if (jobRunning.job_id === job.id) {
@@ -52,7 +54,7 @@ const Job = () => {
 
   const updateJobLogs = jobLogLine => {
     if (jobLogLine.job_id === job.id) {
-      setLogs(jobLogs => [...jobLogs, jobLogLine]);
+      setStreamingLogs(jobLogs => [...jobLogs, jobLogLine]);
     }
   };
 
@@ -130,7 +132,8 @@ const Job = () => {
   }, []);
 
   const runJob = () => {
-    setLogs([]);
+    setStreamingLogs([]);
+    setStatusRun('EXECUTING');
     setLoadingExecutionTimeLine(true);
     setLoadingStreamingLogs(true);
     triggerJobRun(job.id)
@@ -160,12 +163,13 @@ const Job = () => {
     );
   };
 
-  const showLogs = runId => {
+  const showLogs = (runId, status) => {
+    setStatusRun(status);
     setLoadingLogs(true);
     setActiveItem(runId);
     getJobRunLogs(job.id, runId)
       .then(payload => {
-        setLogs(payload);
+        setHistoryLogs(payload);
         setLoadingLogs(false);
       })
       .catch(payload => {
@@ -239,7 +243,7 @@ const Job = () => {
         loadingExecutionTimeLine={loadingExecutionTimeLine}
         lastFiveExecutions={lastFiveExecutions}
         nextExecution={nextExecution}
-        logs={logs}
+        logs={statusRun === 'EXECUTING' ? streamingLogs : historyLogs}
         showLogs={showLogs}
         loadingLogs={loadingLogs}
         activeItem={activeItem}
