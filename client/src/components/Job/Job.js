@@ -223,9 +223,7 @@ const Job = () => {
               onChange={handleToggleSwitch}
             />
             <span className={!isScheduleOn ? 'smls-muted' : ''}>
-              {schedule}
-              {' '}
-              UTC
+              {schedule} UTC
             </span>
           </div>
           {loadToggleSwitch()}
