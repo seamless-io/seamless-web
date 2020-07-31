@@ -165,6 +165,7 @@ const Job = () => {
 
   const showLogs = (runId, status) => {
     setStatusRun(status);
+    setLoadingStreamingLogs(status === 'EXECUTING');
     setLoadingLogs(true);
     setActiveItem(runId);
     getJobRunLogs(job.id, runId)
