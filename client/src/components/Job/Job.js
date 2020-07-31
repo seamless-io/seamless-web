@@ -170,7 +170,13 @@ const Job = () => {
     setActiveItem(runId);
     getJobRunLogs(job.id, runId)
       .then(payload => {
-        setHistoryLogs(payload);
+        setHistoryLogs(
+          payload.sort(function (a, b) {
+            var dateA = new Date(a.timestamp),
+              dateB = new Date(b.timestamp);
+            return dateA - dateB;
+          })
+        );
         setLoadingLogs(false);
       })
       .catch(payload => {
