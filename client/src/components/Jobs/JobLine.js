@@ -7,11 +7,11 @@ import {
   Badge,
   OverlayTrigger,
   Tooltip,
-  Toast,
   Spinner,
 } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 
+import Notification from '../Notification/Notification';
 import { socket } from '../../socket';
 import { triggerJobRun, enableJobSchedule } from '../../api';
 
@@ -87,10 +87,10 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
   const handleToggleSwitch = e => {
     setIsScheduleOn(e.target.checked);
     enableJobSchedule(id, e.target.checked)
-      .then(payload => {
+      .then(() => {
         alert(`Job "${name}" turned ${!isScheduleOn ? 'on' : 'off'}`); // TODO: create a notification component
       })
-      .catch(payload => {
+      .catch(() => {
         alert('Something went wrong...'); // TODO: create a notification component
       });
   };
@@ -101,6 +101,10 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
     }
 
     return `Job is ${isScheduleOn ? 'on' : 'off'}`;
+  };
+
+  const closeNotification = () => {
+    setShowNotification(false);
   };
 
   return (
@@ -143,18 +147,10 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
         </Badge>
       </Col>
       <Col sm={2}>{jobRunButton(id)}</Col>
-      <Toast
-        onClose={() => setShowNotification(false)}
+      <Notification
         show={showNotification}
-        delay={3000}
-        autohide
-        className="smls-toast-notificaiton"
-      >
-        <Toast.Header>
-          <img src="holder.js/20x20?text=%20" className="rounded mr-2" alt="" />
-          <strong className="mr-auto">{`${name} starts executing...`}</strong>
-        </Toast.Header>
-      </Toast>
+        closeNotification={closeNotification}
+      />
     </Row>
   );
 };

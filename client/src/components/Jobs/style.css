@@ -235,9 +235,3 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
-
-.smls-toast-notificaiton {
-  position: absolute;
-  top: 18%;
-  right: 1%;
-}
