@@ -74,10 +74,14 @@ const ApplicationHeader = () => {
               <OverlayTrigger
                 trigger="click"
                 placement="bottom"
+                rootClose={true}
                 overlay={
                   <Popover>
                     <Popover.Content>
-                      <strong>Contact support:</strong> hello@seamlesscloud.io
+                      <a href="/guide">Quick start guide</a>
+                    </Popover.Content>
+                    <Popover.Content>
+                      Support: hello@seamlesscloud.io
                     </Popover.Content>
                   </Popover>
                 }
