@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { Toast } from 'react-bootstrap';
+import { Toast, Row, Col } from 'react-bootstrap';
 
 import './style.css';
 import success from '../../images/notification_success.svg';
+import info from '../../images/notification_info.svg';
+import warning from '../../images/notification_warning.svg';
+import danger from '../../images/notification_danger.svg';
+import close from '../../images/close.svg';
 
-const Notification = ({ show, closeNotification }) => {
-  console.log(show);
+const Notification = ({ show, title, body, closeNotification, alertType }) => {
+  let icon;
+  if (alertType === 'success') {
+    icon = success;
+  } else if (alertType === 'info') {
+    icon = info;
+  } else if (alertType === 'warning') {
+    icon = warning;
+  } else {
+    icon = danger;
+  }
   return (
     <Toast
       onClose={closeNotification}
@@ -15,11 +28,27 @@ const Notification = ({ show, closeNotification }) => {
       autohide={true}
       className="smls-toast-notificaiton"
     >
-      <Toast.Header>
-        <img src="holder.js/20x20?text=%20" className="rounded mr-2" alt="" />
-        <img src={success} className="rounded mr-2" alt="notification" />
-        <strong className="mr-auto">My custom notification</strong>
-      </Toast.Header>
+      <Toast.Body>
+        <Row className="smls-notifcation-row">
+          <Col sm={3}>
+            <div className={`smls-notification-icon ${alertType}`}>
+              <img src={icon} />
+            </div>
+          </Col>
+          <Col sm={7}>
+            <div className="smls-notification-title">{title}</div>
+            <div className="smls-notification-body">{body}</div>
+          </Col>
+          <Col sm={2}>
+            <div
+              className="smls-notification-close"
+              onClick={closeNotification}
+            >
+              <img src={close} />
+            </div>
+          </Col>
+        </Row>
+      </Toast.Body>
     </Toast>
   );
 };

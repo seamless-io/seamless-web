@@ -25,6 +25,9 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
     schedule_is_active === 'True'
   );
   const [showNotification, setShowNotification] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState('');
+  const [notificationBody, setNotificationBody] = useState('');
+  const [notificationAlertType, setNotificationAlertType] = useState('');
 
   const openJob = () => {
     history.push(`jobs/${id}`);
@@ -42,11 +45,18 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
 
   const runJob = () => {
     setShowNotification(true);
+    setNotificationTitle('Launched!');
+    setNotificationBody(`Job "${name}" starts executing.`);
+    setNotificationAlertType('info');
+
     setStatusValue('EXECUTING');
     triggerJobRun(id)
       .then(() => {})
-      .catch(payload => {
-        alert(payload); // TODO: create a notification component
+      .catch(() => {
+        setShowNotification(true);
+        setNotificationTitle('Ooops!');
+        setNotificationBody('Something went wrong :(');
+        setNotificationAlertType('danger');
       });
   };
 
@@ -150,6 +160,9 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
       <Notification
         show={showNotification}
         closeNotification={closeNotification}
+        title={notificationTitle}
+        body={notificationBody}
+        alertType={notificationAlertType}
       />
     </Row>
   );
