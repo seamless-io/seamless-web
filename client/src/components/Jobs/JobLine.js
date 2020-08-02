@@ -43,20 +43,31 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
     }
   };
 
+  const displayNotification = (show, title, body, alterType) => {
+    setShowNotification(show);
+    setNotificationTitle(title);
+    setNotificationBody(body);
+    setNotificationAlertType(alterType);
+  };
+
   const runJob = () => {
-    setShowNotification(true);
-    setNotificationTitle('Launched!');
-    setNotificationBody(`Job "${name}" starts executing.`);
-    setNotificationAlertType('info');
+    displayNotification(
+      true,
+      'Launched!',
+      `Job "${name}" starts executing.`,
+      'info'
+    );
 
     setStatusValue('EXECUTING');
     triggerJobRun(id)
       .then(() => {})
       .catch(() => {
-        setShowNotification(true);
-        setNotificationTitle('Ooops!');
-        setNotificationBody('Something went wrong :(');
-        setNotificationAlertType('danger');
+        displayNotification(
+          true,
+          'Ooops!',
+          'Something went wrong :(',
+          'danger'
+        );
       });
   };
 
@@ -98,10 +109,20 @@ const JobLine = ({ name, human_cron, status, id, schedule_is_active }) => {
     setIsScheduleOn(e.target.checked);
     enableJobSchedule(id, e.target.checked)
       .then(() => {
-        alert(`Job "${name}" turned ${!isScheduleOn ? 'on' : 'off'}`); // TODO: create a notification component
+        displayNotification(
+          true,
+          `Turned ${!isScheduleOn ? 'on' : 'off'}!`,
+          `Job "${name}" turned ${!isScheduleOn ? 'on' : 'off'}`,
+          'success'
+        );
       })
       .catch(() => {
-        alert('Something went wrong...'); // TODO: create a notification component
+        displayNotification(
+          true,
+          'Ooops!',
+          'Something went wrong :(',
+          'danger'
+        );
       });
   };
 

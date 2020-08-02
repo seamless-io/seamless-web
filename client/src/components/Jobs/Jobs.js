@@ -3,8 +3,8 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 
 import { getJobs, getUserInfo } from '../../api';
 import JobLine from './JobLine';
-import './style.css';
 
+import './style.css';
 import jobsLogo from '../../images/lightning.svg';
 import terminal from '../../images/terminal.svg';
 
