@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { Toast, Row, Col } from 'react-bootstrap';
 
@@ -25,14 +26,14 @@ const Notification = ({ show, title, body, closeNotification, alertType }) => {
       onClose={closeNotification}
       delay={3000}
       show={show}
-      autohide={true}
+      autohide
       className="smls-toast-notificaiton"
     >
       <Toast.Body>
         <Row className="smls-notifcation-row">
           <Col sm={3}>
             <div className={`smls-notification-icon ${alertType}`}>
-              <img src={icon} />
+              <img src={icon} alt={`${icon} icon`} />
             </div>
           </Col>
           <Col sm={7}>
@@ -44,7 +45,7 @@ const Notification = ({ show, title, body, closeNotification, alertType }) => {
               className="smls-notification-close"
               onClick={closeNotification}
             >
-              <img src={close} />
+              <img src={close} alt="Close button" />
             </div>
           </Col>
         </Row>
@@ -54,3 +55,19 @@ const Notification = ({ show, title, body, closeNotification, alertType }) => {
 };
 
 export default Notification;
+
+Notification.propTypes = {
+  show: PropTypes.bool,
+  title: PropTypes.string,
+  body: PropTypes.string,
+  closeNotification: PropTypes.func,
+  alertType: PropTypes.string,
+};
+
+Notification.defaultProps = {
+  show: false,
+  title: '',
+  body: '',
+  closeNotification: null,
+  alertType: '',
+};
