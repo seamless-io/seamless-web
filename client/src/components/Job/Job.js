@@ -15,6 +15,7 @@ import {
   getJobRunLogs,
 } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
+import Notification from '../Notification/Notification';
 
 import './style.css';
 import '../Jobs/toggle.css';
@@ -43,6 +44,21 @@ const Job = () => {
   const [streamingLogs, setStreamingLogs] = useState([]);
   const [historyLogs, setHistoryLogs] = useState([]);
   const [statusRun, setStatusRun] = useState('');
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState('');
+  const [notificationBody, setNotificationBody] = useState('');
+  const [notificationAlertType, setNotificationAlertType] = useState('');
+
+  const displayNotification = (show, title, body, alterType) => {
+    setShowNotification(show);
+    setNotificationTitle(title);
+    setNotificationBody(body);
+    setNotificationAlertType(alterType);
+  };
+
+  const closeNotification = () => {
+    setShowNotification(false);
+  };
 
   const updateJobStatus = jobRunning => {
     if (jobRunning.job_id === job.id) {
@@ -70,7 +86,14 @@ const Job = () => {
       .then(() => {
         setLoadingToggleSwitch(false);
       })
-      .catch(() => {});
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to toggle the switch :(',
+          'danger'
+        );
+      });
   };
 
   const loadToggleSwitch = () => {
@@ -104,8 +127,13 @@ const Job = () => {
         );
         setLoading(false);
       })
-      .catch(e => {
-        alert(e); // TODO: create a notification component
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          "Unable to fetch job's details :(",
+          'danger'
+        );
       });
   }, []);
 
@@ -117,7 +145,12 @@ const Job = () => {
         setLoadingExecutionTimeLine(false);
       })
       .catch(() => {
-        alert('Error!'); // TODO: create a notification component
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch last five executions :(',
+          'danger'
+        );
       });
   }, [statusValue]);
 
@@ -127,7 +160,12 @@ const Job = () => {
         setNextExecution(payload.result);
       })
       .catch(() => {
-        alert('Error!'); // TODO: create a notification component
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch the next execution details :(',
+          'danger'
+        );
       });
   }, []);
 
@@ -138,8 +176,13 @@ const Job = () => {
     setLoadingStreamingLogs(true);
     triggerJobRun(job.id)
       .then(() => {})
-      .catch(payload => {
-        alert(payload); // TODO: create a notification component
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to execute the job :(',
+          'danger'
+        );
       });
   };
 
@@ -179,8 +222,13 @@ const Job = () => {
         );
         setLoadingLogs(false);
       })
-      .catch(payload => {
-        alert(payload); // TODO: create a notification component
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch logs :(',
+          'danger'
+        );
       });
   };
 
@@ -255,6 +303,13 @@ const Job = () => {
         loadingLogs={loadingLogs}
         activeItem={activeItem}
         loadingStreamingLogs={loadingStreamingLogs}
+      />
+      <Notification
+        show={showNotification}
+        closeNotification={closeNotification}
+        title={notificationTitle}
+        body={notificationBody}
+        alertType={notificationAlertType}
       />
     </>
   );

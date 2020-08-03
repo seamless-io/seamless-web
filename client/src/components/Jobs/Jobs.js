@@ -3,6 +3,7 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 
 import { getJobs, getUserInfo } from '../../api';
 import JobLine from './JobLine';
+import Notification from '../Notification/Notification';
 
 import './style.css';
 import jobsLogo from '../../images/lightning.svg';
@@ -13,6 +14,21 @@ const Jobs = () => {
   const [noJobsStyle, setNoJobsStyle] = useState('');
   const [loading, setLoading] = useState(null);
   const [apiKey, setApiKey] = useState('');
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState('');
+  const [notificationBody, setNotificationBody] = useState('');
+  const [notificationAlertType, setNotificationAlertType] = useState('');
+
+  const displayNotification = (show, title, body, alterType) => {
+    setShowNotification(show);
+    setNotificationTitle(title);
+    setNotificationBody(body);
+    setNotificationAlertType(alterType);
+  };
+
+  const closeNotification = () => {
+    setShowNotification(false);
+  };
 
   useEffect(() => {
     getUserInfo()
@@ -20,7 +36,12 @@ const Jobs = () => {
         setApiKey(payload.api_key);
       })
       .catch(() => {
-        alert('Error!'); // TODO: create a notification component
+        displayNotification(
+          true,
+          'Ooops!',
+          "Unable to fetch user's details :(",
+          'danger'
+        );
       });
   }, []);
 
@@ -35,7 +56,12 @@ const Jobs = () => {
         setLoading(false);
       })
       .catch(() => {
-        alert('Error!'); // TODO: create a notification component
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch jobs :(',
+          'danger'
+        );
       });
   }, []);
 
@@ -118,6 +144,13 @@ const Jobs = () => {
         </Col>
       </Row>
       {renderJobs()}
+      <Notification
+        show={showNotification}
+        closeNotification={closeNotification}
+        title={notificationTitle}
+        body={notificationBody}
+        alertType={notificationAlertType}
+      />
     </>
   );
 };

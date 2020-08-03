@@ -235,3 +235,11 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.smls-job-line-toggle-switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.75);
+}
