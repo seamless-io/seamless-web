@@ -170,7 +170,6 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
                                             args=(_capture_stderr, (container,), res_2))
                 thread_in_thread_2.start()
 
-
                 job_run_result = JobRunResult.Ok
                 job_status = JobStatus.Ok
                 # Save stdout first
