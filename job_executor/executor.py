@@ -1,8 +1,9 @@
+# TODO: all errors from executor internal functionality should be caught and processed accordingly
 import logging
 import os
 from datetime import datetime
 from threading import Thread
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 import docker
 from docker.errors import BuildError
@@ -17,58 +18,53 @@ from backend.db.models.job_runs import JobRunResult, JobRun
 from backend.db.models.jobs import JobStatus, Job
 from backend.helpers import thread_wrapper
 from job_executor.project import restore_project_from_s3
+from .exceptions import ExecutorBuildException
 
 DOCKER_FILE_NAME = "Dockerfile"
-ENTRYPOINT_FILE_NAME = "__start_smls__.py"
 REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
 
-def _ensure_requirements(job_directory, requirements):
+def _ensure_requirements(job_directory: str, requirements: Optional[str]):
     """
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
     """
-    path_to_requirements = f"{job_directory}/{requirements}"
-    if not os.path.exists(path_to_requirements):
+    # path_to_requirements = f"{job_directory}/{requirements}"
+    if requirements is None:
+        # path was not provided by a user - create empty `requirements.txt`
+        relative_requirements_path = 'requirements.txt'
+        path_to_requirements = os.path.join(job_directory, 'requirements.txt')
         with open(path_to_requirements, 'w'):
             pass
+    else:
+        # path to requirements was provided by user. Check if exists
+        path_to_requirements = os.path.join(job_directory, requirements)
+        if not os.path.exists(path_to_requirements):
+            raise ExecutorBuildException(f"Cannot find requirements file `{requirements}`")
+        else:
+            relative_requirements_path = requirements
+    return relative_requirements_path
 
 
-def _run_container(path_to_job_files: str, tag: str, entrypoint: str, path_to_requirements: str) -> Container:
+def _run_container(job_directory: str, entrypoint_filename: str, path_to_requirements: str) -> Container:
+    print("HELLLO: ", path_to_requirements)
     dockerfile_contents = f"""
 FROM python:3.8-slim
 WORKDIR /src
 ADD {path_to_requirements} /src/requirements.txt
 RUN pip install -r requirements.txt
 """
-    entrypoint_contents = f"""
-import importlib
-
-if "." in '{entrypoint}':
-    module = importlib.import_module('{entrypoint.split('.')[0]}')
-    module.{'.'.join(entrypoint.split('.')[1:])}()
-else:
-    {entrypoint}()
-"""
-    _ensure_requirements(path_to_job_files, path_to_requirements)
     docker_client = docker.from_env()
-    with open(os.path.join(path_to_job_files, DOCKER_FILE_NAME), 'w') as dockerfile:
+    with open(os.path.join(job_directory, DOCKER_FILE_NAME), 'w') as dockerfile:
         dockerfile.write(dockerfile_contents)
-    with open(os.path.join(path_to_job_files, ENTRYPOINT_FILE_NAME), 'w') as entrypoint_file:
-        entrypoint_file.write(entrypoint_contents)
     image, logs = docker_client.images.build(
-        path=path_to_job_files,
-        tag=tag)
-
-    # Remove stopped containers and old images
-    docker_client.containers.prune()
-    docker_client.images.prune(filters={'dangling': True})
+        path=job_directory)
 
     container = docker_client.containers.run(
         image=image,
-        command=f"bash -c \"python -u __start_smls__.py\"",
+        command=f"bash -c \"python -u {entrypoint_filename}\"",
         mounts=[Mount(target='/src',
-                      source=path_to_job_files,
+                      source=job_directory,
                       type='bind',
                       read_only=True)],
         auto_remove=True,
@@ -224,14 +220,24 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
     thread = Thread(target=run_in_thread, kwargs={'app': current_app._get_current_object()})
     thread.start()
 
+
 def execute(path_to_job_files: str,
             entrypoint: str,
-            path_to_requirements: str) -> Iterable:
+            path_to_requirements: Optional[str] = None) -> Iterable[str]:
     """
     Execting in docker container
-    Return logs
+    :param path_to_job_files: path to job files
+    :param entrypoint: entrypoint provided by a user
+    :param path_to_requirements: path to requiremenbts provided by a user
+    :return Iterable[str]
     """
-def _create_python_entrypoint_script(entrypoint: str) -> str:
+    # TODO: make separation between requirements_absolute and relative
+    path_to_entrypoint_file = _create_python_entrypoint_script(path_to_job_files, entrypoint)
+    requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
+    container = _run_container(path_to_job_files, path_to_entrypoint_file, requirements_path)
+
+
+def _create_python_entrypoint_script(path_to_job_files: str, entrypoint: str) -> str:
     """
     Create file which contains call to the code user provided as an entrypoint
     """
