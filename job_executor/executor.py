@@ -1,6 +1,8 @@
 # TODO: all errors from executor internal functionality should be caught and processed accordingly
+# TODO: add periodic task to clean-up images: docker_client.images.prune(filters={'dangling': True})
 import logging
 import os
+import contextlib
 from datetime import datetime
 from threading import Thread
 from typing import Iterable, List, Optional
@@ -46,8 +48,8 @@ def _ensure_requirements(job_directory: str, requirements: Optional[str]):
     return relative_requirements_path
 
 
+@contextlib.contextmanager
 def _run_container(job_directory: str, entrypoint_filename: str, path_to_requirements: str) -> Container:
-    print("HELLLO: ", path_to_requirements)
     dockerfile_contents = f"""
 FROM python:3.8-slim
 WORKDIR /src
@@ -60,21 +62,29 @@ RUN pip install -r requirements.txt
     image, logs = docker_client.images.build(
         path=job_directory)
 
-    container = docker_client.containers.run(
-        image=image,
-        command=f"bash -c \"python -u {entrypoint_filename}\"",
-        mounts=[Mount(target='/src',
-                      source=job_directory,
-                      type='bind',
-                      read_only=True)],
-        auto_remove=True,
-        stderr=True,
-        stdout=True,
-        detach=True,
-        mem_limit='128m',
-        memswap_limit='128m',
-    )
-    return container
+    try:
+        container = docker_client.containers.run(
+            image=image,
+            command=f"bash -c \"python -u {entrypoint_filename}\"",
+            mounts=[Mount(target='/src',
+                        source=job_directory,
+                        type='bind',
+                        read_only=True)],
+            auto_remove=False,
+            detach=True,
+            mem_limit='128m',
+            memswap_limit='128m',
+        )
+    except Exception as exc:
+        # catch
+        # docker.errors.ContainerError – If the container exits with a non-zero exit code and detach is False.
+        # docker.errors.ImageNotFound – If the specified image does not exist.
+        # docker.errors.APIError – If the server returns an error.
+        raise exc
+
+    yield container
+
+    container.remove(v=True)
 
 
 def _wait_for_exit_code(container):
@@ -221,6 +231,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
     thread.start()
 
 
+# TODO: fix notation
 def execute(path_to_job_files: str,
             entrypoint: str,
             path_to_requirements: Optional[str] = None) -> Iterable[str]:
@@ -234,7 +245,12 @@ def execute(path_to_job_files: str,
     # TODO: make separation between requirements_absolute and relative
     path_to_entrypoint_file = _create_python_entrypoint_script(path_to_job_files, entrypoint)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
-    container = _run_container(path_to_job_files, path_to_entrypoint_file, requirements_path)
+    with _run_container(path_to_job_files, path_to_entrypoint_file, requirements_path) as container:
+        for log in container.logs(stream=True):
+            yield str(log, 'utf-8')
+
+        yield container.wait()['StatusCode']
+
 
 
 def _create_python_entrypoint_script(path_to_job_files: str, entrypoint: str) -> str:
