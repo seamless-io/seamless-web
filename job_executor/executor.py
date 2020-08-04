@@ -231,4 +231,20 @@ def execute(path_to_job_files: str,
     Execting in docker container
     Return logs
     """
-    pass
+def _create_python_entrypoint_script(entrypoint: str) -> str:
+    """
+    Create file which contains call to the code user provided as an entrypoint
+    """
+    entrypoint_file_name = "__start_smls__.py"
+    entrypoint_contents = f"""
+import importlib
+
+if "." in '{entrypoint}':
+    module = importlib.import_module('{entrypoint.split('.')[0]}')
+    module.{'.'.join(entrypoint.split('.')[1:])}()
+else:
+    {entrypoint}()
+    """
+    with open(os.path.join(path_to_job_files, entrypoint_file_name), 'w') as entrypoint_file:
+        entrypoint_file.write(entrypoint_contents)
+    return entrypoint_file_name
