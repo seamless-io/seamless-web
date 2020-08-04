@@ -223,3 +223,12 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
 
     thread = Thread(target=run_in_thread, kwargs={'app': current_app._get_current_object()})
     thread.start()
+
+def execute(path_to_job_files: str,
+            entrypoint: str,
+            path_requirements: str) -> Iterable:
+    """
+    Execting in docker container
+    Return logs
+    """
+    pass
