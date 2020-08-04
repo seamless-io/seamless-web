@@ -27,6 +27,15 @@ REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
 
+class ExecutorResult:
+    output = None
+    exit_code = None
+
+    def __init__(self, output, exit_code):
+        self.output = output
+        self.exit_code = exit_code
+
+
 def _ensure_requirements(job_directory: str, requirements: Optional[str]):
     """
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
@@ -234,7 +243,7 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
 # TODO: fix notation
 def execute(path_to_job_files: str,
             entrypoint: str,
-            path_to_requirements: Optional[str] = None) -> Iterable[str]:
+            path_to_requirements: Optional[str] = None) -> ExecutorResult:
     """
     Execting in docker container
     :param path_to_job_files: path to job files
@@ -246,10 +255,10 @@ def execute(path_to_job_files: str,
     path_to_entrypoint_file = _create_python_entrypoint_script(path_to_job_files, entrypoint)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
     with _run_container(path_to_job_files, path_to_entrypoint_file, requirements_path) as container:
-        for log in container.logs(stream=True):
-            yield str(log, 'utf-8')
-
-        yield container.wait()['StatusCode']
+        return ExecutorResult(
+            (str(log, 'utf-8') for log in container.logs(stream=True)),
+            container.wait()['StatusCode']
+        )
 
 
 
