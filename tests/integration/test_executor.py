@@ -64,3 +64,5 @@ def test_execute_wrong_project_path(entrypoint, path_to_requirements):
 
 def test_execute_project_with_error(path_to_project, entrypoint_to_corrupted_program, path_to_requirements):
     *output, exit_code = list(executor.execute(path_to_project, entrypoint_to_corrupted_program, path_to_requirements))
+    assert "Traceback" in ''.join(output)
+    assert exit_code == 1
