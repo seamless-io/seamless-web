@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from job_executor import executor
@@ -6,15 +7,19 @@ from job_executor.exceptions import ExecutorBuildException, ExecutorRuntimeExcep
 
 @pytest.fixture
 def path_to_project():
-    return 'tests/test_project/main_module.py'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    return os.path.join(dir_path, '..', 'test_project/')
+
 
 @pytest.fixture
 def path_to_requirements():
-    return 'tests/test_project/custom_requirements.txt'
+    return 'custom_requirements.txt'
+
 
 @pytest.fixture
 def entrypoint():
     return 'main_module.read_news'
+
 
 def test_execute_succesfull(path_to_project, path_to_requirements, entrypoint):
     # we are reading from https://en.wikipedia.org/wiki/List_of_news_media_APIs
