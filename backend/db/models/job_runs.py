@@ -8,6 +8,7 @@ from sqlalchemy.orm import relationship
 from backend.socket_signals import send_update
 from backend.db import get_session
 from backend.db.models.base import base
+from backend.db.models.job_run_logs import JobRunLog
 from job_executor import executor, project
 
 
@@ -44,12 +45,12 @@ class JobRun(base):
 
         self.status = JobRunStatus.Executing.value
 
-        path_to_job_files = project.get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
-        executor_result = executor.execute(path_to_job_files, entrypoint, requirements)
+        path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, self.job.user.api_key, str(self.job.id))
+        executor_result = executor.execute(path_to_job_files, self.job.entrypoint, self.job.requirements)
 
         for line in executor_result.output:
-            now = datetime.utcnow()
-            job_run_log = JobRunLog(job_run_id=str(job_run.id), timestamp=now, message=line)
+            now = datetime.datetime.utcnow()
+            job_run_log = JobRunLog(job_run_id=str(self.id), timestamp=now, message=line)
             session.add(job_run_log)
 
         if executor_result.exit_code == 0:
@@ -66,8 +67,8 @@ def send_status_update_signal(target, value, oldvalue, initiator):
     send_update(
         'status',
         {
-            'job_id': job.id,
-            'job_run_id': job_run.id,
-            'status': job.status
+            'job_id': target.job.id,
+            'job_run_id': target.id,
+            'status': value
         },
     )

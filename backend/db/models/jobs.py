@@ -8,7 +8,8 @@ from sqlalchemy.orm import relationship
 
 from backend.db import get_session
 from backend.db.models.base import base
-from backend.db.models.job_runs import JobRunType
+from backend.db.models.job_runs import JobRun, JobRunType
+
 from job_executor import scheduler
 
 
@@ -67,6 +68,7 @@ class Job(base):
         job_run = JobRun(job_id=self.id,
                          type=type_)
         session.add(job_run)
+        session.commit()
 
         exit_code = job_run.execute()
 

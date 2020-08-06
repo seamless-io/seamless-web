@@ -18,7 +18,7 @@ def get_sqlalchemy_url(db_prefix):
         'conn': os.getenv(f'{db_prefix}_DB_CONNECTOR', 'psycopg2'),
         'user': os.getenv(f'{db_prefix}_DB_USER', 'postgres'),
         'password': os.getenv(f'{db_prefix}_DB_PASSWORD', 'root'),
-        'host': os.getenv(f'{db_prefix}_DB_HOST', 'postgres'),
+        'host': os.getenv(f'{db_prefix}_DB_HOST', '127.0.0.1'),
         'port': os.getenv(f'{db_prefix}_DB_PORT', 5432),
         'db_name': os.getenv(f'{db_prefix}_DB_NAME', 'seamless')
     }
