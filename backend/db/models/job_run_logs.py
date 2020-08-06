@@ -16,3 +16,16 @@ class JobRunLog(base):
 
     def __repr__(self):
         return '<JobRunLog %r %r %r>' % (self.job_run_id, self.timestamp, self.message)
+
+
+@event.listens_for(JobRunLog, 'after_attach')
+def send_log_init_signal(session, instance):
+    send_update(
+        'logs',
+        {
+            'job_id': str(instance.job_run.job.id),
+            'job_run_id': str(instance.job_run.id),
+            'message': line,
+            'timestamp': str(now)
+        }
+    )

@@ -1,11 +1,14 @@
 import datetime
 import enum
 import logging
+import config
 
 from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
+from backend.db import get_session
 from backend.db.models.base import base
+from backend.db.models.job_runs import JobRunType
 from job_executor import scheduler
 
 
@@ -32,14 +35,14 @@ class Job(base):
     name = Column(Text, nullable=False)
     # Alembic does not work very well with native postgres Enum type so the status column is Text
     status = Column(Text, default=JobStatus.New.value, nullable=False)
-    entrypoint = Column(Text)
-    requirements = Column(Text)
-    
+    entrypoint = Column(Text, default=config.DEFAULT_ENTRYPOINT)
+    requirements = Column(Text, default=config.DEFAULT_REQUIREMENTS)
+
     cron = Column(Text)
     aws_cron = Column(Text)
     human_cron = Column(Text)
     schedule_is_active = Column(Boolean)
-    
+
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
@@ -50,6 +53,29 @@ class Job(base):
 
     def get_sorted_job_runs(self):
         return sorted(self.runs, key=lambda o: o.created_at, reverse=True)
+
+    # TODO: fix notation
+    def execute(self, type_: JobRunType):
+        """
+        Executing the job.
+
+        Managing Job.status lifecycle, creating corresponding JobRun instance
+        """
+        session = get_session()
+
+        self.status = JobStatus.Executing.value
+        job_run = JobRun(job_id=self.id,
+                         type=type_)
+        session.add(job_run)
+
+        exit_code = job_run.execute()
+
+        if exit_code == 0:
+            self.status = JobStatus.Ok.value
+        else:
+            self.status = JobStatus.Failed.value
+
+        session.commit()
 
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.aws_cron)

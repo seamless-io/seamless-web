@@ -3,14 +3,13 @@ from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_httpauth import HTTPBasicAuth
-from flask_socketio import emit
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import session_scope
 from backend.helpers import row2dict, parse_cron, get_cron_next_execution
-from backend.db.models import Job, User, JobRun
-from backend.db.models.job_runs import JobRunType, JobRunResult, JobRun
+from backend.db.models import Job, User
+from backend.db.models.job_runs import JobRunType
 from backend.db.models.job_run_logs import JobRunLog
 from backend.db.models.jobs import JobStatus
 from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
@@ -142,6 +141,7 @@ def get_job_code(job_id: str):
     return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
+# TODO: remove it
 @jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
 @requires_auth
 def get_job_executions(job_id: str):
@@ -248,57 +248,10 @@ def _run_job(job_id, type_, user_id=None):
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
 
-        entrypoint = job.entrypoint or config.DEFAULT_ENTRYPOINT
-        requirements = job.requirements or config.DEFAULT_REQUIREMENTS
-
         if not job or (user_id and job.user_id != user_id):
             return "Job Not Found", 404
 
-        job.status = JobStatus.Executing.value
-        job_run = JobRun(job_id=job_id,
-                         type=type_)
-        db_session.add(job_run)
-        db_session.commit()
-
-        emit('status', {'job_id': job_id,
-                        'job_run_id': job_run.id,
-                        'status': job.status},
-             namespace='/socket',
-             broadcast=True)
-
-        path_to_job_files = get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
-
-        executor_result = executor.execute(path_to_job_files, entrypoint, requirements)
-        for line in executor_result.output:
-            now = datetime.utcnow()
-            emit(
-                'logs',
-                {'job_id': str(job_id), 'message': line, 'timestamp': str(now)},
-                namespace='/socket',
-                broadcast=True
-            )
-            db_session.add(
-                JobRunLog(
-                    job_run_id=str(job_run.id),
-                    timestamp=now,
-                    message=line
-                )
-            )
-
-        if executor_result.status_code == 0:
-            job.status = JobStatus.Ok
-            job_run.status = JobRunResult.Ok
-        else:
-            job.status = JobRunResult.Failed.value
-            job_run.status = JobStatus.Failed.value
-
-        emit('status', {'job_id': job_id,
-                        'job_run_id': job_run_id,
-                        'status': job_status.value},
-             namespace='/socket',
-             broadcast=True)
-
-        db_session.commit()
+    job.execute(JobRunType.Schedule.value)
 
 
 @jobs_bp.route('/jobs/execute', methods=['POST'])
