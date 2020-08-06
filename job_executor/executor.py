@@ -27,6 +27,7 @@ REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
 
+# TODO: convert to attrs
 class ExecutorResult:
     output = None
     exit_code = None
