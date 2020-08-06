@@ -28,7 +28,7 @@ JOB_LOGS_RETENTION_DAYS = 1
 
 
 # TODO: convert to attrs
-class ExecutorResult:
+class ExecuteResult:
     output = None
     exit_code = None
 
@@ -39,7 +39,7 @@ class ExecutorResult:
 
 def execute(path_to_job_files: str,
             entrypoint: str,
-            path_to_requirements: Optional[str] = None) -> ExecutorResult:
+            path_to_requirements: Optional[str] = None) -> ExecuteResult:
     """
     Execting in docker container
     :param path_to_job_files: path to job files
@@ -51,7 +51,7 @@ def execute(path_to_job_files: str,
     path_to_entrypoint_file = _create_python_entrypoint_script(path_to_job_files, entrypoint)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
     with _run_container(path_to_job_files, path_to_entrypoint_file, requirements_path) as container:
-        return ExecutorResult(
+        return ExecuteResult(
             (str(log, 'utf-8') for log in container.logs(stream=True)),
             container.wait()['StatusCode']
         )
