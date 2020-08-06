@@ -5,8 +5,8 @@ import docker
 import pytest
 
 from core.api_key import generate_api_key
-from core.db import session_scope
-from core.db.models import User
+from core.models import session_scope
+from core.models.users import User
 from core.helpers import row2dict
 
 NUMBER_OF_TEST_USERS = 2

@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from core.api_key import API_KEY_LENGTH
-from core.db.models.base import base
+from core.models.base import base
 
 
 class UserAccountType(enum.Enum):

@@ -2,9 +2,9 @@ import logging
 
 from flask import Blueprint, jsonify, request, session
 
-from core.db import session_scope
+from core.models import session_scope
 from core.web import requires_auth
-from core.db.models import User
+from core.models.users import User
 
 user_bp = Blueprint('user', __name__)
 

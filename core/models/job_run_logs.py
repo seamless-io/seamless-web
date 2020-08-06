@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
-from core.db import get_session
+from core.models import get_session
 from core.socket_signals import send_update
-from core.db.models.base import base
+from core.models.base import base
 
 session = get_session()
 

@@ -11,8 +11,8 @@ from flask import Flask, render_template, session, url_for, redirect, jsonify
 from app_config import Config
 import config
 from core.apis.auth0.auth import CoreAuthError
-from core.db import get_session
-from core.db.models import User
+from core.models import get_session
+from core.models.users import User
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)

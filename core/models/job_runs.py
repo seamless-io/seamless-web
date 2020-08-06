@@ -6,9 +6,9 @@ from sqlalchemy import Column, Integer, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
 from core.socket_signals import send_update
-from core.db import get_session
-from core.db.models.base import base
-from core.db.models.job_run_logs import JobRunLog
+from core.models import get_session
+from core.models.base import base
+from core.models.job_run_logs import JobRunLog
 from job_executor import executor, project
 
 

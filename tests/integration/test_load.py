@@ -4,9 +4,9 @@ from time import sleep
 
 import requests
 
-from core.db import session_scope
-from core.db.models import Job
-from core.db.models.job_runs import JobRunResult
+from core.models import session_scope
+from core.models.job import Job
+from core.models.job_runs import JobRunResult
 from core.helpers import row2dict
 from tests.integration.test_seamless_project.function import pi, PI_DIGITS
 

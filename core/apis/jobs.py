@@ -6,11 +6,12 @@ from flask_httpauth import HTTPBasicAuth
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from core.db import session_scope
+from core.models import session_scope
 from core.helpers import row2dict, parse_cron, get_cron_next_execution
-from core.db.models import Job, User
-from core.db.models.job_runs import JobRunType, JobRun
-from core.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
+from core.models.job import Job
+from core.models.users import User
+from core.models.job_runs import JobRunType, JobRun
+from core.models.userss import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from core.web import requires_auth
 import config
 from job_executor import project, executor
