@@ -1,21 +1,13 @@
 # TODO: all errors from executor internal functionality should be caught and processed accordingly
 # TODO: add periodic task to clean-up images: docker_client.images.prune(filters={'dangling': True})
-import logging
 import os
 import contextlib
-from datetime import datetime
-from threading import Thread
-from typing import Iterable, List, Optional
+from typing import Optional
 
 import docker
-from docker.errors import BuildError
 from docker.models.containers import Container
 from docker.types import Mount
-from flask import current_app
-from flask_socketio import emit
 
-from backend.helpers import thread_wrapper
-from job_executor.project import restore_project_from_s3
 from .exceptions import ExecutorBuildException
 
 DOCKER_FILE_NAME = "Dockerfile"
@@ -93,9 +85,9 @@ RUN pip install -r requirements.txt
             image=image,
             command=f"bash -c \"python -u {entrypoint_filename}\"",
             mounts=[Mount(target='/src',
-                        source=job_directory,
-                        type='bind',
-                        read_only=True)],
+                          source=job_directory,
+                          type='bind',
+                          read_only=True)],
             auto_remove=False,
             detach=True,
             mem_limit='128m',
