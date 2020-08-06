@@ -10,9 +10,9 @@ from flask import Flask, render_template, session, url_for, redirect, jsonify
 
 from app_config import Config
 import config
-from backend.apis.auth0.auth import CoreAuthError
-from backend.db import get_session
-from backend.db.models import User
+from core.apis.auth0.auth import CoreAuthError
+from core.db import get_session
+from core.db.models import User
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -39,13 +39,13 @@ def create_app():
     app.config.from_object(Config)
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
 
-    from backend.apis.jobs import jobs_bp
+    from core.apis.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=CLIENT_API)
 
-    from backend.apis.users import user_bp
+    from core.apis.users import user_bp
     app.register_blueprint(user_bp, url_prefix=CLIENT_API)
 
-    from backend.apis.auth0.users import auth_users_bp
+    from core.apis.auth0.users import auth_users_bp
     app.register_blueprint(auth_users_bp, url_prefix=AUTH_API)
 
     oauth = OAuth(app)

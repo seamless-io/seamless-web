@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
-from backend.api_key import API_KEY_LENGTH
-from backend.db.models.base import base
+from core.api_key import API_KEY_LENGTH
+from core.db.models.base import base
 
 
 class UserAccountType(enum.Enum):

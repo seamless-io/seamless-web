@@ -6,9 +6,9 @@ import config
 from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
-from backend.db import get_session
-from backend.db.models.base import base
-from backend.db.models.job_runs import JobRun, JobRunType
+from core.db import get_session
+from core.db.models.base import base
+from core.db.models.job_runs import JobRun, JobRunType
 
 from job_executor import scheduler
 

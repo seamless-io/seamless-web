@@ -3,9 +3,9 @@ from unittest import mock
 
 import pytest
 
-from backend.db import get_session
-from backend.db.models.jobs import Job
-from backend.db.models.job_runs import JobRun, JobRunType
+from core.db import get_session
+from core.db.models.jobs import Job
+from core.db.models.job_runs import JobRun, JobRunType
 
 
 def path_to_project():
@@ -13,9 +13,9 @@ def path_to_project():
     return os.path.join(dir_path, '..', 'test_project/')
 
 
-@mock.patch('backend.db.models.job_runs.send_update')
-@mock.patch('backend.db.models.job_run_logs.send_update')
-@mock.patch('backend.db.models.job_runs.project.get_path_to_job', return_value=path_to_project())
+@mock.patch('core.db.models.job_runs.send_update')
+@mock.patch('core.db.models.job_run_logs.send_update')
+@mock.patch('core.db.models.job_runs.project.get_path_to_job', return_value=path_to_project())
 def test_execution_flow(get_path, send_update_logs, send_update_status, session_id):
     session = get_session()
 

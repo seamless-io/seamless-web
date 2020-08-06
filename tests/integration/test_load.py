@@ -4,10 +4,10 @@ from time import sleep
 
 import requests
 
-from backend.db import session_scope
-from backend.db.models import Job
-from backend.db.models.job_runs import JobRunResult
-from backend.helpers import row2dict
+from core.db import session_scope
+from core.db.models import Job
+from core.db.models.job_runs import JobRunResult
+from core.helpers import row2dict
 from tests.integration.test_seamless_project.function import pi, PI_DIGITS
 
 PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"

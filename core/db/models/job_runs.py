@@ -5,10 +5,10 @@ from sqlalchemy import event
 from sqlalchemy import Column, Integer, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
-from backend.socket_signals import send_update
-from backend.db import get_session
-from backend.db.models.base import base
-from backend.db.models.job_run_logs import JobRunLog
+from core.socket_signals import send_update
+from core.db import get_session
+from core.db.models.base import base
+from core.db.models.job_run_logs import JobRunLog
 from job_executor import executor, project
 
 
