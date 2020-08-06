@@ -14,7 +14,7 @@ class JobRunType(enum.Enum):
 
 
 # IMPORTANT: use only this enum for populating JobRun.result column in the form of JobRunResult.<result>.value
-class JobRunResult(enum.Enum):
+class JobRunStatus(enum.Enum):
     Ok = "OK"
     Failed = "FAILED"
     Executing = "EXECUTING"
@@ -29,7 +29,7 @@ class JobRun(base):
     logs = relationship("JobRunLog", cascade="all,delete", back_populates="job_run")
 
     type = Column(Text, nullable=False)
-    status = Column(Text, default=JobRunResult.Executing.value, nullable=False)
+    status = Column(Text, default=JobRunStatus.Executing.value, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def __repr__(self):
