@@ -240,7 +240,6 @@ def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: st
     thread.start()
 
 
-# TODO: fix notation
 def execute(path_to_job_files: str,
             entrypoint: str,
             path_to_requirements: Optional[str] = None) -> ExecutorResult:
