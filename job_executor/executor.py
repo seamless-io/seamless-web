@@ -14,10 +14,6 @@ from docker.types import Mount
 from flask import current_app
 from flask_socketio import emit
 
-from backend.db import session_scope
-from backend.db.models.job_run_logs import JobRunLog
-from backend.db.models.job_runs import JobRunResult, JobRun
-from backend.db.models.jobs import JobStatus, Job
 from backend.helpers import thread_wrapper
 from job_executor.project import restore_project_from_s3
 from .exceptions import ExecutorBuildException

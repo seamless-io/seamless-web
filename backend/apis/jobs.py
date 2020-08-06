@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from backend.db import session_scope
 from backend.helpers import row2dict, parse_cron, get_cron_next_execution
 from backend.db.models import Job, User
-from backend.db.models.job_runs import JobRunType
+from backend.db.models.job_runs import JobRunType, JobRun
 from backend.db.models.job_run_logs import JobRunLog
 from backend.db.models.jobs import JobStatus
 from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
