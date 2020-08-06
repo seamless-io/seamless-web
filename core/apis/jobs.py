@@ -6,6 +6,7 @@ from flask_httpauth import HTTPBasicAuth
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from core import services
 from core.models import session_scope
 from core.helpers import row2dict, parse_cron, get_cron_next_execution
 from core.models.job import Job
@@ -247,10 +248,10 @@ def _run_job(job_id, type_, user_id=None):
     with session_scope() as db_session:
         job = db_session.query(Job).get(job_id)
 
-        if not job or (user_id and job.user_id != user_id):
-            return "Job Not Found", 404
+    if not job or (user_id and job.user_id != user_id):
+        return "Job Not Found", 404
 
-    job.execute(JobRunType.Schedule.value)
+    services.job.execute(job_id, JobRunType.Schedule.value)
 
 
 @jobs_bp.route('/jobs/execute', methods=['POST'])

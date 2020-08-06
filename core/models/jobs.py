@@ -6,7 +6,6 @@ import config
 from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
-from core.models import get_session
 from core.models.base import base
 from core.models.job_runs import JobRun, JobRunType
 
@@ -54,30 +53,6 @@ class Job(base):
 
     def get_sorted_job_runs(self):
         return sorted(self.runs, key=lambda o: o.created_at, reverse=True)
-
-    # TODO: fix notation
-    def execute(self, type_: JobRunType):
-        """
-        Executing the job.
-
-        Managing Job.status lifecycle, creating corresponding JobRun instance
-        """
-        session = get_session()
-
-        self.status = JobStatus.Executing.value
-        job_run = JobRun(job_id=self.id,
-                         type=type_)
-        session.add(job_run)
-        session.commit()
-
-        exit_code = job_run.execute()
-
-        if exit_code == 0:
-            self.status = JobStatus.Ok.value
-        else:
-            self.status = JobStatus.Failed.value
-
-        session.commit()
 
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.aws_cron)
