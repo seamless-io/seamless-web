@@ -170,3 +170,5 @@ client/yarn-error.log*
 # SEAMLESS CUSTOM GITIGNORE
 seamless_package.tar.gz
 user_projects/
+__start_smls__.py
+tests/test_project/Dockerfile
