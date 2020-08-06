@@ -10,7 +10,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from backend.db import session_scope
 from backend.helpers import row2dict, parse_cron, get_cron_next_execution
 from backend.db.models import Job, User, JobRun
-from backend.db.models.job_runs import JobRunType
+from backend.db.models.job_runs import JobRunType, JobRunResult, JobRun
+from backend.db.models.job_run_logs import JobRunLog
 from backend.db.models.jobs import JobStatus
 from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
@@ -266,7 +267,38 @@ def _run_job(job_id, type_, user_id=None):
              broadcast=True)
 
         path_to_job_files = get_path_to_job(JobType.PUBLISHED, job.user.api_key, str(job.id))
-        executor.execute_and_stream_to_db(path_to_job_files, str(job.id), str(job_run.id), entrypoint, requirements)
+
+        executor_result = executor.execute(path_to_job_files, entrypoint, requirements)
+        for line in executor_result.output:
+            now = datetime.utcnow()
+            emit(
+                'logs',
+                {'job_id': str(job_id), 'message': line, 'timestamp': str(now)},
+                namespace='/socket',
+                broadcast=True
+            )
+            db_session.add(
+                JobRunLog(
+                    job_run_id=str(job_run.id),
+                    timestamp=now,
+                    message=line
+                )
+            )
+
+        if executor_result.status_code == 0:
+            job.status = JobStatus.Ok
+            job_run.status = JobRunResult.Ok
+        else:
+            job.status = JobRunResult.Failed.value
+            job_run.status = JobStatus.Failed.value
+
+        emit('status', {'job_id': job_id,
+                        'job_run_id': job_run_id,
+                        'status': job_status.value},
+             namespace='/socket',
+             broadcast=True)
+
+        db_session.commit()
 
 
 @jobs_bp.route('/jobs/execute', methods=['POST'])
@@ -313,9 +345,10 @@ def run() -> Response:
     except project.ProjectValidationError as exc:
         return Response(str(exc), 400)
 
-    logstream = executor.execute_and_stream_back(project_path, api_key, entrypoint, requirements)
+    executor_result = executor.execute(project_path, entrypoint, requirements)
 
-    return Response(logstream, content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
+    # TODO: return exit code
+    return Response(list(executor_result.output), content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
 
 
 @jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])
