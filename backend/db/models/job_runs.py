@@ -51,7 +51,6 @@ class JobRun(base):
         for line in executor_result.output:
             now = datetime.datetime.utcnow()
             job_run_log = JobRunLog.create(job_run_id=str(self.id), timestamp=now, message=line)
-            session.add(job_run_log)
 
         if executor_result.exit_code == 0:
             self.status = JobRunStatus.Ok.value

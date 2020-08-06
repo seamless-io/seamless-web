@@ -30,9 +30,9 @@ def test_users():
             db_session.commit()
 
 
-@pytest.fixture(scope='session')
-def docker_client():
-    return docker.from_env(version='auto')
+# @pytest.fixture(scope='session')
+# def docker_client():
+#     return docker.from_env(version='auto')
 
 
 @pytest.fixture(scope='session')

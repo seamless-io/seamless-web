@@ -28,6 +28,8 @@ class JobRunLog(base):
         Please, use this method instead of default constructor
         """
         inst = cls(*args, **kwargs)
+        session.add(inst)
+        session.commit()
         inst._send_update()
         return inst
 
@@ -35,9 +37,9 @@ class JobRunLog(base):
         send_update(
             'logs',
             {
-                'job_id': str(instance.job_run.job.id),
-                'job_run_id': str(instance.job_run.id),
-                'message': instance.message,
-                'timestamp': str(instance.timestamp)
+                'job_id': str(self.job_run.job.id),
+                'job_run_id': str(self.job_run.id),
+                'message': self.message,
+                'timestamp': str(self.timestamp)
             }
         )
