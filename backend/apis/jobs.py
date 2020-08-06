@@ -10,13 +10,11 @@ from backend.db import session_scope
 from backend.helpers import row2dict, parse_cron, get_cron_next_execution
 from backend.db.models import Job, User
 from backend.db.models.job_runs import JobRunType, JobRun
-from backend.db.models.job_run_logs import JobRunLog
-from backend.db.models.jobs import JobStatus
 from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
 import config
 from job_executor import project, executor
-from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3, remove_project_from_s3
+from job_executor.project import JobType, fetch_project_from_s3, remove_project_from_s3
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
