@@ -33,7 +33,7 @@ def execute(path_to_job_files: str,
     :param path_to_job_files: path to job files
     :param entrypoint: entrypoint provided by a user
     :param path_to_requirements: path to requiremenbts provided by a user
-    :return Iterable[str]
+    :return an instance of ExecuteResult
     """
     # TODO: make separation between requirements_absolute and relative
     path_to_entrypoint_file = _create_python_entrypoint_script(path_to_job_files, entrypoint)
