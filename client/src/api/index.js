@@ -39,7 +39,7 @@ export const getLastExecutions = async job_id => {
 
 export const enableJobSchedule = async (job_id, is_enabled) => {
   let response = await axios.put(
-    `/api/v1/jobs/${job_id}/enable?is_enabled=${is_enabled}`
+    `/api/v1/jobs/${job_id}/schedule?is_enabled=${is_enabled}`
   );
   return response.data;
 };

@@ -95,6 +95,18 @@ def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunL
     return job_run.logs
 
 
+def enable_schedule(job_id: str, user_id: str):
+    job = _get_job(job_id, user_id)
+    job.schedule_is_active = False
+    get_session().commit()
+
+
+def disable_schedule(job_id: str, user_id: str):
+    job = _get_job(job_id, user_id)
+    job.schedule_is_active = False
+    get_session().commit()
+
+
 def _trigger_job_run(job: Job, trigger_type: str) -> int:
     session = get_session()
 

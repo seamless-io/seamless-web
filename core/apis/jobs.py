@@ -78,29 +78,17 @@ def update_job(job_id):
         return jsonify(row2dict(job)), 200
 
 
-def _switch_schedule(job_id, enable):
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != session['profile']['internal_user_id']:
-            return "Job Not Found", 404
-
-        job.schedule_is_active = bool(enable)
-        if bool(enable):
-            enable_job_schedule(job_id)
-        else:
-            disable_job_schedule(job_id)
-
-        db_session.commit()
-
-
-@jobs_bp.route('/jobs/<job_id>/enable', methods=['PUT'])
+@jobs_bp.route('/jobs/<job_id>/schedule', methods=['PUT'])
 @requires_auth
 def enable_job(job_id):
     """
     If job is scheduled - enables schedule
     """
-    is_enabled = True if request.args.get('is_enabled') == 'true' else False
-    _switch_schedule(job_id, is_enabled)
+    user_id = session['profile']['internal_user_id']
+    if request.args.get('is_enabled') == 'true':
+        service.job.enable_schedule(job_id, user_id)
+    else:
+        service.job.disable_schedule(job_id, user_id)
     return jsonify(job_id), 200
 
 
