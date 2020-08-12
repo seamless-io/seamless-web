@@ -72,6 +72,10 @@ def get_next_executions(job_id: str, user_id: str) -> Optional[List]:
     return get_cron_next_execution(job.cron)
 
 
+def get_prev_executions(job_id: str, user_id: str) -> List[JobRun]:
+    job = _get_job(job_id, user_id)
+    return job.runs.limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
+
 
 def _trigger_job_run(job: Job, trigger_type: str) -> int:
     session = get_session()

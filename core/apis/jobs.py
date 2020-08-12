@@ -145,12 +145,10 @@ def get_job_code(job_id: str):
 @requires_auth
 def get_job_executions_history(job_id: str):
     with session_scope() as db_session:
-        runs = db_session.query(JobRun).filter_by(
-            job_id=job_id).order_by(JobRun.created_at.desc()
-                                    ).limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
+        prev_executions = services.job.get_prev_executions(job_id, session['profile']['internal_user_id'])
         return jsonify({'last_executions': [{'status': run.status,
                                              'created_at': run.created_at,
-                                             'run_id': run.id} for run in runs]}), 200
+                                             'run_id': run.id} for run in prev_executions]}), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])
