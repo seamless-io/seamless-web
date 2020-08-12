@@ -1,5 +1,4 @@
 import logging
-import urllib
 
 import requests
 from flask import Blueprint, request, jsonify
