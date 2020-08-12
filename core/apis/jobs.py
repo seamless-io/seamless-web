@@ -104,18 +104,6 @@ def enable_job(job_id):
     return jsonify(job_id), 200
 
 
-@jobs_bp.route('/jobs/<job_id>/runs', methods=['GET'])
-@requires_auth
-def get_job_runs(job_id: str):
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != session['profile']['internal_user_id']:
-            return "Job Not Found", 404
-        job_runs = job.get_sorted_job_runs()
-
-        return jsonify([row2dict(job_run) for job_run in job_runs]), 200
-
-
 @jobs_bp.route('/jobs/<job_id>/runs/<job_run_id>/logs', methods=['GET'])
 @requires_auth
 def get_job_logs(job_id: str, job_run_id: str):

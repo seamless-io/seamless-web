@@ -51,8 +51,5 @@ class Job(base):
             logging.info(f"Scheduling job: ({self.id}, {self.aws_cron}, active: {self.schedule_is_active})")
             scheduler.schedule(self.aws_cron, str(self.id), self.schedule_is_active)
 
-    def get_sorted_job_runs(self):
-        return sorted(self.runs, key=lambda o: o.created_at, reverse=True)
-
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.aws_cron)

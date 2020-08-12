@@ -25,11 +25,6 @@ export const triggerJobRun = async job_id => {
   return response.data;
 };
 
-export const getJobRuns = async job_id => {
-  let response = await axios.get(`/api/v1/jobs/${job_id}/runs`);
-  return response.data;
-};
-
 export const getJobRunLogs = async (job_id, job_run_id) => {
   let response = await axios.get(
     `/api/v1/jobs/${job_id}/runs/${job_run_id}/logs`
