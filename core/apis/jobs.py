@@ -249,21 +249,10 @@ def delete_job(job_name):
         return f"Successfully deleted job {job_id}", 200
 
 
-def _ensure_valid_job_for_user(job_id, user_id):
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != user_id:
-            return False
-    return True
-
 @jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])
 @requires_auth
 def get_next_job_execution(job_id):
-    is_valid, rv, code = _ensure_valid_job_for_user(job_id, session['profile']['internal_user_id'])
-    if is_valid is False:
-        return "Job Not Found", 404
-
-    next_execution = services.job.get_next_executions(job_id)
+    next_execution = services.job.get_next_executions(job_id, session['profile']['internal_user_id'])
     if not next_execution:
         rv = "Not scheduled"
     else:
