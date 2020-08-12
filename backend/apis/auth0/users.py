@@ -2,6 +2,7 @@ import logging
 
 import requests
 from flask import Blueprint, request, jsonify
+from sentry_sdk import capture_exception
 
 from backend.api_key import generate_api_key
 from backend.apis.auth0.auth import requires_auth
@@ -27,7 +28,11 @@ def send_telegram_message(email):
     resp = requests.get(f'https://api.telegram.org/bot{TELEGRAM_BOT_API_KEY}/sendMessage',
                         params={'chat_id': TELEGRAM_CHANNEL_ID,
                                 'text': f"Fuck yeah, new user {email}"})
-    resp.raise_for_status()
+    try:
+        resp.raise_for_status()
+    except Exception as e:
+        logging.error(e)
+        capture_exception(e)
 
 
 @auth_users_bp.route('/users', methods=['POST'])
