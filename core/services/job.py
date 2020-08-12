@@ -61,7 +61,7 @@ def execute(job_id: str, trigger_type: str, user_id: str):
     session.commit()
 
 
-def get_next_execution(job_id: str, user_id: str\) -> Optional[List]:
+def get_next_execution(job_id: str, user_id: str) -> Optional[List]:
     session = get_session()
 
     job = db_session.query(Job).get(job_id)
