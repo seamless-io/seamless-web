@@ -141,10 +141,9 @@ def get_job_code(job_id: str):
     return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
-# TODO: remove it
 @jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
 @requires_auth
-def get_job_executions(job_id: str):
+def get_job_executions_history(job_id: str):
     with session_scope() as db_session:
         runs = db_session.query(JobRun).filter_by(
             job_id=job_id).order_by(JobRun.created_at.desc()
@@ -328,7 +327,7 @@ def get_next_job_execution(job_id):
     if is_valid is False:
         return "Job Not Found", 404
 
-    next_execution = services.job.get_next_execution(job_id)
+    next_execution = services.job.get_next_executions(job_id)
     if not next_execution:
         rv = "Not scheduled"
     else:
