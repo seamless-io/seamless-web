@@ -49,11 +49,8 @@ def get_jobs():
 @jobs_bp.route('/jobs/<job_id>', methods=['GET'])
 @requires_auth
 def get_job(job_id):
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != session['profile']['internal_user_id']:
-            return "Job Not Found", 404
-        return jsonify(row2dict(job)), 200
+    services.job.get(job_id, session['profile']['internal_user_id'])
+    return jsonify(row2dict(job)), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/schedule', methods=['PUT'])
