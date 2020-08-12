@@ -1,13 +1,20 @@
 import datetime
+from typing import Optional, List
+
+import config
 
 from core.models import get_session
-
+from core.helpers import get_cron_next_execution
 from core.socket_signals import send_update
 from core.models.jobs import Job, JobStatus
 from core.models.job_runs import JobRun, JobRunStatus
 from core.models.job_run_logs import JobRunLog
 
 from job_executor import project, executor
+
+
+class JobNotFoundException(Exception):
+    pass
 
 
 def create():
@@ -18,13 +25,30 @@ def update():
     pass
 
 
-def execute(job_id: str, trigger_type: str):
+def _get_job(job_id: str, user_id: str) -> Job:
+    session = get_session()
+    base_q = session.query(Job)
+
+    if user_id == config.SCHEDULER_USER_ID:
+        # if our automation executing script - do not check the user
+        job_q = base_q.filter_by(id=job_id)
+    else:
+        job_q = base_q.query(Job).filter_by(id=job_id, user_id=user_id)
+
+    job = job_q.one_or_none()
+
+    if job is None:
+        raise JobNotFoundException("Job Not Found")
+    return job
+
+
+def execute(job_id: str, trigger_type: str, user_id: str):
     """
     Implementing the logic of Job execution
     """
     session = get_session()
 
-    job = session.query(Job).get(job_id)
+    job = _get_job(job_id, user_id)
     job.status = JobStatus.Executing.value
 
     exit_code = _trigger_job_run(job, trigger_type)
@@ -37,7 +61,19 @@ def execute(job_id: str, trigger_type: str):
     session.commit()
 
 
-def _trigger_job_run(job: Job, trigger_type: str):
+def get_next_execution(job_id: str, user_id: str\) -> Optional[List]:
+    session = get_session()
+
+    job = db_session.query(Job).get(job_id)
+
+    if not job.schedule_is_active:
+        return None
+
+    return get_cron_next_execution(job.cron)
+
+
+
+def _trigger_job_run(job: Job, trigger_type: str) -> int:
     session = get_session()
 
     job_run = JobRun(job_id=job.id, type=trigger_type)

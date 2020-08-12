@@ -237,32 +237,14 @@ def create_job():
                     'existing_job': existing_job}), 200
 
 
-def _run_job(job_id, type_, user_id=None):
-    """
-    Function to execute job
-
-    :param job_id: job ID to execute
-    :param type_: execution type
-    :param user_id: if passed - check if job's author is this user ID
-    """
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-
-    if not job or (user_id and job.user_id != user_id):
-        return "Job Not Found", 404
-
-    services.job.execute(job_id, JobRunType.Schedule.value)
-
-
 @jobs_bp.route('/jobs/execute', methods=['POST'])
 @auth.login_required
 def run_job_by_schedule():
     """
     Executing job which was scheduled
     """
-    job_id = request.json['job_id']
     logging.info(f"Running job {job_id} based on schedule")
-    _run_job(job_id, JobRunType.Schedule.value)
+    services.job.execute(request.json['job_id'], JobRunType.Schedule.value, config.SCHEDULER_USER_ID)
     return f"Running job {job_id}", 200
 
 
@@ -272,7 +254,7 @@ def run_job(job_id):
     """
     Executing job when triggered manually via UI
     """
-    _run_job(job_id, JobRunType.RunButton.value, session['profile']['internal_user_id'])
+    services.job.execute(job_id, JobRunType.RunButton.value, session['profile']['internal_user_id'])
     return f"Running job {job_id}", 200
 
 
@@ -332,13 +314,28 @@ def delete_job(job_name):
         return f"Successfully deleted job {job_id}", 200
 
 
+def _ensure_valid_job_for_user(job_id, user_id):
+    with session_scope() as db_session:
+        job = db_session.query(Job).get(job_id)
+        if not job or job.user_id != user_id:
+            return False
+    return True
+
 @jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])
 @requires_auth
 def get_next_job_execution(job_id):
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != session['profile']['internal_user_id']:
-            return "Job Not Found", 404
-        if not job.schedule_is_active:
-            return jsonify({"result": "Not scheduled"}), 200
-        return jsonify({"result": get_cron_next_execution(job.cron)}), 200
+    is_valid, rv, code = _ensure_valid_job_for_user(job_id, session['profile']['internal_user_id'])
+    if is_valid is False:
+        return "Job Not Found", 404
+
+    next_execution = services.job.get_next_execution(job_id)
+    if not next_execution:
+        rv = "Not scheduled"
+    else:
+        rv = next_execution
+    return jsonify({"result": rv}), 200
+
+
+@jobs_bp.errorhandler(services.job.JobNotFoundException)
+def handle_error(e):
+    return jsonify(error=str(e)), 404

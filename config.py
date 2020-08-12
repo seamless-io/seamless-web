@@ -12,3 +12,4 @@ SENTRY_DSN = os.getenv('SENTRY_DSN')
 STAGE = os.getenv('STAGE', 'local')
 DEFAULT_ENTRYPOINT = 'function.main'
 DEFAULT_REQUIREMENTS = 'requirements.txt'
+SCHEDULER_USER_ID = 'SCHEDULER'
