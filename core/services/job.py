@@ -10,7 +10,12 @@ from core.models.jobs import Job, JobStatus
 from core.models.job_runs import JobRun, JobRunStatus
 from core.models.job_run_logs import JobRunLog
 
+# from job_executor.project import JobType, fetch_project_from_s3, remove_project_from_s3
+
 from job_executor import project, executor
+
+
+EXECUTION_TIMELINE_HISTORY_LIMIT = 5
 
 
 class JobNotFoundException(Exception):
@@ -75,6 +80,12 @@ def get_next_executions(job_id: str, user_id: str) -> Optional[List]:
 def get_prev_executions(job_id: str, user_id: str) -> List[JobRun]:
     job = _get_job(job_id, user_id)
     return job.runs.limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
+
+
+def get_code(job_id: str, user_id: str):
+    job = _get_job(job_id, user_id)
+    code = project.fetch_project_from_s3(job.id)
+    return code
 
 
 def _trigger_job_run(job: Job, trigger_type: str) -> int:

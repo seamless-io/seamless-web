@@ -16,13 +16,11 @@ from core.models.userss import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from core.web import requires_auth
 import config
 from job_executor import project, executor
-from job_executor.project import JobType, fetch_project_from_s3, remove_project_from_s3
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
 
 TIMESTAMP_FOR_LOGS_FORMAT = "%m_%d_%Y_%H_%M_%S_%f"
-EXECUTION_TIMELINE_HISTORY_LIMIT = 5
 
 auth = HTTPBasicAuth()
 
@@ -133,12 +131,8 @@ def get_job_logs(job_id: str, job_run_id: str):
 @jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
 @requires_auth
 def get_job_code(job_id: str):
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != session['profile']['internal_user_id']:
-            return "Job Not Found", 404
-    job_code = fetch_project_from_s3(job_id)
-    return send_file(job_code, attachment_filename=f'job_{job_id}.tar.gz'), 200
+    code = services.job.get_code(job_id, session['profile']['internal_user_id'])
+    return send_file(code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
