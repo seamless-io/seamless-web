@@ -82,10 +82,17 @@ def get_prev_executions(job_id: str, user_id: str) -> List[JobRun]:
     return job.runs.limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
 
 
+# TODO: add return notation
 def get_code(job_id: str, user_id: str):
     job = _get_job(job_id, user_id)
     code = project.fetch_project_from_s3(job.id)
     return code
+
+
+def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunLog]:
+    job = _get_job(job_id, user_id)
+    job_run = job.runs.get(job_run_id)
+    return job_run.logs
 
 
 def _trigger_job_run(job: Job, trigger_type: str) -> int:

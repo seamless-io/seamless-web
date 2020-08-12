@@ -119,13 +119,9 @@ def get_job_runs(job_id: str):
 @jobs_bp.route('/jobs/<job_id>/runs/<job_run_id>/logs', methods=['GET'])
 @requires_auth
 def get_job_logs(job_id: str, job_run_id: str):
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != session['profile']['internal_user_id']:
-            return "Job Not Found", 404
-        job_run = db_session.query(JobRun).get(job_run_id)
-        logs = [row2dict(log_record) for log_record in job_run.logs]
-        return jsonify(logs), 200
+    job_run_logs = services.job.get_logs_for_run(job_id, session['profile']['internal_user_id'], job_run_id)
+    logs = [row2dict(log_record) for log_record in job_run_logs]
+    return jsonify(logs), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
