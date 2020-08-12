@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 import config
 
@@ -25,9 +25,6 @@ class JobNotFoundException(Exception):
 def create():
     pass
 
-
-def update():
-    pass
 
 
 def _get_job(job_id: str, user_id: str) -> Job:

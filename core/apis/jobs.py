@@ -56,28 +56,6 @@ def get_job(job_id):
         return jsonify(row2dict(job)), 200
 
 
-@jobs_bp.route('/jobs/<job_id>', methods=['PUT'])
-@requires_auth
-def update_job(job_id):
-    allowed_fields = ['schedule_is_active']
-    data = request.json
-    with session_scope() as db_session:
-        job = db_session.query(Job).get(job_id)
-        if not job or job.user_id != session['profile']['internal_user_id']:
-            return "Job Not Found", 404
-        for key, value in data.items():
-            if key not in allowed_fields:
-                return f"{key} field is not allowed to be updated", 400
-            setattr(job, key, value)
-            if key == 'schedule_is_active':
-                if value:
-                    enable_job_schedule(job_id)
-                else:
-                    disable_job_schedule(job_id)
-        db_session.commit()
-        return jsonify(row2dict(job)), 200
-
-
 @jobs_bp.route('/jobs/<job_id>/schedule', methods=['PUT'])
 @requires_auth
 def enable_job(job_id):
