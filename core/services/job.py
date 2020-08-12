@@ -26,7 +26,7 @@ def create():
     pass
 
 
-def get_job(job_id: str, user_id: str) -> Job:
+def get(job_id: str, user_id: str) -> Job:
     session = get_session()
     base_q = session.query(Job)
 
@@ -49,7 +49,7 @@ def execute(job_id: str, trigger_type: str, user_id: str):
     """
     session = get_session()
 
-    job = get_job(job_id, user_id)
+    job = get(job_id, user_id)
     job.status = JobStatus.Executing.value
 
     exit_code = _trigger_job_run(job, trigger_type)
@@ -74,31 +74,31 @@ def get_next_executions(job_id: str, user_id: str) -> Optional[List]:
 
 
 def get_prev_executions(job_id: str, user_id: str) -> List[JobRun]:
-    job = get_job(job_id, user_id)
+    job = get(job_id, user_id)
     return job.runs.limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
 
 
 # TODO: add return notation
 def get_code(job_id: str, user_id: str):
-    job = get_job(job_id, user_id)
+    job = get(job_id, user_id)
     code = project.fetch_project_from_s3(job.id)
     return code
 
 
 def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunLog]:
-    job = get_job(job_id, user_id)
+    job = get(job_id, user_id)
     job_run = job.runs.get(job_run_id)
     return job_run.logs
 
 
 def enable_schedule(job_id: str, user_id: str):
-    job = get_job(job_id, user_id)
+    job = get(job_id, user_id)
     job.schedule_is_active = False
     get_session().commit()
 
 
 def disable_schedule(job_id: str, user_id: str):
-    job = get_job(job_id, user_id)
+    job = get(job_id, user_id)
     job.schedule_is_active = False
     get_session().commit()
 
