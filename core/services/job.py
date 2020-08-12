@@ -103,6 +103,12 @@ def disable_schedule(job_id: str, user_id: str):
     get_session().commit()
 
 
+def get_jobs_for_user(email: str):
+    session = get_session()
+    user = User.get_user_from_email(email, session)
+    return user.jobs
+
+
 def _trigger_job_run(job: Job, trigger_type: str) -> int:
     session = get_session()
 

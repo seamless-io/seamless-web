@@ -39,11 +39,9 @@ def verify_password(username, password):
 @requires_auth
 def get_jobs():
     email = session['profile']['email']
-    with session_scope() as db_session:
-        user = User.get_user_from_email(email, db_session)
-        jobs = [row2dict(job) for job in user.jobs]
-
-        return jsonify(jobs), 200
+    jobs = services.job.get_jobs_for_user(email)
+    rv = [row2dict(job) for job in jobs]
+    return jsonify(rv), 200
 
 
 @jobs_bp.route('/jobs/<job_id>', methods=['GET'])
