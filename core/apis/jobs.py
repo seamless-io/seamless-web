@@ -59,9 +59,9 @@ def enable_job(job_id):
     """
     user_id = session['profile']['internal_user_id']
     if request.args.get('is_enabled') == 'true':
-        service.job.enable_schedule(job_id, user_id)
+        services.job.enable_schedule(job_id, user_id)
     else:
-        service.job.disable_schedule(job_id, user_id)
+        services.job.disable_schedule(job_id, user_id)
     return jsonify(job_id), 200
 
 
