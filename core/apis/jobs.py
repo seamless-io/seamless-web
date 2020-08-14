@@ -112,7 +112,6 @@ def create_job():
     )
 
     try:
-        # TODO: remove `is_existing`
         job, is_existing = services.job.publish(
             job_name,
             cron_schedule,
