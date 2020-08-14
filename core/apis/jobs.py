@@ -10,7 +10,7 @@ from core import services
 from core.helpers import row2dict
 from core.web import requires_auth
 
-from job_executor import project, executor
+from job_executor import project
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -153,9 +153,15 @@ def run() -> Response:
     """
     Exeucting job when triggered manually via CLI
     """
+    # TODO: create a model for storing standalone executions
     api_key = request.headers.get('Authorization')
     if not api_key:
         return Response('Not authorized request', 401)
+
+    try:
+        user = services.user.get(api_key)
+    except services.user.UserNotFoundException as exc:
+        return Response(str(exc), 400)
 
     file = request.files.get('seamless_project')
 
@@ -166,14 +172,12 @@ def run() -> Response:
         return Response('File not provided', 400)
 
     try:
-        project_path = project.create(file, api_key, JobType.RUN)
+        result = services.job.execute_standalone(entrypoint, requirements, file, user)
     except project.ProjectValidationError as exc:
         return Response(str(exc), 400)
 
-    executor_result = executor.execute(project_path, entrypoint, requirements)
-
     # TODO: return exit code
-    return Response(list(executor_result.output), content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
+    return Response(list(result.output), content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
 
 
 @jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])

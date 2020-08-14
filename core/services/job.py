@@ -250,3 +250,8 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
     )
 
     session.add(job_run_log)
+
+
+def execute_standalone(entrypoint: str, requirements: str, project_file: BinaryIO, user: User):
+    project_path = project.create(project_file, user.api_key, JobType.RUN)
+    return executor.execute(project_path, entrypoint, requirements)
