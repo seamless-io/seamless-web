@@ -13,7 +13,6 @@ from core.models.job_runs import JobRunType, JobRun
 from core.web import requires_auth
 import config
 from job_executor import project, executor
-from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -184,26 +183,15 @@ def delete_job(job_name):
     if not api_key:
         return Response('Not authorized request', 401)
 
-    with session_scope() as db_session:
-        user = User.get_user_from_api_key(api_key, db_session)
-        job = None
-        for j in user.jobs:
-            if j.name == job_name:
-                job = j
-                break
+    try:
+        user = services.user.get(api_key)
+    except UserNotFoundException as e:
+        return Response(str(e), 400)
 
-        if not job:
-            return "Job Not Found", 404
+    job_id = services.job.delete(job_name, user)
 
-        job_id = job.id
-
-        remove_job_schedule(job_id)
-        remove_project_from_s3(job_id)
-
-        db_session.delete(job)
-        db_session.commit()
-        logging.info(f"Deleted job {job_id} from the database")
-        return f"Successfully deleted job {job_id}", 200
+    logging.info(f"Deleted job {job_id} from the database")
+    return f"Successfully deleted job {job_id}", 200
 
 
 @jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])

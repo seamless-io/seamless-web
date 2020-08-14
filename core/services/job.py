@@ -11,7 +11,8 @@ from core.models.jobs import Job, JobStatus
 from core.models.job_runs import JobRun, JobRunStatus
 from core.models.job_run_logs import JobRunLog
 
-# from job_executor.project import JobType, fetch_project_from_s3, remove_project_from_s3
+from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
+from job_executor.project import JobType, fetch_project_from_s3, remove_project_from_s3
 
 from job_executor import project, executor
 
@@ -74,6 +75,23 @@ def _create_job(name, cron, entrypoint, requirements):
 
     job = Job(**job_attributes)
     session.add(job)
+
+
+def delete(name: str, user: User):
+    session = get_session()
+
+    job = user.jobs.filter_by(name=job_name).one_or_none()
+    if not job:
+        raise JobNotFoundException("Job Not Found")
+
+    job_id = job.id
+
+    remove_job_schedule(job_id)
+    remove_project_from_s3(job_id)
+
+    session.delete(job)
+    session.commit()
+    return job_id
 
 
 def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: file):
