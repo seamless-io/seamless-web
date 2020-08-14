@@ -3,16 +3,13 @@ from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_httpauth import HTTPBasicAuth
-from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from core import services
 from core.models import session_scope
-from core.helpers import row2dict, parse_cron, get_cron_next_execution
+from core.helpers import row2dict, parse_cron
 from core.models.job import Job
-from core.models.users import User
 from core.models.job_runs import JobRunType, JobRun
-from core.models.userss import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from core.web import requires_auth
 import config
 from job_executor import project, executor
@@ -95,8 +92,13 @@ def create_job():
     if not api_key:
         return Response('Not authorized request', 401)
 
-    file = request.files.get('seamless_project')
-    if not file:
+    try:
+        user = services.user.get(api_key)
+    except UserNotFoundException as e:
+        return Response(str(e), 400)
+
+    project_file = request.files.get('seamless_project')
+    if not project_file:
         return Response('File not provided', 400)
 
     job_name = request.args.get('name')
@@ -109,67 +111,23 @@ def create_job():
         f"entrypoint={entrypoint}, requirements={requirements}"
     )
 
-    with session_scope() as session:
-        try:
-            user = User.get_user_from_api_key(api_key, session)
-        except NoResultFound:
-            return Response('API Key is wrong, please go to our account https://app.seamlesscloud.io/account,'
-                            ' copy the API Key field and run "smls init <api key>"', 400)
-
-        account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
-        jobs_limit = account_limits.jobs
-        jobs = list(user.jobs)
-
-        job = None
-        for j in jobs:
-            if j.name == job_name:
-                job = j
-                break
-        if job:  # The user re-publishes an existing job
-            existing_job = True
-            job.updated_at = datetime.utcnow()
-            if cron_schedule:
-                aws_cron, human_cron = parse_cron(cron_schedule)
-                job.cron = cron_schedule
-                job.aws_cron = aws_cron
-                job.human_cron = human_cron
-
-                job.entrypoint = entrypoint
-                job.requirements = requirements
-
-                if job.schedule_is_active is None:
-                    job.schedule_is_active = True
-        else:  # The user publishes the new job
-            if len(jobs) >= jobs_limit:
-                return Response('You have reached the limit of jobs for your account', 400)
-            existing_job = False
-            job_attributes = {
-                'name': job_name,
-                'user_id': user.id,
-                'entrypoint': entrypoint,
-                'requirements': requirements
-            }
-            if cron_schedule:
-                aws_cron, human_cron = parse_cron(cron_schedule)
-                job_attributes.update({
-                    "cron": cron_schedule,
-                    "aws_cron": aws_cron,
-                    "human_cron": human_cron,
-                    "schedule_is_active": True})
-            job = Job(**job_attributes)
-            session.add(job)
-
-        session.commit()
-        job.schedule_job()
-        job_id = job.id
-
     try:
-        project.create(file, api_key, JobType.PUBLISHED, str(job_id))
-    except project.ProjectValidationError as exc:
-        return Response(str(exc), 400)
+        # TODO: remove `is_existing`
+        job, is_existing = services.job.publish(
+            job_name,
+            cron_schedule,
+            entrypoint,
+            requirements,
+            user,
+            project_file
+        )
+    except services.job.JobsQuotaExceededException as e:
+        return Response(str(e), 400)  # TODO: ensure that error code is correct
+    except project.ProjectValidationError as e:
+        return Response(str(e), 400)  # TODO: ensure that error code is correct
 
-    return jsonify({'job_id': job_id,
-                    'existing_job': existing_job}), 200
+    return jsonify({'job_id': job.id,
+                    'existing_job': is_existing}), 200
 
 
 @jobs_bp.route('/jobs/execute', methods=['POST'])

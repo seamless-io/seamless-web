@@ -6,6 +6,7 @@ import config
 from core.models import get_session
 from core.helpers import get_cron_next_execution
 from core.socket_signals import send_update
+from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from core.models.jobs import Job, JobStatus
 from core.models.job_runs import JobRun, JobRunStatus
 from core.models.job_run_logs import JobRunLog
@@ -22,8 +23,75 @@ class JobNotFoundException(Exception):
     pass
 
 
-def create():
+class JobsQuotaExceededException(Exception):
     pass
+
+
+def _check_user_quotas_for_job_creation(job_name: str, user: User):
+    """
+    Checks if user has a plan which permits creation of the new job.
+
+    Returns the existing job or raising JobsQuotaExceededException exception otherwise
+    """
+    account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
+    jobs_limit = account_limits.jobs
+    if user.jobs.count() >= jobs_limit:
+        raise JobsQuotaExceededException('You have reached the limit of jobs for your account')
+
+
+def _update_job(job, cron, entrypoint, requirements):
+    job.updated_at = datetime.utcnow()
+
+    job.entrypoint = entrypoint
+    job.requirements = requirements
+
+    if cron:
+        aws_cron, human_cron = parse_cron(cron)
+        job.cron = cron
+        job.aws_cron = aws_cron
+        job.human_cron = human_cron
+
+        if job.schedule_is_active is None:
+            job.schedule_is_active = True
+
+
+def _create_job(name, cron, entrypoint, requirements):
+    session = get_session()
+
+    job_attributes = {
+        'name': name,
+        'user_id': user.id,
+        'entrypoint': entrypoint,
+        'requirements': requirements
+    }
+    if cron_schedule:
+        aws_cron, human_cron = parse_cron(cron)
+        job_attributes.update({
+            "cron": cron,
+            "aws_cron": aws_cron,
+            "human_cron": human_cron,
+            "schedule_is_active": True})
+
+    job = Job(**job_attributes)
+    session.add(job)
+
+
+def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: file):
+    session = get_session()
+
+    existing_job = session.query(Job).filter_by(name=name, user_id=user.id).one_or_none()
+    if existing_job:
+        job = _update_job(existing_job, cron, entrypoint, requirements)
+    else:
+        _check_user_quotas_for_job_creation(name, user)
+        job = _create_job(name, cron, entrypoint, requirements)
+
+    session.commit()
+    job.schedule_job()
+
+    project.create(file, user.api_key, JobType.PUBLISHED, str(job.id))
+
+    return job, bool(existing_job)
 
 
 def get(job_id: str, user_id: str) -> Job:
