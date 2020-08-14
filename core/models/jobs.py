@@ -7,7 +7,6 @@ from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, Uni
 from sqlalchemy.orm import relationship
 
 from core.models.base import base
-from core.models.job_runs import JobRun, JobRunType
 
 from job_executor import scheduler
 

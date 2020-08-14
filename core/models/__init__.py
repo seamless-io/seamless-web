@@ -44,7 +44,7 @@ def session_scope():
     Provide a transactional scope around a series of operations.
     https://docs.sqlalchemy.org/en/13/orm/session_basics.html#when-do-i-construct-a-session-when-do-i-commit-it-and-when-do-i-close-it
     """
-    session = get_session(get_engine())
+    session = get_session()
     try:
         yield session
         session.commit()

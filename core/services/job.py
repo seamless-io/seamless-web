@@ -1,18 +1,18 @@
 import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, BinaryIO
 
 import config
 
 from core.models import get_session
-from core.helpers import get_cron_next_execution
+from core.helpers import get_cron_next_execution, parse_cron
 from core.socket_signals import send_update
 from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from core.models.jobs import Job, JobStatus
-from core.models.job_runs import JobRun, JobRunStatus
+from core.models.job_runs import JobRun, JobRunStatus, JobRunType
 from core.models.job_run_logs import JobRunLog
 
-from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
-from job_executor.project import JobType, fetch_project_from_s3, remove_project_from_s3
+from job_executor.scheduler import remove_job_schedule
+from job_executor.project import JobType, remove_project_from_s3
 
 from job_executor import project, executor
 
@@ -56,16 +56,16 @@ def _update_job(job, cron, entrypoint, requirements):
             job.schedule_is_active = True
 
 
-def _create_job(name, cron, entrypoint, requirements):
+def _create_job(name, cron, entrypoint, requirements, user_id):
     session = get_session()
 
     job_attributes = {
         'name': name,
-        'user_id': user.id,
+        'user_id': user_id,
         'entrypoint': entrypoint,
         'requirements': requirements
     }
-    if cron_schedule:
+    if cron:
         aws_cron, human_cron = parse_cron(cron)
         job_attributes.update({
             "cron": cron,
@@ -80,7 +80,7 @@ def _create_job(name, cron, entrypoint, requirements):
 def delete(name: str, user: User):
     session = get_session()
 
-    job = user.jobs.filter_by(name=job_name).one_or_none()
+    job = user.jobs.filter_by(name=name).one_or_none()
     if not job:
         raise JobNotFoundException("Job Not Found")
 
@@ -94,7 +94,7 @@ def delete(name: str, user: User):
     return job_id
 
 
-def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: file):
+def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: BinaryIO):
     session = get_session()
 
     existing_job = session.query(Job).filter_by(name=name, user_id=user.id).one_or_none()
@@ -102,12 +102,12 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
         _check_user_quotas_for_job_creation(name, user)
-        job = _create_job(name, cron, entrypoint, requirements)
+        job = _create_job(name, cron, entrypoint, requirements, user.id)
 
     session.commit()
     job.schedule_job()
 
-    project.create(file, user.api_key, JobType.PUBLISHED, str(job.id))
+    project.create(project_file, user.api_key, JobType.PUBLISHED, str(job.id))
 
     return job, bool(existing_job)
 
@@ -127,6 +127,14 @@ def get(job_id: str, user_id: str) -> Job:
     if job is None:
         raise JobNotFoundException("Job Not Found")
     return job
+
+
+def execute_by_schedule(job_id: str):
+    return execute(job_id, JobRunType.Schedule.value, config.SCHEDULER_USER_ID)
+
+
+def execute_by_button(job_id: str, user_id: str):
+    return execute(job_id, JobRunType.RunButton.value, user_id)
 
 
 def execute(job_id: str, trigger_type: str, user_id: str):
@@ -151,7 +159,7 @@ def execute(job_id: str, trigger_type: str, user_id: str):
 def get_next_executions(job_id: str, user_id: str) -> Optional[List]:
     session = get_session()
 
-    job = db_session.query(Job).get(job_id)
+    job = session.query(Job).get(job_id)
 
     if not job.schedule_is_active:
         return None
@@ -206,7 +214,6 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
     executor_result = executor.execute(path_to_job_files, job.entrypoint, job.requirements)
 
     for line in executor_result.output:
-        now = datetime.datetime.utcnow()
         _create_log_entry(line, job.id, job_run.id)
 
     if executor_result.exit_code == 0:

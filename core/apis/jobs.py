@@ -1,17 +1,15 @@
 import logging
-from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, session, request, send_file
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from core import services
-from core.models import session_scope
-from core.helpers import row2dict, parse_cron
-from core.models.job import Job
-from core.models.job_runs import JobRunType, JobRun
-from core.web import requires_auth
 import config
+
+from core import services
+from core.helpers import row2dict
+from core.web import requires_auth
+
 from job_executor import project, executor
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -43,7 +41,7 @@ def get_jobs():
 @jobs_bp.route('/jobs/<job_id>', methods=['GET'])
 @requires_auth
 def get_job(job_id):
-    services.job.get(job_id, session['profile']['internal_user_id'])
+    job = services.job.get(job_id, session['profile']['internal_user_id'])
     return jsonify(row2dict(job)), 200
 
 
@@ -81,8 +79,8 @@ def get_job_code(job_id: str):
 def get_job_executions_history(job_id: str):
     prev_executions = services.job.get_prev_executions(job_id, session['profile']['internal_user_id'])
     return jsonify({'last_executions': [{'status': run.status,
-                                            'created_at': run.created_at,
-                                            'run_id': run.id} for run in prev_executions]}), 200
+                                         'created_at': run.created_at,
+                                         'run_id': run.id} for run in prev_executions]}), 200
 
 
 @jobs_bp.route('/publish', methods=['PUT'])
@@ -93,7 +91,7 @@ def create_job():
 
     try:
         user = services.user.get(api_key)
-    except UserNotFoundException as e:
+    except services.user.UserNotFoundException as e:
         return Response(str(e), 400)
 
     project_file = request.files.get('seamless_project')
@@ -134,8 +132,9 @@ def run_job_by_schedule():
     """
     Executing job which was scheduled
     """
+    job_id = request.json['job_id']
     logging.info(f"Running job {job_id} based on schedule")
-    services.job.execute(request.json['job_id'], JobRunType.Schedule.value, config.SCHEDULER_USER_ID)
+    services.job.execute_by_schedule(job_id)
     return f"Running job {job_id}", 200
 
 
@@ -145,7 +144,7 @@ def run_job(job_id):
     """
     Executing job when triggered manually via UI
     """
-    services.job.execute(job_id, JobRunType.RunButton.value, session['profile']['internal_user_id'])
+    services.job.execute_by_button(job_id, session['profile']['internal_user_id'])
     return f"Running job {job_id}", 200
 
 
@@ -185,7 +184,7 @@ def delete_job(job_name):
 
     try:
         user = services.user.get(api_key)
-    except UserNotFoundException as e:
+    except services.user.UserNotFoundException as e:
         return Response(str(e), 400)
 
     job_id = services.job.delete(job_name, user)

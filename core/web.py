@@ -86,7 +86,7 @@ def create_app():
 
     @app.route('/debug-sentry')
     def trigger_error():
-        division_by_zero = 1 / 0
+        1 / 0
 
     @app.route('/logout')
     def logout():

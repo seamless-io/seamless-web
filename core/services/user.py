@@ -15,4 +15,4 @@ def get(api_key: str):
     except NoResultFound:
         raise UserNotFoundException('API Key is wrong, please go to our account https://app.seamlesscloud.io/account,'
                                     ' copy the API Key field and run "smls init <api key>"', 400)
-
+    return user
