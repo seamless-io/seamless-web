@@ -3,7 +3,7 @@
 import os
 import contextlib
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Generator, Any
 
 import docker
 from docker.models.containers import Container
@@ -18,12 +18,8 @@ JOB_LOGS_RETENTION_DAYS = 1
 
 @dataclass
 class ExecuteResult:
-    output: tuple
+    output: Generator[str, Any, None]
     exit_code: int
-
-    def __init__(self, output, exit_code):
-        self.output = output
-        self.exit_code = exit_code
 
 
 def execute(path_to_job_files: str,

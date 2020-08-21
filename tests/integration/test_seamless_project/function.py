@@ -2,7 +2,7 @@ import decimal
 
 import scipy
 
-PI_DIGITS = 20000
+PI_DIGITS = 10000
 
 
 def pi():
@@ -32,7 +32,7 @@ def pi():
     return +s
 
 
-if __name__ == '__main__':
+def main():
     print(f'SciPy version: {scipy.__version__}')
     print('Executing...')
     print(pi())
