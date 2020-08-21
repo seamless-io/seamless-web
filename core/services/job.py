@@ -1,5 +1,7 @@
-import datetime
+from datetime import datetime
 from typing import Optional, List, BinaryIO
+
+from werkzeug.datastructures import FileStorage
 
 import config
 
@@ -54,6 +56,7 @@ def _update_job(job, cron, entrypoint, requirements):
 
         if job.schedule_is_active is None:
             job.schedule_is_active = True
+    return job
 
 
 def _create_job(name, cron, entrypoint, requirements, user_id):
@@ -75,6 +78,7 @@ def _create_job(name, cron, entrypoint, requirements, user_id):
 
     job = Job(**job_attributes)
     session.add(job)
+    return job
 
 
 def delete(name: str, user: User):
@@ -94,7 +98,7 @@ def delete(name: str, user: User):
     return job_id
 
 
-def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: BinaryIO):
+def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: FileStorage):
     session = get_session()
 
     existing_job = session.query(Job).filter_by(name=name, user_id=user.id).one_or_none()
@@ -156,14 +160,10 @@ def execute(job_id: str, trigger_type: str, user_id: str):
     session.commit()
 
 
-def get_next_executions(job_id: str, user_id: str) -> Optional[List]:
-    session = get_session()
-
-    job = session.query(Job).get(job_id)
-
+def get_next_executions(job_id: str, user_id: str) -> Optional[str]:
+    job = get(job_id, user_id)
     if not job.schedule_is_active:
         return None
-
     return get_cron_next_execution(job.cron)
 
 
@@ -235,7 +235,7 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
 
 
 def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
-    now = datetime.datetime.utcnow()
+    now = datetime.utcnow()
     session = get_session()
     job_run_log = JobRunLog(job_run_id=job_run_id, timestamp=now, message=log_msg)
 
@@ -252,6 +252,6 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
     session.add(job_run_log)
 
 
-def execute_standalone(entrypoint: str, requirements: str, project_file: BinaryIO, user: User):
+def execute_standalone(entrypoint: str, requirements: str, project_file: FileStorage, user: User):
     project_path = project.create(project_file, user.api_key, JobType.RUN)
     return executor.execute(project_path, entrypoint, requirements)

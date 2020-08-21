@@ -2,6 +2,7 @@
 # TODO: add periodic task to clean-up images: docker_client.images.prune(filters={'dangling': True})
 import os
 import contextlib
+from dataclasses import dataclass
 from typing import Optional
 
 import docker
@@ -15,10 +16,10 @@ REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
 
-# TODO: convert to attrs
+@dataclass
 class ExecuteResult:
-    output = None
-    exit_code = None
+    output: tuple
+    exit_code: int
 
     def __init__(self, output, exit_code):
         self.output = output

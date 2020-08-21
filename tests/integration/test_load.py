@@ -5,8 +5,8 @@ from time import sleep
 import requests
 
 from core.models import session_scope
-from core.models.job import Job
-from core.models.job_runs import JobRunResult
+from core.models.jobs import Job
+from core.models.job_runs import JobRunStatus
 from core.helpers import row2dict
 from tests.integration.test_seamless_project.function import pi, PI_DIGITS
 
@@ -75,7 +75,7 @@ def test_load(test_users):
                         print([row2dict(l) for l in logs])
 
                         # All executions should be successful
-                        assert run.status == JobRunResult.Ok.value
+                        assert run.status == JobRunStatus.Ok.value
 
                         # Logs recorded for each job should be exactly like this
                         assert logs[0].message == 'SciPy version: 1.5.1\n'
