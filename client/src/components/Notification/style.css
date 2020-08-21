@@ -1,0 +1,61 @@
+.smls-toast-notificaiton {
+  position: absolute;
+  top: 10%;
+  right: 1%;
+}
+
+.smls-notifcation-row {
+  min-width: 330px;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.smls-notification-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success {
+  background-color: #e5f8eb;
+}
+
+.info {
+  background-color: #e5f0ff;
+}
+
+.warning {
+  background-color: #fef4e5;
+}
+
+.danger {
+  background-color: #ffebea;
+}
+
+.smls-notification-title {
+  font-size: 14px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.smls-notification-body {
+  font-size: 14px;
+  font-weight: normal;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #9299a3;
+}
+
+.smls-notification-close {
+  cursor: pointer;
+}

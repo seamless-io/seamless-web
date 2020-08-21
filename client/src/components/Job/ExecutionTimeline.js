@@ -17,10 +17,10 @@ const ExecutionTimeline = ({
   loadingStreamingLogs,
 }) => {
   const renderNextExecution = () => {
-    if (nextExecution !== 'Not scheduled') {
+    if (nextExecution && nextExecution !== 'Not scheduled') {
       return (
         <>
-          <JobExecutionItem time={nextExecution} status={'scheduled'} />
+          <JobExecutionItem time={nextExecution} status="scheduled" />
           <Row>
             <Col>
               <div className="smls-job-info-section-col-hr">
@@ -31,6 +31,26 @@ const ExecutionTimeline = ({
         </>
       );
     }
+  };
+
+  const renderLastFiveExecutions = () => {
+    if (lastFiveExecutions && lastFiveExecutions.length > 0) {
+      return lastFiveExecutions.map(execution => (
+        <JobExecutionItem
+          key={execution.run_id}
+          time={execution.created_at}
+          status={execution.status}
+          active={execution.run_id === activeItem}
+          showLogs={() => showLogs(execution.run_id, execution.status)}
+        />
+      ));
+    }
+
+    return (
+      <div className="smls-job-executiontimelie-no-runs">
+        This job was not run yet.
+      </div>
+    );
   };
 
   const renderExecutionTimeLine = () => {
@@ -47,26 +67,6 @@ const ExecutionTimeline = ({
         {renderNextExecution()}
         {renderLastFiveExecutions()}
       </>
-    );
-  };
-
-  const renderLastFiveExecutions = () => {
-    if (lastFiveExecutions && lastFiveExecutions.length > 0) {
-      return lastFiveExecutions.map(execution => (
-        <JobExecutionItem
-          key={execution.run_id}
-          time={execution.created_at}
-          status={execution.status}
-          active={execution.run_id === activeItem}
-          showLogs={() => showLogs(execution.run_id)}
-        />
-      ));
-    }
-
-    return (
-      <div className="smls-job-executiontimelie-no-runs">
-        This job was not run yet.
-      </div>
     );
   };
 
@@ -127,4 +127,15 @@ ExecutionTimeline.propTypes = {
   loadingLogs: PropTypes.bool,
   activeItem: PropTypes.number,
   loadingStreamingLogs: PropTypes.bool,
+};
+
+ExecutionTimeline.defaultProps = {
+  loadingExecutionTimeLine: true,
+  lastFiveExecutions: [],
+  nextExecution: '',
+  logs: [],
+  showLogs: null,
+  loadingLogs: false,
+  activeItem: null,
+  loadingStreamingLogs: true,
 };

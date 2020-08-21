@@ -10,6 +10,7 @@ import ApplicationHeader from './ApplicationHeader';
 import Jobs from '../Jobs/Jobs';
 import Account from '../Account/Account';
 import Job from '../Job/Job';
+import Guide from '../Guide/Guide';
 
 import './style.css';
 
@@ -28,6 +29,9 @@ const ApplicationRoot = () => {
               <Account />
             </Route>
             <Route path="/jobs/:id" component={Job}></Route>
+            <Route path="/guide">
+              <Guide />
+            </Route>
           </Switch>
         </div>
       </Container>

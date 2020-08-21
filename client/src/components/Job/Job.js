@@ -15,6 +15,7 @@ import {
   getJobRunLogs,
 } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
+import Notification from '../Notification/Notification';
 
 import './style.css';
 import '../Jobs/toggle.css';
@@ -28,12 +29,11 @@ const Job = () => {
   const [schedule, setSchedule] = useState('');
   const [isScheduleOn, setIsScheduleOn] = useState(false);
   const [isToggleDisabled, setIsToggleDisabled] = useState(true);
-  const [loading, setLoading] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [statusValue, setStatusValue] = useState(null);
-  const [logs, setLogs] = useState([]);
   const [lastFiveExecutions, setLastFiveExecutions] = useState([]);
   const [loadingExecutionTimeLine, setLoadingExecutionTimeLine] = useState(
-    false
+    true
   );
   const [nextExecution, setNextExecution] = useState('');
   const [updatedAt, setUpdatedAt] = useState('');
@@ -41,6 +41,24 @@ const Job = () => {
   const [activeItem, setActiveItem] = useState(null);
   const [loadingStreamingLogs, setLoadingStreamingLogs] = useState(false);
   const [loadingToggleSwitch, setLoadingToggleSwitch] = useState(false);
+  const [streamingLogs, setStreamingLogs] = useState([]);
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [statusRun, setStatusRun] = useState('');
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState('');
+  const [notificationBody, setNotificationBody] = useState('');
+  const [notificationAlertType, setNotificationAlertType] = useState('');
+
+  const displayNotification = (show, title, body, alterType) => {
+    setShowNotification(show);
+    setNotificationTitle(title);
+    setNotificationBody(body);
+    setNotificationAlertType(alterType);
+  };
+
+  const closeNotification = () => {
+    setShowNotification(false);
+  };
 
   const updateJobStatus = jobRunning => {
     if (jobRunning.job_id === job.id) {
@@ -52,7 +70,7 @@ const Job = () => {
 
   const updateJobLogs = jobLogLine => {
     if (jobLogLine.job_id === job.id) {
-      setLogs(jobLogs => [...jobLogs, jobLogLine]);
+      setStreamingLogs(jobLogs => [...jobLogs, jobLogLine]);
     }
   };
 
@@ -68,7 +86,14 @@ const Job = () => {
       .then(() => {
         setLoadingToggleSwitch(false);
       })
-      .catch(() => {});
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to toggle the switch :(',
+          'danger'
+        );
+      });
   };
 
   const loadToggleSwitch = () => {
@@ -102,19 +127,30 @@ const Job = () => {
         );
         setLoading(false);
       })
-      .catch(e => {
-        alert(e); // TODO: create a notification component
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          "Unable to fetch job's details :(",
+          'danger'
+        );
       });
   }, []);
 
   useEffect(() => {
+    setLoadingExecutionTimeLine(true);
     getLastExecutions(job.id)
       .then(payload => {
         setLastFiveExecutions(payload.last_executions);
         setLoadingExecutionTimeLine(false);
       })
       .catch(() => {
-        alert('Error!'); // TODO: create a notification component
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch last five executions :(',
+          'danger'
+        );
       });
   }, [statusValue]);
 
@@ -124,18 +160,29 @@ const Job = () => {
         setNextExecution(payload.result);
       })
       .catch(() => {
-        alert('Error!'); // TODO: create a notification component
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch the next execution details :(',
+          'danger'
+        );
       });
   }, []);
 
   const runJob = () => {
-    setLogs([]);
+    setStreamingLogs([]);
+    setStatusRun('EXECUTING');
     setLoadingExecutionTimeLine(true);
     setLoadingStreamingLogs(true);
     triggerJobRun(job.id)
       .then(() => {})
-      .catch(payload => {
-        alert(payload); // TODO: create a notification component
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to execute the job :(',
+          'danger'
+        );
       });
   };
 
@@ -159,16 +206,29 @@ const Job = () => {
     );
   };
 
-  const showLogs = runId => {
+  const showLogs = (runId, status) => {
+    setStatusRun(status);
+    setLoadingStreamingLogs(status === 'EXECUTING');
     setLoadingLogs(true);
     setActiveItem(runId);
     getJobRunLogs(job.id, runId)
       .then(payload => {
-        setLogs(payload);
+        setHistoryLogs(
+          payload.sort(function (a, b) {
+            var dateA = new Date(a.timestamp),
+              dateB = new Date(b.timestamp);
+            return dateA - dateB;
+          })
+        );
         setLoadingLogs(false);
       })
-      .catch(payload => {
-        alert(payload); // TODO: create a notification component
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch logs :(',
+          'danger'
+        );
       });
   };
 
@@ -222,9 +282,7 @@ const Job = () => {
               onChange={handleToggleSwitch}
             />
             <span className={!isScheduleOn ? 'smls-muted' : ''}>
-              {schedule}
-              {' '}
-              UTC
+              {schedule} UTC
             </span>
           </div>
           {loadToggleSwitch()}
@@ -240,11 +298,18 @@ const Job = () => {
         loadingExecutionTimeLine={loadingExecutionTimeLine}
         lastFiveExecutions={lastFiveExecutions}
         nextExecution={nextExecution}
-        logs={logs}
+        logs={statusRun === 'EXECUTING' ? streamingLogs : historyLogs}
         showLogs={showLogs}
         loadingLogs={loadingLogs}
         activeItem={activeItem}
         loadingStreamingLogs={loadingStreamingLogs}
+      />
+      <Notification
+        show={showNotification}
+        closeNotification={closeNotification}
+        title={notificationTitle}
+        body={notificationBody}
+        alertType={notificationAlertType}
       />
     </>
   );

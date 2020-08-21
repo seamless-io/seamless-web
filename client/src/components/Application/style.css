@@ -74,3 +74,15 @@ body {
 .smls-header-active {
   border-bottom: 2px solid #016bff;
 }
+
+.smls-header-information {
+  border-right: 1px solid #9299a3;
+}
+
+.smls-information {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-right: 5px;
+  cursor: pointer;
+}
