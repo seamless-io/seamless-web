@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -5,7 +6,6 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from core.models import get_sqlalchemy_url
 from core.models.base import base
 
 # this is the Alembic Config object, which provides
@@ -26,6 +26,31 @@ target_metadata = base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def get_sqlalchemy_url(db_prefix):
+    sqlalchemy_url = '{db}+{conn}://{user}:{password}@{host}:{port}/{db_name}'
+
+    db_vars = {
+        'db': os.getenv(f'{db_prefix}_DB', 'postgresql'),
+        'conn': os.getenv(f'{db_prefix}_DB_CONNECTOR', 'psycopg2'),
+        'user': os.getenv(f'{db_prefix}_DB_USER', 'postgres'),
+        'password': os.getenv(f'{db_prefix}_DB_PASSWORD', 'root'),
+        'port': os.getenv(f'{db_prefix}_DB_PORT', 5432),
+        'db_name': os.getenv(f'{db_prefix}_DB_NAME', 'seamless'),
+
+        # This function is only used for `make setup-db`
+        # which always uses a postgres instance launched in a docker container
+        'host': 'postgres',
+    }
+    url = sqlalchemy_url.format(**db_vars)
+    if os.getenv('DB_USE_SSL', False):
+        ca_cert_file = os.path.join(
+            os.path.realpath(os.path.dirname(__file__)),
+            'rds-combined-ca-bundle.pem'
+        )
+        url += '?sslmode=verify-full&sslrootcert={}'.format(ca_cert_file)
+    return url
 
 
 def run_migrations_offline():

@@ -6,7 +6,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import config
 
-from core import services
+import core.services.job as job_service
+import core.services.user as user_service
 from core.helpers import row2dict
 from core.web import requires_auth
 
@@ -33,7 +34,7 @@ def verify_password(username, password):
 @requires_auth
 def get_jobs():
     email = session['profile']['email']
-    jobs = services.job.get_jobs_for_user(email)
+    jobs = job_service.get_jobs_for_user(email)
     rv = [row2dict(job) for job in jobs]
     return jsonify(rv), 200
 
@@ -41,7 +42,7 @@ def get_jobs():
 @jobs_bp.route('/jobs/<job_id>', methods=['GET'])
 @requires_auth
 def get_job(job_id):
-    job = services.job.get(job_id, session['profile']['internal_user_id'])
+    job = job_service.get(job_id, session['profile']['internal_user_id'])
     return jsonify(row2dict(job)), 200
 
 
@@ -53,16 +54,16 @@ def enable_job(job_id):
     """
     user_id = session['profile']['internal_user_id']
     if request.args.get('is_enabled') == 'true':
-        services.job.enable_schedule(job_id, user_id)
+        job_service.enable_schedule(job_id, user_id)
     else:
-        services.job.disable_schedule(job_id, user_id)
+        job_service.disable_schedule(job_id, user_id)
     return jsonify(job_id), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/runs/<job_run_id>/logs', methods=['GET'])
 @requires_auth
 def get_job_logs(job_id: str, job_run_id: str):
-    job_run_logs = services.job.get_logs_for_run(job_id, session['profile']['internal_user_id'], job_run_id)
+    job_run_logs = job_service.get_logs_for_run(job_id, session['profile']['internal_user_id'], job_run_id)
     logs = [row2dict(log_record) for log_record in job_run_logs]
     return jsonify(logs), 200
 
@@ -70,14 +71,14 @@ def get_job_logs(job_id: str, job_run_id: str):
 @jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
 @requires_auth
 def get_job_code(job_id: str):
-    code = services.job.get_code(job_id, session['profile']['internal_user_id'])
+    code = job_service.get_code(job_id, session['profile']['internal_user_id'])
     return send_file(code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
 @requires_auth
 def get_job_executions_history(job_id: str):
-    prev_executions = services.job.get_prev_executions(job_id, session['profile']['internal_user_id'])
+    prev_executions = job_service.get_prev_executions(job_id, session['profile']['internal_user_id'])
     return jsonify({'last_executions': [{'status': run.status,
                                          'created_at': run.created_at,
                                          'run_id': run.id} for run in prev_executions]}), 200
@@ -90,8 +91,8 @@ def create_job():
         return Response('Not authorized request', 401)
 
     try:
-        user = services.user.get(api_key)
-    except services.user.UserNotFoundException as e:
+        user = user_service.get(api_key)
+    except user_service.UserNotFoundException as e:
         return Response(str(e), 400)
 
     project_file = request.files.get('seamless_project')
@@ -109,7 +110,7 @@ def create_job():
     )
 
     try:
-        job, is_existing = services.job.publish(
+        job, is_existing = job_service.publish(
             job_name,
             cron_schedule,
             entrypoint,
@@ -117,7 +118,7 @@ def create_job():
             user,
             project_file
         )
-    except services.job.JobsQuotaExceededException as e:
+    except job_service.JobsQuotaExceededException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except project.ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
@@ -134,7 +135,7 @@ def run_job_by_schedule():
     """
     job_id = request.json['job_id']
     logging.info(f"Running job {job_id} based on schedule")
-    services.job.execute_by_schedule(job_id)
+    job_service.execute_by_schedule(job_id)
     return f"Running job {job_id}", 200
 
 
@@ -144,7 +145,7 @@ def run_job(job_id):
     """
     Executing job when triggered manually via UI
     """
-    services.job.execute_by_button(job_id, session['profile']['internal_user_id'])
+    job_service.execute_by_button(job_id, session['profile']['internal_user_id'])
     return f"Running job {job_id}", 200
 
 
@@ -159,8 +160,8 @@ def run() -> Response:
         return Response('Not authorized request', 401)
 
     try:
-        user = services.user.get(api_key)
-    except services.user.UserNotFoundException as exc:
+        user = user_service.get(api_key)
+    except user_service.UserNotFoundException as exc:
         return Response(str(exc), 400)
 
     file = request.files.get('seamless_project')
@@ -172,7 +173,7 @@ def run() -> Response:
         return Response('File not provided', 400)
 
     try:
-        result = services.job.execute_standalone(entrypoint, requirements, file, user)
+        result = job_service.execute_standalone(entrypoint, requirements, file, user)
     except project.ProjectValidationError as exc:
         return Response(str(exc), 400)
 
@@ -187,11 +188,11 @@ def delete_job(job_name):
         return Response('Not authorized request', 401)
 
     try:
-        user = services.user.get(api_key)
-    except services.user.UserNotFoundException as e:
+        user = user_service.get(api_key)
+    except user_service.UserNotFoundException as e:
         return Response(str(e), 400)
 
-    job_id = services.job.delete(job_name, user)
+    job_id = job_service.delete(job_name, user)
 
     logging.info(f"Deleted job {job_id} from the database")
     return f"Successfully deleted job {job_id}", 200
@@ -200,7 +201,7 @@ def delete_job(job_name):
 @jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])
 @requires_auth
 def get_next_job_execution(job_id):
-    next_execution = services.job.get_next_executions(job_id, session['profile']['internal_user_id'])
+    next_execution = job_service.get_next_executions(job_id, session['profile']['internal_user_id'])
     if not next_execution:
         rv = "Not scheduled"
     else:
@@ -208,6 +209,6 @@ def get_next_job_execution(job_id):
     return jsonify({"result": rv}), 200
 
 
-@jobs_bp.errorhandler(services.job.JobNotFoundException)
+@jobs_bp.errorhandler(job_service.JobNotFoundException)
 def handle_error(e):
     return jsonify(error=str(e)), 404
