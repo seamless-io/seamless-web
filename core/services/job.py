@@ -1,23 +1,19 @@
 from datetime import datetime
-from typing import Optional, List, BinaryIO
+from typing import Optional, List
 
 from werkzeug.datastructures import FileStorage
 
 import config
-
-from core.models import get_session
 from core.helpers import get_cron_next_execution, parse_cron
-from core.socket_signals import send_update
-from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
-from core.models.jobs import Job, JobStatus
-from core.models.job_runs import JobRun, JobRunStatus, JobRunType
+from core.models import get_session
 from core.models.job_run_logs import JobRunLog
-
-from job_executor.scheduler import remove_job_schedule
-from job_executor.project import JobType, remove_project_from_s3
-
+from core.models.job_runs import JobRun, JobRunStatus, JobRunType
+from core.models.jobs import Job, JobStatus
+from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
+from core.socket_signals import send_update
 from job_executor import project, executor
-
+from job_executor.project import JobType, remove_project_from_s3
+from job_executor.scheduler import remove_job_schedule
 
 EXECUTION_TIMELINE_HISTORY_LIMIT = 5
 
@@ -30,7 +26,7 @@ class JobsQuotaExceededException(Exception):
     pass
 
 
-def _check_user_quotas_for_job_creation(job_name: str, user: User):
+def _check_user_quotas_for_job_creation(user: User):
     """
     Checks if user has a plan which permits creation of the new job.
 
@@ -105,7 +101,7 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
     if existing_job:
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
-        _check_user_quotas_for_job_creation(name, user)
+        _check_user_quotas_for_job_creation(user)
         job = _create_job(name, cron, entrypoint, requirements, user.id)
 
     session.commit()
