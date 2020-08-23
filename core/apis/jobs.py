@@ -75,40 +75,6 @@ def get_job_code(job_id: str):
     return send_file(code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
-@jobs_bp.route('/jobs/<job_id>/code_json', methods=['GET'])
-def get_job_code_json(job_id: str):
-    function_py = """
-import yfinance as yf
-
-tickers = [
-    yf.Ticker("AAPL"),
-]
-
-def main():
-    for ticker in tickers:
-        print(f"Company: {ticker.info['longName']}")
-        print(f"Stock Price: ${ticker.info['regularMarketPrice']}")
-        print("Latest 3 recommendations:")
-        for date, row in ticker.recommendations.iloc[-3:].iterrows():
-            print(f"{row['Firm']} recommendation dated {date.date()}: {row['To Grade']}")
-    """
-    requirements_txt = """
-yfinance
-lxml
-    """
-    json_code = [
-        {"file_name": "function.py",
-         "file_type": "py",
-         "file_content": function_py
-         },
-        {"file_name": "requirements.txt",
-         "file_type": "txt",
-         "file_content": requirements_txt
-         }
-    ]
-    return jsonify(json_code), 200
-
-
 @jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
 @requires_auth
 def get_job_executions_history(job_id: str):

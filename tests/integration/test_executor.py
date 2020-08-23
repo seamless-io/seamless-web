@@ -54,14 +54,13 @@ def test_execute_wrong_entrypoint(path_to_project, path_to_requirements):
 def test_execute_wrong_requirements(path_to_project, entrypoint):
     wrong_requirements_path = 'requirements_wrong.txt'
     with pytest.raises(ExecutorBuildException, match=f"Cannot find requirements file `{wrong_requirements_path}`*"):
-        res = executor.execute(path_to_project, entrypoint, wrong_requirements_path)
+        executor.execute(path_to_project, entrypoint, wrong_requirements_path)
 
 
 def test_execute_wrong_project_path(entrypoint, path_to_requirements):
-    pass  # TODO make it work
-    # wrong_project_path = '/usr/local/bin'
-    # with pytest.raises(ExecutorBuildException):
-    #     res = executor.execute(wrong_project_path, entrypoint, path_to_requirements)
+    wrong_project_path = '/usr/local/bin'
+    # with pytest.raises(ExecutorBuildException, match=f"Invalid project path `{wrong_project_path}`*"):
+    executor.execute(wrong_project_path, entrypoint, path_to_requirements)
 
 
 def test_execute_project_with_error(path_to_project, entrypoint_to_corrupted_program, path_to_requirements):
