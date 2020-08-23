@@ -58,9 +58,10 @@ def test_execute_wrong_requirements(path_to_project, entrypoint):
 
 
 def test_execute_wrong_project_path(entrypoint, path_to_requirements):
-    wrong_project_path = '/usr/local/bin'
-    # with pytest.raises(ExecutorBuildException, match=f"Invalid project path `{wrong_project_path}`*"):
-    executor.execute(wrong_project_path, entrypoint, path_to_requirements)
+    wrong_project_path = '/this/is/non/existing/path'
+    with pytest.raises(ExecutorBuildException, match=f"Invalid project path, "
+                                                     f"directory `{wrong_project_path}` does not exist*"):
+        executor.execute(wrong_project_path, entrypoint, path_to_requirements)
 
 
 def test_execute_project_with_error(path_to_project, entrypoint_to_corrupted_program, path_to_requirements):

@@ -33,6 +33,7 @@ def execute(path_to_job_files: str,
     :return an instance of ExecuteResult
     """
     # TODO: make separation between requirements_absolute and relative
+    check_project_path(path_to_job_files)
     path_to_entrypoint_file = _create_python_entrypoint_script(path_to_job_files, entrypoint)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
     with _run_container(path_to_job_files, path_to_entrypoint_file, requirements_path) as container:
@@ -40,6 +41,11 @@ def execute(path_to_job_files: str,
             (str(log, 'utf-8') for log in container.logs(stream=True)),
             container.wait()['StatusCode']
         )
+
+
+def check_project_path(path_to_job_files):
+    if not os.path.isdir(path_to_job_files):
+        raise ExecutorBuildException(f"Invalid project path, directory `{path_to_job_files}` does not exist")
 
 
 def _ensure_requirements(job_directory: str, requirements: Optional[str]):
