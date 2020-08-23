@@ -26,10 +26,10 @@ def execute(path_to_job_files: str,
             entrypoint: str,
             path_to_requirements: Optional[str] = None) -> ExecuteResult:
     """
-    Execting in docker container
+    Executing in docker container
     :param path_to_job_files: path to job files
     :param entrypoint: entrypoint provided by a user
-    :param path_to_requirements: path to requiremenbts provided by a user
+    :param path_to_requirements: path to requirements provided by a user
     :return an instance of ExecuteResult
     """
     # TODO: make separation between requirements_absolute and relative
