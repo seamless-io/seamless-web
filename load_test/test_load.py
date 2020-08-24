@@ -31,7 +31,7 @@ def test_load(test_users):
 
     # Create test jobs using the API
     tar = tarfile.open(PACKAGE_NAME, "w:gz")
-    tar.add("tests/integration/test_seamless_project", ".")
+    tar.add("load_test/test_seamless_project", ".")
     tar.close()
     created_job_ids_by_user_id = defaultdict(list)
     created_job_names_by_user_id = defaultdict(list)
