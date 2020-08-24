@@ -1,4 +1,6 @@
 import os
+import re
+
 import pytest
 
 from job_executor import executor
@@ -46,20 +48,23 @@ def test_execute_wrong_entrypoint_file(path_to_project, path_to_requirements):
     # # * "... did you provide dot-separated path to the function correctly?
     # # * Maybe you meant: function.main"
     # # if `.py` in entrypoint: "do not need to put file extensions in entrypoint"
-    with pytest.raises(ExecutorBuildException, match=f"Path to entrypoint file is not valid: `{wrong_entrypoint_filename}`*"):
+    exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Path to entrypoint file is not valid: "
+                        f"`{wrong_entrypoint_filename}`")
+    with pytest.raises(ExecutorBuildException, match=exc_msg):
         executor.execute(path_to_project, wrong_entrypoint_filename, path_to_requirements)
 
 
 def test_execute_wrong_requirements(path_to_project, entrypoint):
     wrong_requirements_path = 'requirements_wrong.txt'
-    with pytest.raises(ExecutorBuildException, match=f"Cannot find requirements file `{wrong_requirements_path}`*"):
+    exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Cannot find requirements file `{wrong_requirements_path}`")
+    with pytest.raises(ExecutorBuildException, match=exc_msg):
         executor.execute(path_to_project, entrypoint, wrong_requirements_path)
 
 
 def test_execute_wrong_project_path(entrypoint, path_to_requirements):
     wrong_project_path = '/this/is/non/existing/path'
-    with pytest.raises(ExecutorBuildException, match=f"Invalid project path, "
-                                                     f"directory `{wrong_project_path}` does not exist*"):
+    exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Invalid project path directory `{wrong_project_path}` does not exist")
+    with pytest.raises(ExecutorBuildException, match=exc_msg):
         executor.execute(wrong_project_path, entrypoint, path_to_requirements)
 
 

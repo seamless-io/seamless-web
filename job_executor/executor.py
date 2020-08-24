@@ -49,7 +49,7 @@ def check_entrypoint_file(job_directory: str, entrypoint_filename: str):
 
 def check_project_path(path_to_job_files):
     if not os.path.isdir(path_to_job_files):
-        raise ExecutorBuildException(f"Invalid project path, directory `{path_to_job_files}` does not exist")
+        raise ExecutorBuildException(f"Invalid project path directory `{path_to_job_files}` does not exist")
 
 
 def _ensure_requirements(job_directory: str, requirements: Optional[str]):
