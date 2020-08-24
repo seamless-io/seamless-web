@@ -172,13 +172,11 @@ def run() -> Response:
     if not file:
         return Response('File not provided', 400)
 
-    try:
-        result = job_service.execute_standalone(entrypoint, requirements, file, user)
-    except project.ProjectValidationError as exc:
-        return Response(str(exc), 400)
+    logs, exit_code = job_service.execute_standalone(entrypoint, requirements, file, user)
+    if exit_code != 0:
+        return Response(logs, 500)
 
-    # TODO: return exit code
-    return Response(list(result.output), content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
+    return Response(logs, content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
 
 
 @jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])

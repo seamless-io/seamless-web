@@ -12,7 +12,8 @@ from core.models.jobs import Job, JobStatus
 from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from core.socket_signals import send_update
 from job_executor import project, executor
-from job_executor.project import JobType, remove_project_from_s3
+from job_executor.exceptions import ExecutorBuildException
+from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError
 from job_executor.scheduler import remove_job_schedule
 
 EXECUTION_TIMELINE_HISTORY_LIMIT = 5
@@ -207,12 +208,18 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
     session.commit()  # we need to have an id generated before we start writing logs
 
     path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, job.user.api_key, job.id)
-    executor_result = executor.execute(path_to_job_files, job.entrypoint, job.requirements)
 
-    for line in executor_result.output:
+    try:
+        executor_result = executor.execute(path_to_job_files, job.entrypoint, job.requirements)
+    except ExecutorBuildException as exc:
+        logs, exit_code = [str(exc)], 1
+    else:
+        logs, exit_code = executor_result.output, executor_result.exit_code
+
+    for line in logs:
         _create_log_entry(line, job.id, job_run.id)
 
-    if executor_result.exit_code == 0:
+    if exit_code == 0:
         job_run.status = JobRunStatus.Ok.value
     else:
         job_run.status = JobRunStatus.Failed.value
@@ -227,7 +234,7 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
     )
 
     session.commit()
-    return executor_result.exit_code
+    return exit_code
 
 
 def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
@@ -249,5 +256,11 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
 
 
 def execute_standalone(entrypoint: str, requirements: str, project_file: FileStorage, user: User):
-    project_path = project.create(project_file, user.api_key, JobType.RUN)
-    return executor.execute(project_path, entrypoint, requirements)
+    try:
+        project_path = project.create(project_file, user.api_key, JobType.RUN)
+        execute_result = executor.execute(project_path, entrypoint, requirements)
+    except (ExecutorBuildException, ProjectValidationError) as exc:
+        logs, exit_code = [str(exc)], 1
+    else:
+        logs, exit_code = execute_result.output, execute_result.exit_code
+    return logs, exit_code

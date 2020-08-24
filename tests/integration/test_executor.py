@@ -2,7 +2,7 @@ import os
 import pytest
 
 from job_executor import executor
-from job_executor.exceptions import ExecutorBuildException, ExecutorRuntimeException
+from job_executor.exceptions import ExecutorBuildException
 
 
 @pytest.fixture
