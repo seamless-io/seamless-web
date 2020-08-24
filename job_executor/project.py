@@ -165,6 +165,9 @@ def convert_folder_to_json(job_id: str) -> list:
 
 
 def get_file_content(job_id: str, file_name: str) -> str:
+    """
+    Reads a content of a file as a string.
+    """
     api_key = _is_valid_user(job_id)
     if not api_key:
         return ''
