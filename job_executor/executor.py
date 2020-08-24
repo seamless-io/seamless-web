@@ -120,7 +120,7 @@ if "." in '{entrypoint}':
     module = importlib.import_module('{entrypoint.split('.')[0]}')
     module.{'.'.join(entrypoint.split('.')[1:])}()
 else:
-    {entrypoint}()
+    exec(open("{entrypoint}.py").read())
     """
     with open(os.path.join(path_to_job_files, entrypoint_file_name), 'w') as entrypoint_file:
         entrypoint_file.write(entrypoint_contents)
