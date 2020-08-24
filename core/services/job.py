@@ -35,7 +35,7 @@ def _check_user_quotas_for_job_creation(user: User):
     """
     account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
     jobs_limit = account_limits.jobs
-    if len(user.jobs) >= jobs_limit:
+    if len(list(user.jobs)) >= jobs_limit:
         raise JobsQuotaExceededException('You have reached the limit of jobs for your account')
 
 
