@@ -8,7 +8,7 @@ from core.models import session_scope
 from core.models.jobs import Job
 from core.models.job_runs import JobRunStatus
 from core.helpers import row2dict
-from tests.integration.test_seamless_project.function import pi, PI_DIGITS
+from load_test.test_seamless_project.function import pi, PI_DIGITS
 
 PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"
 DELETE_URL = f"https://staging-app.seamlesscloud.io/api/v1/jobs/"

@@ -32,7 +32,7 @@ def pi():
     return +s
 
 
-def main():
+if __name__ == '__main__':
     print(f'SciPy version: {scipy.__version__}')
     print('Executing...')
     print(pi())
