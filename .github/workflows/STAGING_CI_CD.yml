@@ -50,7 +50,7 @@ jobs:
       run: mypy .
 
     - name: Test with pytest
-      run: pytest tests -k 'not test_load'
+      run: pytest tests
 
     ### TESTS END ###
 
