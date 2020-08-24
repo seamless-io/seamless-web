@@ -130,27 +130,54 @@ def path_to_dict(path):
     return d
 
 
-def convert_project_to_json(job_id: str) -> list:
+def _is_valid_user(job_id: str) -> str:
     """
-    Converts a folder into a list of nested dicts.
+    Validates the current user to get information about the current job.
+    If a user is nont valid, it returns an empty string, otherwise - his API key.
     """
-
     email = session['profile']['email']
     with session_scope() as db_session:
         user = User.get_user_from_email(email, db_session)
         user_jobs = [job.id for job in user.jobs]
 
-        # If the job does not belong to the current user, returns "Project not found", 404.
+        # If the job does not belong to the current user, returns "Not found", 404.
         if int(job_id) not in user_jobs:
-            return []
+            return ''
 
-        path_to_job_files = get_path_to_job(JobType.PUBLISHED, user.api_key, job_id)
-        if not os.path.exists(path_to_job_files):
-            restore_project_from_s3(path_to_job_files, job_id)
+        return user.api_key
 
-        project_dict = path_to_dict(path_to_job_files)
+
+def convert_folder_to_json(job_id: str) -> list:
+    """
+    Converts a folder into a list of nested dicts.
+    """
+    api_key = _is_valid_user(job_id)
+    if not api_key:
+        return []
+
+    path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
+    if not os.path.exists(path_to_job_files):
+        restore_project_from_s3(path_to_job_files, job_id)
+
+    project_dict = path_to_dict(path_to_job_files)
 
     return project_dict['children']
+
+
+def get_file_content(job_id: str, file_name: str) -> str:
+    api_key = _is_valid_user(job_id)
+    if not api_key:
+        return ''
+
+    path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
+    if not os.path.exists(path_to_job_files):
+        restore_project_from_s3(path_to_job_files, job_id)
+
+    path_to_file = f'{path_to_job_files}/{file_name}'
+    with open(path_to_file, 'r') as file:
+        file_content = file.read()
+
+    return file_content
 
 
 class ProjectValidationError(Exception):

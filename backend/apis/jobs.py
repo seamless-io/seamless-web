@@ -18,7 +18,7 @@ from backend.web import requires_auth
 import config
 from job_executor import project, executor
 from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3, remove_project_from_s3, \
-    convert_project_to_json
+    convert_folder_to_json, get_file_content
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -362,7 +362,15 @@ def get_next_job_execution(job_id):
 
 @jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 def get_job_code_json(job_id: str):
-    json_code = convert_project_to_json(job_id)
+    json_code = convert_folder_to_json(job_id)
     if json_code:
         return jsonify(json_code), 200
-    return "Project not found", 404
+    return "Not found", 404
+
+
+@jobs_bp.route('/jobs/<job_id>/folder/<file_name>', methods=['GET'])
+def get_job_file(job_id: str, file_name: str):
+    file_content = get_file_content(job_id, file_name)
+    if file_content:
+        return jsonify(file_content), 200
+    return "Not found", 404
