@@ -212,7 +212,7 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
     try:
         executor_result = executor.execute(path_to_job_files, job.entrypoint, job.requirements)
     except ExecutorBuildException as exc:
-        logs, exit_code = [str(exc)], 1
+        logs, exit_code = (el for el in [str(exc)]), 1
     else:
         logs, exit_code = executor_result.output, executor_result.exit_code
 
@@ -260,7 +260,7 @@ def execute_standalone(entrypoint: str, requirements: str, project_file: FileSto
         project_path = project.create(project_file, user.api_key, JobType.RUN)
         execute_result = executor.execute(project_path, entrypoint, requirements)
     except (ExecutorBuildException, ProjectValidationError) as exc:
-        logs, exit_code = [str(exc)], 1
+        logs, exit_code = (el for el in [str(exc)]), 1
     else:
         logs, exit_code = execute_result.output, execute_result.exit_code
     return logs, exit_code
