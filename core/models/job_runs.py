@@ -29,7 +29,7 @@ class JobRun(base):
     id = Column(Integer, primary_key=True)
     job_id = Column(Integer, ForeignKey('jobs.id'), nullable=False)
     job = relationship("Job", back_populates="runs")
-    logs = relationship("JobRunLog", cascade="all,delete", back_populates="job_run")
+    logs = relationship("JobRunLog", cascade="all,delete", back_populates="job_run", lazy='dynamic')
 
     type = Column(Text, nullable=False)
     status = Column(Text, default=JobRunStatus.Executing.value)

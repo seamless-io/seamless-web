@@ -29,7 +29,7 @@ class User(base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    jobs = relationship("Job", back_populates="user")
+    jobs = relationship("Job", back_populates="user", lazy='dynamic')
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
