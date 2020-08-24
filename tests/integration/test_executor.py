@@ -18,11 +18,11 @@ def path_to_requirements():
 
 @pytest.fixture
 def entrypoint():
-    return 'main_module.read_news'
+    return 'main_module.py'
 
 @pytest.fixture
 def entrypoint_to_corrupted_program():
-    return 'main_module.exception_function'
+    return 'main_exception.py'
 
 
 def test_execute_succesfull(path_to_project, path_to_requirements, entrypoint):
@@ -40,15 +40,14 @@ def test_execute_succesfull_return_value(path_to_project, path_to_requirements, 
     assert return_value_from_function in ''.join(res.output)
 
 
-def test_execute_wrong_entrypoint(path_to_project, path_to_requirements):
-    pass  # TODO make it work
-    # wrong_entrypoint = 'wrong_entrypoint'
+def test_execute_wrong_entrypoint_file(path_to_project, path_to_requirements):
+    wrong_entrypoint_filename = 'wrong_entrypoint.smls'
     # # TODO: add suggestions later:
     # # * "... did you provide dot-separated path to the function correctly?
     # # * Maybe you meant: function.main"
     # # if `.py` in entrypoint: "do not need to put file extensions in entrypoint"
-    # with pytest.raises(ExecutorRuntimeException, match=f"Cannot find function to execute `{wrong_entrypoint}`*"):
-    #     executor.execute(path_to_project, wrong_entrypoint, path_to_requirements)
+    with pytest.raises(ExecutorBuildException, match=f"Path to entrypoint file is not valid: `{wrong_entrypoint_filename}`*"):
+        executor.execute(path_to_project, wrong_entrypoint, path_to_requirements)
 
 
 def test_execute_wrong_requirements(path_to_project, entrypoint):

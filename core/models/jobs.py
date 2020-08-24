@@ -34,6 +34,7 @@ class Job(base):
     name = Column(Text, nullable=False)
     # Alembic does not work very well with native postgres Enum type so the status column is Text
     status = Column(Text, default=JobStatus.New.value, nullable=False)
+    # TODO: rename to `entrypoint_file`
     entrypoint = Column(Text, default=config.DEFAULT_ENTRYPOINT)
     requirements = Column(Text, default=config.DEFAULT_REQUIREMENTS)
 

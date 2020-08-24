@@ -7,5 +7,5 @@ def read_news():
     return "Everything is alright"
 
 
-def exception_function():
-    raise RuntimeError('This is a dummy exception')
+if __name__ == '__main__':
+    read_news()

@@ -15,7 +15,6 @@ DOCKER_FILE_NAME = "Dockerfile"
 REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
-
 @dataclass
 class ExecuteResult:
     output: Generator[str, Any, None]
@@ -23,7 +22,7 @@ class ExecuteResult:
 
 
 def execute(path_to_job_files: str,
-            entrypoint: str,
+            entrypoint_filename: str,
             path_to_requirements: Optional[str] = None) -> ExecuteResult:
     """
     Executing in docker container
@@ -34,13 +33,18 @@ def execute(path_to_job_files: str,
     """
     # TODO: make separation between requirements_absolute and relative
     check_project_path(path_to_job_files)
-    path_to_entrypoint_file = _create_python_entrypoint_script(path_to_job_files, entrypoint)
+    check_entrypoint_file(entrypoint_filename)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
-    with _run_container(path_to_job_files, path_to_entrypoint_file, requirements_path) as container:
+    with _run_container(path_to_job_files, entrypoint_filename, requirements_path) as container:
         return ExecuteResult(
             (str(log, 'utf-8') for log in container.logs(stream=True)),
             container.wait()['StatusCode']
         )
+
+def check_entrypoint_file(entrypoint_filename: str):
+    # TODO: possibly check if the file has allowed extension `[.py, .rs, .java]`
+    if not os.path.exists(entrypoint_filename):
+        raise ExecutorBuildException(f"Path to entrypoint file is not valid: `{entrypoint_filename}`")
 
 
 def check_project_path(path_to_job_files):
@@ -106,22 +110,3 @@ RUN pip install -r requirements.txt
     yield container
 
     container.remove(v=True)
-
-
-def _create_python_entrypoint_script(path_to_job_files: str, entrypoint: str) -> str:
-    """
-    Create file which contains call to the code user provided as an entrypoint
-    """
-    entrypoint_file_name = "__start_smls__.py"
-    entrypoint_contents = f"""
-import importlib
-
-if "." in '{entrypoint}':
-    module = importlib.import_module('{entrypoint.split('.')[0]}')
-    module.{'.'.join(entrypoint.split('.')[1:])}()
-else:
-    exec(open("{entrypoint}.py").read())
-    """
-    with open(os.path.join(path_to_job_files, entrypoint_file_name), 'w') as entrypoint_file:
-        entrypoint_file.write(entrypoint_contents)
-    return entrypoint_file_name
