@@ -16,7 +16,8 @@ from backend.db.models.users import UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from backend.web import requires_auth
 import config
 from job_executor import project, executor
-from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3, remove_project_from_s3
+from job_executor.project import get_path_to_job, JobType, fetch_project_from_s3, remove_project_from_s3, \
+    convert_project_to_json
 from job_executor.scheduler import enable_job_schedule, disable_job_schedule, remove_job_schedule
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -356,3 +357,9 @@ def get_next_job_execution(job_id):
         if not job.schedule_is_active:
             return jsonify({"result": "Not scheduled"}), 200
         return jsonify({"result": get_cron_next_execution(job.cron)}), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/code_json', methods=['GET'])
+def get_job_code_json(job_id: str):
+    json_code = convert_project_to_json(job_id)
+    return jsonify(json_code), 200

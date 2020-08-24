@@ -92,5 +92,61 @@ def restore_project_from_s3(path_to_job_files: str, job_id: str):
     tar.close()
 
 
+def path_to_dict(path: str) -> dict:
+    """
+    Represents a repository tree as a dictionary. It does recursive descending into directories and build a dict.
+
+    Returns:
+        [
+            {
+                "content": "smls",
+                "name": "requirements.txt",
+                "type": "file"
+            },
+            {
+                "name": "my-folder",
+                "type": "folder",
+                "children": [
+                    {
+                        "content": "print('Hello World!')",
+                        "name": "test.py",
+                        "type": "file"
+                    },
+                    ...
+                ]
+            }
+        ]
+
+    """
+    d = {'name': os.path.basename(path)}
+    if os.path.isdir(path):
+        d['type'] = 'folder'
+        d['children'] = [path_to_dict(os.path.join(path, x)) for x in os.listdir(path)]
+    else:
+        absolute_file_path = os.path.abspath(path)
+        with open(absolute_file_path, 'r') as file:
+            data = file.read()
+            d['content'] = data
+        d['type'] = 'file'
+    return d
+
+
+def convert_project_to_json(job_id: str) -> list:
+    """
+    Converts a project ("tar.gz" file) fetched from S3 into a list of nested dicts.
+    """
+    temp_folder = './temp_projects/'
+    io_bytes = fetch_project_from_s3(job_id)
+
+    with tarfile.open(fileobj=io_bytes, mode='r') as tar:
+        tar.extractall(f'{temp_folder}{job_id}')
+
+        project_dict = path_to_dict(f'{temp_folder}{job_id}')
+
+        shutil.rmtree(temp_folder)
+
+    return project_dict['children']
+
+
 class ProjectValidationError(Exception):
     pass
