@@ -6,6 +6,9 @@ from sqlalchemy.orm import relationship
 
 from core.models.base import base
 
+# Without this import it's impossible to create `logs` relationship
+from core.models.job_run_logs import JobRunLog  # pylint: disable=unused-import
+
 
 # IMPORTANT: use only this enum for populating JobRun.type column in the form of JobRunType.<type>.value
 class JobRunType(enum.Enum):

@@ -26,7 +26,6 @@ MAX_LOGS_ROW_LENGTH = 16384
 
 
 def test_load(test_users):
-
     # We should be able to find this value in logs later
     pi_digits = str(pi())
 
