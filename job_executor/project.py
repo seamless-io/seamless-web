@@ -95,7 +95,7 @@ def restore_project_from_s3(path_to_job_files: str, job_id: str):
     tar.close()
 
 
-def path_to_dict(path: str) -> dict:
+def path_to_dict(path):
     """
     Represents a repository tree as a dictionary. It does recursive descending into directories and build a dict.
 
