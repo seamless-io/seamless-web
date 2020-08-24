@@ -152,7 +152,7 @@ def run_job(job_id):
 @jobs_bp.route('/run', methods=['POST'])
 def run() -> Response:
     """
-    Exeucting job when triggered manually via CLI
+    Executing job when triggered manually via CLI
     """
     # TODO: create a model for storing standalone executions
     api_key = request.headers.get('Authorization')

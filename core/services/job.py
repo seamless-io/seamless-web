@@ -121,7 +121,7 @@ def get(job_id: str, user_id: str) -> Job:
         # if our automation executing script - do not check the user
         job_q = base_q.filter_by(id=job_id)
     else:
-        job_q = base_q.query(Job).filter_by(id=job_id, user_id=user_id)
+        job_q = base_q.filter_by(id=job_id, user_id=user_id)
 
     job = job_q.one_or_none()
 
