@@ -53,3 +53,13 @@ export const getNextJobExecution = async job_id => {
   let response = await axios.get(`/api/v1/jobs/${job_id}/next_execution`);
   return response.data;
 };
+
+export const getJobFolderStructure = async job_id => {
+  let response = await axios.get(`/api/v1/jobs/${job_id}/folder`);
+  return response.data;
+};
+
+export const getFileContent = async (job_id, file_name) => {
+  let response = await axios.get(`/api/v1/jobs/${job_id}/folder/${file_name}`);
+  return response.data;
+};

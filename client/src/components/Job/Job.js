@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
@@ -24,6 +24,7 @@ import timeHistory from '../../images/time-history.svg';
 
 const Job = () => {
   const job = useParams();
+  const history = useHistory();
   const downloadJobLink = `/api/v1/jobs/${job.id}/code`;
   const [name, setName] = useState('');
   const [schedule, setSchedule] = useState('');
@@ -232,6 +233,10 @@ const Job = () => {
       });
   };
 
+  const openIde = () => {
+    history.push(`/jobs/${job.id}/ide`);
+  };
+
   if (loading) {
     return (
       <div className="smls-jobs-spinner-container">
@@ -257,6 +262,13 @@ const Job = () => {
               onClick={runJob}
             >
               {runButtonContent()}
+            </button>
+            <button
+              className="smls-job-web-ide-button"
+              type="button"
+              onClick={openIde}
+            >
+              <span className="smls-job-web-ide-button-text">Web IDE</span>
             </button>
             <a href={downloadJobLink}>
               <button className="smls-job-download-code-button" type="button">

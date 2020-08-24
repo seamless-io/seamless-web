@@ -20,7 +20,8 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "react-toggle": "^4.1.1",
-    "socket.io-client": "^2.3.0"
+    "socket.io-client": "^2.3.0",
+    "styled-components": "^5.1.1"
   },
   "scripts": {
     "start": "parcel watch ./src/index.html --public-url=/static/ --out-dir='../static'",
