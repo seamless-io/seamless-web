@@ -33,7 +33,7 @@ def execute(path_to_job_files: str,
     """
     # TODO: make separation between requirements_absolute and relative
     check_project_path(path_to_job_files)
-    check_entrypoint_file(entrypoint_filename)
+    check_entrypoint_file(path_to_job_files, entrypoint_filename)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
     with _run_container(path_to_job_files, entrypoint_filename, requirements_path) as container:
         return ExecuteResult(
@@ -41,9 +41,9 @@ def execute(path_to_job_files: str,
             container.wait()['StatusCode']
         )
 
-def check_entrypoint_file(entrypoint_filename: str):
+def check_entrypoint_file(job_directory: str, entrypoint_filename: str):
     # TODO: possibly check if the file has allowed extension `[.py, .rs, .java]`
-    if not os.path.exists(entrypoint_filename):
+    if not os.path.isfile(os.path.join(job_directory, entrypoint_filename)):
         raise ExecutorBuildException(f"Path to entrypoint file is not valid: `{entrypoint_filename}`")
 
 

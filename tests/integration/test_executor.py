@@ -47,7 +47,7 @@ def test_execute_wrong_entrypoint_file(path_to_project, path_to_requirements):
     # # * Maybe you meant: function.main"
     # # if `.py` in entrypoint: "do not need to put file extensions in entrypoint"
     with pytest.raises(ExecutorBuildException, match=f"Path to entrypoint file is not valid: `{wrong_entrypoint_filename}`*"):
-        executor.execute(path_to_project, wrong_entrypoint, path_to_requirements)
+        executor.execute(path_to_project, wrong_entrypoint_filename, path_to_requirements)
 
 
 def test_execute_wrong_requirements(path_to_project, entrypoint):
