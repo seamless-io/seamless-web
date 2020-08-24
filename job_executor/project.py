@@ -10,9 +10,12 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+from flask import session
 import boto3
 from werkzeug.datastructures import FileStorage
 
+from backend.db import session_scope
+from backend.db.models import User
 from config import STAGE
 
 ALLOWED_EXTENSION = "tar.gz"
@@ -123,27 +126,29 @@ def path_to_dict(path: str) -> dict:
         d['type'] = 'folder'
         d['children'] = [path_to_dict(os.path.join(path, x)) for x in os.listdir(path)]
     else:
-        absolute_file_path = os.path.abspath(path)
-        with open(absolute_file_path, 'r') as file:
-            data = file.read()
-            d['content'] = data
         d['type'] = 'file'
     return d
 
 
 def convert_project_to_json(job_id: str) -> list:
     """
-    Converts a project ("tar.gz" file) fetched from S3 into a list of nested dicts.
+    Converts a folder into a list of nested dicts.
     """
-    temp_folder = './temp_projects/'
-    io_bytes = fetch_project_from_s3(job_id)
 
-    with tarfile.open(fileobj=io_bytes, mode='r') as tar:
-        tar.extractall(f'{temp_folder}{job_id}')
+    email = session['profile']['email']
+    with session_scope() as db_session:
+        user = User.get_user_from_email(email, db_session)
+        user_jobs = [job.id for job in user.jobs]
 
-        project_dict = path_to_dict(f'{temp_folder}{job_id}')
+        # If the job does not belong to the current user, returns "Project not found", 404.
+        if int(job_id) not in user_jobs:
+            return []
 
-        shutil.rmtree(temp_folder)
+        path_to_job_files = get_path_to_job(JobType.PUBLISHED, user.api_key, job_id)
+        if not os.path.exists(path_to_job_files):
+            restore_project_from_s3(path_to_job_files, job_id)
+
+        project_dict = path_to_dict(path_to_job_files)
 
     return project_dict['children']
 

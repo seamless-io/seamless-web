@@ -1,3 +1,4 @@
+import os
 import logging
 from datetime import datetime
 
@@ -359,7 +360,9 @@ def get_next_job_execution(job_id):
         return jsonify({"result": get_cron_next_execution(job.cron)}), 200
 
 
-@jobs_bp.route('/jobs/<job_id>/code_json', methods=['GET'])
+@jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 def get_job_code_json(job_id: str):
     json_code = convert_project_to_json(job_id)
-    return jsonify(json_code), 200
+    if json_code:
+        return jsonify(json_code), 200
+    return "Project not found", 404
