@@ -61,6 +61,9 @@ def execute(path_to_job_files: str,
             get_exit_code
         )
 
+        container.wait()
+
+
 
 def _legacy_entrypoint_handling(path_to_job_files: str, legacy_entrypoint: str) -> str:
     """
