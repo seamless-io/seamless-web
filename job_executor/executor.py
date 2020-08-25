@@ -18,20 +18,20 @@ JOB_LOGS_RETENTION_DAYS = 1
 @dataclass
 class ExecuteResult:
     output: Generator[str, Any, None]
-    get_exit_code_fn: Callable[[None], int]
+    get_exit_code_fn: Optional[Callable[[], int]]
 
     _exit_code: Optional[int]=None
 
     def get_exit_code(self) -> int:
-        if not self._exit_code:
+        if not self._exit_code and self.get_exit_code_fn is not None:
             self._exit_code = self.get_exit_code_fn()
-        return self._exit_code
+        return self._exit_code or 1
 
 
 @contextlib.contextmanager
 def execute(path_to_job_files: str,
             entrypoint_filename: str,
-            path_to_requirements: Optional[str] = None) -> ExecuteResult:
+            path_to_requirements: Optional[str] = None) -> Generator[ExecuteResult, Any, None]:
     """
     Executing in docker container
     :param path_to_job_files: path to job files
@@ -44,9 +44,13 @@ def execute(path_to_job_files: str,
     check_entrypoint_file(path_to_job_files, entrypoint_filename)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
     with _run_container(path_to_job_files, entrypoint_filename, requirements_path) as container:
+
+        def get_exit_code() -> int:
+            return container.wait()['StatusCode']
+
         yield ExecuteResult(
             (str(log, 'utf-8') for log in container.logs(stream=True)),
-            lambda: container.wait()['StatusCode'],
+            get_exit_code
         )
 
 
