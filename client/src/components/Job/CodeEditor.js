@@ -23,14 +23,14 @@ const FILE_ICONS = {
   css: <DiCss3 />,
 };
 
-const CodeEditor = () => {
-  const job = useParams();
+const CodeEditor = ({ jobId }) => {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
   const [notificationAlertType, setNotificationAlertType] = useState('');
   const [folderStructure, setFolderStructure] = useState('');
   const [fileContent, setFileContent] = useState('');
+  const [currentFile, setCurrentFile] = useState('');
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -44,7 +44,7 @@ const CodeEditor = () => {
   };
 
   useEffect(() => {
-    getJobFolderStructure(job.id)
+    getJobFolderStructure(jobId)
       .then(payload => {
         setFolderStructure(payload);
       })
@@ -64,8 +64,8 @@ const CodeEditor = () => {
   `;
 
   const showFileContent = ({ name, filePath }) => {
-    console.log(name, filePath);
-    getFileContent(job.id, name, filePath)
+    setCurrentFile(name);
+    getFileContent(jobId, name, filePath)
       .then(payload => {
         setFileContent(payload);
       })
@@ -147,11 +147,31 @@ const CodeEditor = () => {
 
   return (
     <>
-      <Row>
-        <Col sm={4}>
+      <Row className="smls-job-main-info">
+        <Col
+          sm={4}
+          className="smls-job-main-info-section"
+          style={{ borderRight: '2px solid #ebedf0' }}
+        >
+          <Row>
+            <Col>
+              <div className="smls-job-info-section-col">
+                <h5>Project Tree</h5>
+              </div>
+            </Col>
+          </Row>
           <Tree data={folderStructure} />
         </Col>
-        <Col sm={8}>{fileContent}</Col>
+        <Col sm={8} className="smls-job-main-info-section">
+          <Row>
+            <Col sm={12}>
+              <div className="smls-job-executiontimeline-logs-header">
+                <h5>{`File: ${currentFile}`}</h5>
+              </div>
+            </Col>
+            <Col sm={12}>{fileContent}</Col>
+          </Row>
+        </Col>
       </Row>
       <Notification
         show={showNotification}

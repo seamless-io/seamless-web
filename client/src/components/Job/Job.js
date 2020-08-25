@@ -15,6 +15,7 @@ import {
   getJobRunLogs,
 } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
+import CodeEditor from './CodeEditor';
 import Notification from '../Notification/Notification';
 
 import './style.css';
@@ -49,6 +50,7 @@ const Job = () => {
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
   const [notificationAlertType, setNotificationAlertType] = useState('');
+  const [showIde, setShowIde] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -234,7 +236,26 @@ const Job = () => {
   };
 
   const openIde = () => {
-    history.push(`/jobs/${job.id}/ide`);
+    setShowIde(!showIde);
+  };
+
+  const displayJobBody = showIde => {
+    if (showIde) {
+      return <CodeEditor jobId={job.id} />;
+    } else {
+      return (
+        <ExecutionTimeline
+          loadingExecutionTimeLine={loadingExecutionTimeLine}
+          lastFiveExecutions={lastFiveExecutions}
+          nextExecution={nextExecution}
+          logs={statusRun === 'EXECUTING' ? streamingLogs : historyLogs}
+          showLogs={showLogs}
+          loadingLogs={loadingLogs}
+          activeItem={activeItem}
+          loadingStreamingLogs={loadingStreamingLogs}
+        />
+      );
+    }
   };
 
   if (loading) {
@@ -306,16 +327,10 @@ const Job = () => {
           </div>
         </Col>
       </Row>
-      <ExecutionTimeline
-        loadingExecutionTimeLine={loadingExecutionTimeLine}
-        lastFiveExecutions={lastFiveExecutions}
-        nextExecution={nextExecution}
-        logs={statusRun === 'EXECUTING' ? streamingLogs : historyLogs}
-        showLogs={showLogs}
-        loadingLogs={loadingLogs}
-        activeItem={activeItem}
-        loadingStreamingLogs={loadingStreamingLogs}
-      />
+
+      {/* Displays the execution timeline with logs or the web ide */}
+      {displayJobBody(showIde)}
+
       <Notification
         show={showNotification}
         closeNotification={closeNotification}
