@@ -16,7 +16,7 @@ from core.web import get_db_session
 from job_executor import project, executor
 from job_executor.exceptions import ExecutorBuildException
 from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_from_s3
-from job_executor.scheduler import remove_job_schedule
+from job_executor.scheduler import remove_job_schedule, enable_job_schedule, disable_job_schedule
 
 EXECUTION_TIMELINE_HISTORY_LIMIT = 5
 
@@ -177,12 +177,14 @@ def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunL
 
 def enable_schedule(job_id: str, user_id: str):
     job = get(job_id, user_id)
-    job.schedule_is_active = False
+    enable_job_schedule(job_id)
+    job.schedule_is_active = True
     get_db_session().commit()
 
 
 def disable_schedule(job_id: str, user_id: str):
     job = get(job_id, user_id)
+    disable_job_schedule(job_id)
     job.schedule_is_active = False
     get_db_session().commit()
 
