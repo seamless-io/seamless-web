@@ -1,4 +1,5 @@
 import contextlib
+import os
 from datetime import datetime
 from typing import Optional, List
 
@@ -14,7 +15,7 @@ from core.socket_signals import send_update
 from core.web import get_db_session
 from job_executor import project, executor
 from job_executor.exceptions import ExecutorBuildException
-from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError
+from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_from_s3
 from job_executor.scheduler import remove_job_schedule
 
 EXECUTION_TIMELINE_HISTORY_LIMIT = 5
@@ -206,6 +207,8 @@ def _trigger_job_run(job: Job, trigger_type: str) -> Optional[int]:
     )
 
     path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, job.user.api_key, job.id)
+    if not os.path.exists(path_to_job_files):
+        restore_project_from_s3(path_to_job_files, str(job.id))
 
     try:
         with executor.execute(path_to_job_files, job.entrypoint, job.requirements) as executor_result:
