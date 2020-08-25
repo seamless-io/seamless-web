@@ -6,7 +6,7 @@ from core.helpers import row2dict
 from core.models import get_session_factory
 from core.models.users import User
 
-NUMBER_OF_TEST_USERS = 4
+NUMBER_OF_TEST_USERS = 10
 DB_PREFIX = "INTEGRATION_TEST"
 
 db_session = scoped_session(get_session_factory(DB_PREFIX))()
