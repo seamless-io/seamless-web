@@ -1,5 +1,5 @@
 # I made the logic based on this tutorial
-# https://auth0.com/docs/quickstart/core/python/01-authorization#validate-access-tokens
+# https://auth0.com/docs/quickstart/backend/python/01-authorization#validate-access-tokens
 import json
 import urllib.request
 from functools import wraps
