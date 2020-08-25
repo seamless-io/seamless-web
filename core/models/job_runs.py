@@ -32,7 +32,7 @@ class JobRun(base):
     logs = relationship("JobRunLog", cascade="all,delete", back_populates="job_run", lazy='dynamic')
 
     type = Column(Text, nullable=False)
-    status = Column(Text, default=JobRunStatus.Executing.value)
+    status = Column(Text, default=JobRunStatus.Executing.value, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     def __repr__(self):
