@@ -172,7 +172,7 @@ def run() -> Response:
     if not file:
         return Response('File not provided', 400)
 
-    with job_service.execute_standalone(entrypoint, requirements, file, user) as logs, _:
+    with job_service.execute_standalone(entrypoint, requirements, file, user) as (logs, _):
         return Response(logs, content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
 
 
