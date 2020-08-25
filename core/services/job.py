@@ -191,7 +191,7 @@ def get_jobs_for_user(email: str):
     return user.jobs
 
 
-def _trigger_job_run(job: Job, trigger_type: str) -> int:
+def _trigger_job_run(job: Job, trigger_type: str) -> Optional[int]:
     job_run = JobRun(job_id=job.id, type=trigger_type)
     get_db_session().add(job_run)
     get_db_session().commit()  # we need to have an id generated before we start writing logs
@@ -207,7 +207,6 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
 
     path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, job.user.api_key, job.id)
 
-    exit_code = 999999  # Some crazy value, this should never happen
     try:
         with executor.execute(path_to_job_files, job.entrypoint, job.requirements) as executor_result:
             logs, get_exit_code = executor_result.output, executor_result.get_exit_code
