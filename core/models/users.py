@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
-from backend.api_key import API_KEY_LENGTH
-from backend.db.models.base import base
+from core.api_key import API_KEY_LENGTH
+from core.models.base import base
 
 
 class UserAccountType(enum.Enum):
@@ -29,7 +29,7 @@ class User(base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    jobs = relationship("Job", back_populates="user")
+    jobs = relationship("Job", back_populates="user", lazy='dynamic')
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

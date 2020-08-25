@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
-from backend.db.models.base import base
+from core.models.base import base
 
 
 class JobRunLog(base):

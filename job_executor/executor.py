@@ -1,224 +1,155 @@
+# TODO: all errors from executor internal functionality should be caught and processed accordingly
+# TODO: add periodic task to clean-up images: docker_client.images.prune(filters={'dangling': True})
 import logging
 import os
-from datetime import datetime
-from threading import Thread
-from typing import Iterable, List
+import contextlib
+from dataclasses import dataclass
+from typing import Optional, Generator, Any, Callable
 
 import docker
 from docker.errors import BuildError
 from docker.models.containers import Container
 from docker.types import Mount
-from flask import current_app
-from flask_socketio import emit
+from sentry_sdk import capture_exception
 
-from backend.db import session_scope
-from backend.db.models.job_run_logs import JobRunLog
-from backend.db.models.job_runs import JobRunResult, JobRun
-from backend.db.models.jobs import JobStatus, Job
-from backend.helpers import thread_wrapper
-from job_executor.project import restore_project_from_s3
+from .exceptions import ExecutorBuildException
 
 DOCKER_FILE_NAME = "Dockerfile"
-ENTRYPOINT_FILE_NAME = "__start_smls__.py"
 REQUIREMENTS_FILENAME = "requirements.txt"
 JOB_LOGS_RETENTION_DAYS = 1
 
+@dataclass
+class ExecuteResult:
+    output: Generator[str, Any, None]
+    get_exit_code_fn: Optional[Callable[[], int]]
 
-def _ensure_requirements(job_directory, requirements):
+    _exit_code: Optional[int]=None
+
+    def get_exit_code(self) -> Optional[int]:
+        if not self._exit_code:
+            assert self.get_exit_code_fn is not None
+            self._exit_code = self.get_exit_code_fn()
+        return self._exit_code
+
+
+@contextlib.contextmanager
+def execute(path_to_job_files: str,
+            entrypoint_filename: str,
+            path_to_requirements: Optional[str] = None) -> Generator[ExecuteResult, Any, None]:
+    """
+    Executing in docker container
+    :param path_to_job_files: path to job files
+    :param entrypoint: entrypoint provided by a user
+    :param path_to_requirements: path to requirements provided by a user
+    :return an instance of ExecuteResult
+    """
+    # TODO: make separation between requirements_absolute and relative
+    check_project_path(path_to_job_files)
+    check_entrypoint_file(path_to_job_files, entrypoint_filename)
+    requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
+    with _run_container(path_to_job_files, entrypoint_filename, requirements_path) as container:
+
+        def get_exit_code() -> int:
+            return container.wait()['StatusCode']
+
+        yield ExecuteResult(
+            (str(log, 'utf-8') for log in container.logs(stream=True)),
+            get_exit_code
+        )
+
+
+def check_entrypoint_file(job_directory: str, entrypoint_filename: str):
+    # TODO: possibly check if the file has allowed extension `[.py, .rs, .java]`
+    if not os.path.isfile(os.path.join(job_directory, entrypoint_filename)):
+        raise ExecutorBuildException(f"Path to entrypoint file is not valid: `{entrypoint_filename}`")
+
+
+def check_project_path(path_to_job_files):
+    if not os.path.isdir(path_to_job_files):
+        raise ExecutorBuildException(f"Invalid project path directory `{path_to_job_files}` does not exist")
+
+
+def _ensure_requirements(job_directory: str, requirements: Optional[str]):
     """
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
     """
-    path_to_requirements = f"{job_directory}/{requirements}"
-    if not os.path.exists(path_to_requirements):
+    # path_to_requirements = f"{job_directory}/{requirements}"
+    if requirements is None:
+        # path was not provided by a user - create empty `requirements.txt`
+        relative_requirements_path = 'requirements.txt'
+        path_to_requirements = os.path.join(job_directory, 'requirements.txt')
         with open(path_to_requirements, 'w'):
             pass
+    else:
+        # path to requirements was provided by user. Check if exists
+        path_to_requirements = os.path.join(job_directory, requirements)
+        if not os.path.exists(path_to_requirements):
+            raise ExecutorBuildException(f"Cannot find requirements file `{requirements}`")
+        else:
+            relative_requirements_path = requirements
+    return relative_requirements_path
 
 
-def _run_container(path_to_job_files: str, tag: str, entrypoint: str, path_to_requirements: str) -> Container:
+@contextlib.contextmanager
+def _run_container(job_directory: str, entrypoint_filename: str, path_to_requirements: str) -> Container:
     dockerfile_contents = f"""
 FROM python:3.8-slim
 WORKDIR /src
 ADD {path_to_requirements} /src/requirements.txt
 RUN pip install -r requirements.txt
 """
-    entrypoint_contents = f"""
-import importlib
-
-if "." in '{entrypoint}':
-    module = importlib.import_module('{entrypoint.split('.')[0]}')
-    module.{'.'.join(entrypoint.split('.')[1:])}()
-else:
-    {entrypoint}()
-"""
-    _ensure_requirements(path_to_job_files, path_to_requirements)
     docker_client = docker.from_env()
-    with open(os.path.join(path_to_job_files, DOCKER_FILE_NAME), 'w') as dockerfile:
+    with open(os.path.join(job_directory, DOCKER_FILE_NAME), 'w') as dockerfile:
         dockerfile.write(dockerfile_contents)
-    with open(os.path.join(path_to_job_files, ENTRYPOINT_FILE_NAME), 'w') as entrypoint_file:
-        entrypoint_file.write(entrypoint_contents)
-    image, logs = docker_client.images.build(
-        path=path_to_job_files,
-        tag=tag)
-
-    # Remove stopped containers and old images
-    docker_client.containers.prune()
-    docker_client.images.prune(filters={'dangling': True})
-
-    container = docker_client.containers.run(
-        image=image,
-        command=f"bash -c \"python -u __start_smls__.py\"",
-        mounts=[Mount(target='/src',
-                      source=path_to_job_files,
-                      type='bind',
-                      read_only=True)],
-        auto_remove=True,
-        stderr=True,
-        stdout=True,
-        detach=True,
-        mem_limit='128m',
-        memswap_limit='128m',
-    )
-    return container
-
-
-def _wait_for_exit_code(container):
-    result = container.wait()
-    return result["StatusCode"]
-
-
-def _capture_stderr(container):
-    logs = container.logs(stream=True, stdout=False, stderr=True)
-    return logs
-
-
-def execute_and_stream_back(path_to_job_files: str, api_key: str, entrypoint: str, requirements: str) -> Iterable[bytes]:
     try:
-        container = _run_container(path_to_job_files, api_key, entrypoint, requirements)
-
-        # We actually use only element [0] which will be the exit code of the container
-        res: List[int] = []
-        thread_in_thread = Thread(target=thread_wrapper,
-                                  args=(_wait_for_exit_code, (container,), res))
-        thread_in_thread.start()
-
-        # We actually use only element [0] which will be the list of logs from container's stderr
-        res_2: List[List[str]] = []
-        thread_in_thread_2 = Thread(target=thread_wrapper,
-                                    args=(_capture_stderr, (container,), res_2))
-        thread_in_thread_2.start()
-
-        # Print stdout first
-        for line in container.logs(stream=True, stdout=True, stderr=False):
-            yield line.decode('utf8')
-
-        # Wait for error logs if there are some and output them only after stdout is finished
-        # Otherwise log records will be mixed with each other because stdout and stderr use different buffers
-        thread_in_thread_2.join()
-        error_logs = res_2[0]
-        for line in error_logs:
-            yield line
-
-        # Wait for container to stop and get the exit code
-        thread_in_thread.join()
-        exit_code = res[0]
-        if exit_code != 0:
-            message = f"Job failed with the exit code {exit_code}\n"
-            yield message.encode()
+        image, logs = docker_client.images.build(
+            path=job_directory)
     except BuildError as e:
-        yield b"Job build failed! Error logs:\n"
+        full_error_log = []
         for log_entry in e.build_log:
             line = log_entry.get('stream')
             if line:
-                yield line
-        yield str(e).encode()
+                full_error_log.append(line)
 
+        # Log error for internal debugging
+        logging.error(e)
+        logging.error('\n'.join(full_error_log))
+        capture_exception(e)
 
-def execute_and_stream_to_db(path_to_job_files: str, job_id: str, job_run_id: str, entrypoint: str, requirements: str):
-    def handle_log_line(l, app, db_session):
-        # Streaming logs line by line
-        with app.app_context():
-            emit(
-                'logs',
-                {'job_id': job_id, 'message': l, 'timestamp': str(datetime.utcnow())},
-                namespace='/socket',
-                broadcast=True
-            )
-        db_session.add(
-            JobRunLog(
-                job_run_id=job_run_id,
-                timestamp=datetime.utcnow(),
-                message=l
-            )
+        # Raise error to show back to user
+        user_visible_error_log = []
+        for line in full_error_log:
+            # Docker outputs a lot of it's internal build logs, the user only needs
+            # to know about lines marked with ERROR
+            if 'ERROR' in line:
+                # Get rid of code that makes console output colorful
+                if line.startswith('\x1b[91m'):
+                    line = line[5:]
+                if line.endswith('\x1b[0m'):
+                    line = line[:-5]
+                user_visible_error_log.append(line)
+        raise ExecutorBuildException('\n'.join(user_visible_error_log))
+
+    try:
+        container = docker_client.containers.run(
+            image=image,
+            command=f"bash -c \"python -u {entrypoint_filename}\"",
+            mounts=[Mount(target='/src',
+                          source=job_directory,
+                          type='bind',
+                          read_only=True)],
+            auto_remove=False,
+            detach=True,
+            mem_limit='128m',
+            memswap_limit='128m',
         )
-        db_session.commit()
+    except Exception as exc:
+        # catch
+        # docker.errors.ContainerError – If the container exits with a non-zero exit code and detach is False.
+        # docker.errors.ImageNotFound – If the specified image does not exist.
+        # docker.errors.APIError – If the server returns an error.
+        raise exc
 
-    def run_in_thread(app):
-        if not os.path.exists(path_to_job_files):
-            restore_project_from_s3(path_to_job_files, job_id)
+    yield container
 
-        with session_scope() as db_session:
-            try:
-                container = _run_container(path_to_job_files, job_id, entrypoint, requirements)
-
-                res = []
-                thread_in_thread = Thread(target=thread_wrapper,
-                                          args=(_wait_for_exit_code, (container,), res))
-                thread_in_thread.start()
-
-                res_2 = []
-                thread_in_thread_2 = Thread(target=thread_wrapper,
-                                            args=(_capture_stderr, (container,), res_2))
-                thread_in_thread_2.start()
-
-                job_run_result = JobRunResult.Ok
-                job_status = JobStatus.Ok
-                # Save stdout first
-                for line in container.logs(stream=True, stdout=True, stderr=False):
-                    l = str(line, "utf-8")
-                    handle_log_line(l, app, db_session)
-
-                # Wait for error logs if there are some and output them only after stdout is finished
-                # Otherwise log records will be mixed with each other because stdout and stderr use different buffers
-                thread_in_thread_2.join()
-                error_logs = res_2[0]
-                for line in error_logs:
-                    l = str(line, "utf-8")
-                    handle_log_line(l, app, db_session)
-
-                    # Wait for container to stop and get the exit code
-                thread_in_thread.join()
-                status_code = res[0]
-                if status_code != 0:
-                    message = f"Job failed with the exit code {status_code}\n"
-                    handle_log_line(message, app, db_session)
-                    job_run_result = JobRunResult.Failed
-                    job_status = JobStatus.Failed
-
-            except BuildError as e:
-                handle_log_line(f"Job {job_id} build failed! Error logs:\n", app, db_session)
-                for log_entry in e.build_log:
-                    line = log_entry.get('stream')
-                    if line:
-                        handle_log_line(line, app, db_session)
-                job_run_result = JobRunResult.Failed
-                job_status = JobStatus.Failed
-            except Exception as e:
-                logging.error(f"Job {job_id} failed with error {str(e)}")
-                raise e
-
-            job = db_session.query(Job).get(job_id)
-            job_run = db_session.query(JobRun).get(job_run_id)
-            job.status = job_status.value
-            job_run.status = job_run_result.value
-            db_session.commit()
-
-            # Streaming status
-            with app.app_context():
-                emit('status', {'job_id': job_id,
-                                'job_run_id': job_run_id,
-                                'status': job_status.value},
-                     namespace='/socket',
-                     broadcast=True)
-
-    thread = Thread(target=run_in_thread, kwargs={'app': current_app._get_current_object()})
-    thread.start()
+    container.remove(v=True)

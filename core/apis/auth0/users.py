@@ -4,11 +4,11 @@ import requests
 from flask import Blueprint, request, jsonify
 from sentry_sdk import capture_exception
 
-from backend.api_key import generate_api_key
-from backend.apis.auth0.auth import requires_auth
-from backend.db import session_scope
-from backend.db.models import User
+from core.api_key import generate_api_key
+from core.apis.auth0.auth import requires_auth
+from core.models.users import User
 from config import TELEGRAM_BOT_API_KEY, TELEGRAM_CHANNEL_ID, STAGE
+from core.web import get_db_session
 
 auth_users_bp = Blueprint('auth_users', __name__)
 
@@ -16,12 +16,12 @@ logging.basicConfig(level='INFO')
 
 
 def add_user_to_db(email):
-    with session_scope() as session:
-        user = User(email=email,
-                    api_key=generate_api_key())
-        session.add(user)
-        session.commit()
-        return user.id
+    user = User(email=email,
+                api_key=generate_api_key())
+    db_session = get_db_session()
+    db_session.add(user)
+    db_session.commit()
+    return user.id
 
 
 def send_telegram_message(email):
