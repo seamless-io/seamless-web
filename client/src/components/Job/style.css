@@ -310,6 +310,7 @@
   padding-left: 20px;
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .smls-code-editor-styled-file span {
@@ -318,6 +319,7 @@
 
 .smls-code-editor-styled-folder {
   padding-left: 20px;
+  cursor: pointer;
 }
 
 .folder--label {

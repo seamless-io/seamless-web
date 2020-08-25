@@ -95,7 +95,19 @@ def restore_project_from_s3(path_to_job_files: str, job_id: str):
     tar.close()
 
 
-def path_to_dict(path):
+def _extract_file_path(path: str, api_key: str, job_id: str) -> str:
+    """
+    To be able to get a file content that is in a subfolder, we need to have a file path inside a job project folder.
+    For example, if the absolute path is '/var/seamless-web/user_projects/published/930a3944b22b16e9c170/53/some-folder/test.py',
+    then the file path should be 'some-folder/test.py'.
+    """
+    # TODO: you're are welcome to refactore it, if you know a simpler solution.
+
+    sep = f'{api_key}/{job_id}'
+    return path[path.find(sep) + len(sep) + 1:]
+
+
+def path_to_dict(path, api_key, job_id):
     """
     Represents a repository tree as a dictionary. It does recursive descending into directories and build a dict.
 
@@ -124,9 +136,10 @@ def path_to_dict(path):
     d = {'name': os.path.basename(path)}
     if os.path.isdir(path):
         d['type'] = 'folder'
-        d['children'] = [path_to_dict(os.path.join(path, x)) for x in os.listdir(path)]
+        d['children'] = [path_to_dict(os.path.join(path, x), api_key, job_id) for x in os.listdir(path)]
     else:
         d['type'] = 'file'
+        d['path'] = _extract_file_path(path, api_key, job_id)
     return d
 
 
@@ -159,24 +172,24 @@ def convert_folder_to_json(job_id: str) -> list:
     if not os.path.exists(path_to_job_files):
         restore_project_from_s3(path_to_job_files, job_id)
 
-    project_dict = path_to_dict(path_to_job_files)
+    project_dict = path_to_dict(path_to_job_files, api_key, job_id)
 
     return project_dict['children']
 
 
-def get_file_content(job_id: str, file_name: str) -> str:
+def get_file_content(job_id: str, file_path: str) -> Optional[str]:
     """
     Reads a content of a file as a string.
     """
     api_key = _is_valid_user(job_id)
     if not api_key:
-        return ''
+        return None
 
     path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
     if not os.path.exists(path_to_job_files):
         restore_project_from_s3(path_to_job_files, job_id)
 
-    path_to_file = f'{path_to_job_files}/{file_name}'
+    path_to_file = f'{path_to_job_files}/{file_path}'
     with open(path_to_file, 'r') as file:
         file_content = file.read()
 

@@ -4,12 +4,23 @@ import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Row, Col } from 'react-bootstrap';
 import { AiOutlineFile, AiOutlineFolder } from 'react-icons/ai';
-import { DiPython } from 'react-icons/di';
+import {
+  DiPython,
+  DiMarkdown,
+  DiJavascript1,
+  DiHtml5,
+  DiCss3,
+} from 'react-icons/di';
 
-import { getJobFolderStructure } from '../../api';
+import { getJobFolderStructure, getFileContent } from '../../api';
+import Notification from '../Notification/Notification';
 
 const FILE_ICONS = {
   py: <DiPython />,
+  md: <DiMarkdown />,
+  js: <DiJavascript1 />,
+  html: <DiHtml5 />,
+  css: <DiCss3 />,
 };
 
 const CodeEditor = () => {
@@ -19,6 +30,7 @@ const CodeEditor = () => {
   const [notificationBody, setNotificationBody] = useState('');
   const [notificationAlertType, setNotificationAlertType] = useState('');
   const [folderStructure, setFolderStructure] = useState('');
+  const [fileContent, setFileContent] = useState('');
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -34,7 +46,6 @@ const CodeEditor = () => {
   useEffect(() => {
     getJobFolderStructure(job.id)
       .then(payload => {
-        console.log(payload);
         setFolderStructure(payload);
       })
       .catch(() => {
@@ -52,11 +63,30 @@ const CodeEditor = () => {
     overflow: hidden;
   `;
 
-  const File = ({ name }) => {
+  const showFileContent = ({ name, filePath }) => {
+    console.log(name, filePath);
+    getFileContent(job.id, name, filePath)
+      .then(payload => {
+        setFileContent(payload);
+      })
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to get the file content :(',
+          'danger'
+        );
+      });
+  };
+
+  const File = ({ name, filePath }) => {
     let ext = name.split('.')[1];
 
     return (
-      <div className="smls-code-editor-styled-file">
+      <div
+        className="smls-code-editor-styled-file"
+        onClick={() => showFileContent({ name, filePath })}
+      >
         {/* render the extension or fallback to generic file icon  */}
         {FILE_ICONS[ext] || <AiOutlineFile />}
         <span>{name}</span>
@@ -88,12 +118,12 @@ const CodeEditor = () => {
     return data.map(item => {
       // if its a file render <File />
       if (item.type === 'file') {
-        return <File name={item.name} />;
+        return <File key={item.name} name={item.name} filePath={item.path} />;
       }
       // if its a folder render <Folder />
       if (item.type === 'folder') {
         return (
-          <Folder name={item.name}>
+          <Folder key={item.name} name={item.name}>
             {/* Call the <TreeRecursive /> component with the current item.children */}
             <TreeRecursive data={item.children} />
           </Folder>
@@ -121,15 +151,15 @@ const CodeEditor = () => {
         <Col sm={4}>
           <Tree data={folderStructure} />
         </Col>
-        <Col sm={8}>File content</Col>
+        <Col sm={8}>{fileContent}</Col>
       </Row>
-      {/* <Notification
+      <Notification
         show={showNotification}
         closeNotification={closeNotification}
         title={notificationTitle}
         body={notificationBody}
         alertType={notificationAlertType}
-      /> */}
+      />
     </>
   );
 };
