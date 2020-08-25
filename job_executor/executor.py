@@ -41,6 +41,7 @@ def execute(path_to_job_files: str,
             container.wait()['StatusCode']
         )
 
+
 def check_entrypoint_file(job_directory: str, entrypoint_filename: str):
     # TODO: possibly check if the file has allowed extension `[.py, .rs, .java]`
     if not os.path.isfile(os.path.join(job_directory, entrypoint_filename)):

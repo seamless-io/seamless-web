@@ -7,11 +7,12 @@ import jinja2
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import Flask, render_template, session, url_for, redirect, jsonify
+from flask_sqlalchemy_session import flask_scoped_session
 
 from app_config import Config
 import config
 from core.apis.auth0.auth import CoreAuthError
-from core.models import get_session
+from core.models import session_factory
 from core.models.users import User
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
@@ -22,6 +23,9 @@ AUTH_API = '/auth'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
+
+
+db_session = None
 
 
 def requires_auth(f):
@@ -38,6 +42,9 @@ def create_app():
     app = Flask(__name__, static_folder=CLIENT_DIR, static_url_path='/static')
     app.config.from_object(Config)
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
+
+    global db_session
+    db_session = flask_scoped_session(session_factory, app)
 
     from core.apis.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=CLIENT_API)
@@ -70,7 +77,7 @@ def create_app():
 
         session['jwt_payload'] = userinfo
 
-        internal_user_id = User.get_user_from_email(userinfo['email'], get_session()).id
+        internal_user_id = User.get_user_from_email(userinfo['email'], db_session).id
 
         session['profile'] = {
             'user_id': userinfo['sub'],
