@@ -212,12 +212,12 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
             logs, get_exit_code = executor_result.output, executor_result.get_exit_code
             for line in logs:
                 _create_log_entry(line, str(job.id), str(job_run.id))
-            exit_code = get_exit_code()
     except ExecutorBuildException as exc:
         logs, get_exit_code = (el for el in [str(exc)]), lambda: 1
         for line in logs:
             _create_log_entry(line, str(job.id), str(job_run.id))
 
+    exit_code = get_exit_code()
     if exit_code == 0:
         job_run.status = JobRunStatus.Ok.value
     else:

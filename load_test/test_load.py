@@ -14,8 +14,8 @@ PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"
 DELETE_URL = f"https://staging-app.seamlesscloud.io/api/v1/jobs/"
 PACKAGE_NAME = "seamless_package.tar.gz"
 TEST_SCHEDULE = "* * * * *"
-TEST_RUNS = 3
-JOBS_PER_USER = 2
+TEST_RUNS = 1
+JOBS_PER_USER = 1
 
 # Add a 2-minute buffer so we don't miss executions
 # It could take up to 1 minutes from the job publishing to first event
