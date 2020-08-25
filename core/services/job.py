@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from typing import Optional, List
 
+from cron_descriptor import FormatException
 from werkzeug.datastructures import FileStorage
 
 import config
@@ -29,6 +30,10 @@ class JobsQuotaExceededException(Exception):
     pass
 
 
+class InvalidCronException(Exception):
+    pass
+
+
 def _check_user_quotas_for_job_creation(user: User):
     """
     Checks if user has a plan which permits creation of the new job.
@@ -48,7 +53,12 @@ def _update_job(job, cron, entrypoint, requirements):
     job.requirements = requirements
 
     if cron:
-        aws_cron, human_cron = parse_cron(cron)
+        try:
+            aws_cron, human_cron = parse_cron(cron)
+        except FormatException:
+            raise InvalidCronException("Cannot parse the cron expression. You can find out what part of your "
+                                       "expression is not written in a standard notation by following this link "
+                                       f"https://crontab.guru/#{cron.replace(' ', '_')}.")
         job.cron = cron
         job.aws_cron = aws_cron
         job.human_cron = human_cron

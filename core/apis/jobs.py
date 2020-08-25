@@ -122,6 +122,8 @@ def create_job():
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except project.ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
+    except job_service.InvalidCronException as e:
+        return Response(str(e), 400)  # TODO: ensure that error code is correct
 
     return jsonify({'job_id': job.id,
                     'existing_job': is_existing}), 200
