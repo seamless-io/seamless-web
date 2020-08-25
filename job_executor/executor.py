@@ -1,13 +1,16 @@
 # TODO: all errors from executor internal functionality should be caught and processed accordingly
 # TODO: add periodic task to clean-up images: docker_client.images.prune(filters={'dangling': True})
+import logging
 import os
 import contextlib
 from dataclasses import dataclass
 from typing import Optional, Generator, Any, Callable
 
 import docker
+from docker.errors import BuildError
 from docker.models.containers import Container
 from docker.types import Mount
+from sentry_sdk import capture_exception
 
 from .exceptions import ExecutorBuildException
 
@@ -98,8 +101,34 @@ RUN pip install -r requirements.txt
     docker_client = docker.from_env()
     with open(os.path.join(job_directory, DOCKER_FILE_NAME), 'w') as dockerfile:
         dockerfile.write(dockerfile_contents)
-    image, logs = docker_client.images.build(
-        path=job_directory)
+    try:
+        image, logs = docker_client.images.build(
+            path=job_directory)
+    except BuildError as e:
+        full_error_log = []
+        for log_entry in e.build_log:
+            line = log_entry.get('stream')
+            if line:
+                full_error_log.append(line)
+
+        # Log error for internal debugging
+        logging.error(e)
+        logging.error('\n'.join(full_error_log))
+        capture_exception(e)
+
+        # Raise error to show back to user
+        user_visible_error_log = []
+        for line in full_error_log:
+            # Docker outputs a lot of it's internal build logs, the user only needs
+            # to know about lines marked with ERROR
+            if 'ERROR' in line:
+                # Get rid of code that makes console output colorful
+                if line.startswith('\x1b[91m'):
+                    line = line[5:]
+                if line.endswith('\x1b[0m'):
+                    line = line[:-5]
+                user_visible_error_log.append(line)
+        raise ExecutorBuildException('\n'.join(user_visible_error_log))
 
     try:
         container = docker_client.containers.run(
