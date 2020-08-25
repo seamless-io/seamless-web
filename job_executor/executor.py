@@ -3,7 +3,7 @@
 import os
 import contextlib
 from dataclasses import dataclass
-from typing import Optional, Generator, Any
+from typing import Optional, Generator, Any, Callable
 
 import docker
 from docker.models.containers import Container
@@ -18,9 +18,17 @@ JOB_LOGS_RETENTION_DAYS = 1
 @dataclass
 class ExecuteResult:
     output: Generator[str, Any, None]
-    exit_code: int
+    get_exit_code_fn: Callable[[None], int]
+
+    _exit_code: Optional[int]=None
+
+    def get_exit_code(self) -> int:
+        if not self._exit_code:
+            self._exit_code = self.get_exit_code_fn()
+        return self._exit_code
 
 
+@contextlib.contextmanager
 def execute(path_to_job_files: str,
             entrypoint_filename: str,
             path_to_requirements: Optional[str] = None) -> ExecuteResult:
@@ -36,9 +44,9 @@ def execute(path_to_job_files: str,
     check_entrypoint_file(path_to_job_files, entrypoint_filename)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
     with _run_container(path_to_job_files, entrypoint_filename, requirements_path) as container:
-        return ExecuteResult(
+        yield ExecuteResult(
             (str(log, 'utf-8') for log in container.logs(stream=True)),
-            container.wait()['StatusCode']
+            lambda: container.wait()['StatusCode'],
         )
 
 

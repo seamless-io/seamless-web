@@ -1,3 +1,4 @@
+import contextlib
 from datetime import datetime
 from typing import Optional, List
 
@@ -207,14 +208,15 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
     path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, job.user.api_key, job.id)
 
     try:
-        executor_result = executor.execute(path_to_job_files, job.entrypoint, job.requirements)
+        with executor.execute(path_to_job_files, job.entrypoint, job.requirements) as executor_result:
+            logs, get_exit_code = executor_result.output, executor_result.get_exit_code
+            for line in logs:
+                _create_log_entry(line, str(job.id), str(job_run.id))
+            exit_code = get_exit_code()
     except ExecutorBuildException as exc:
-        logs, exit_code = (el for el in [str(exc)]), 1
-    else:
-        logs, exit_code = executor_result.output, executor_result.exit_code
-
-    for line in logs:
-        _create_log_entry(line, str(job.id), str(job_run.id))
+        logs, get_exit_code = (el for el in [str(exc)]), lambda: 1
+        for line in logs:
+            _create_log_entry(line, str(job.id), str(job_run.id))
 
     if exit_code == 0:
         job_run.status = JobRunStatus.Ok.value
@@ -251,12 +253,13 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
     db_session.add(job_run_log)
 
 
+@contextlib.contextmanager
 def execute_standalone(entrypoint: str, requirements: str, project_file: FileStorage, user: User):
     try:
         project_path = project.create(project_file, user.api_key, JobType.RUN)
-        execute_result = executor.execute(project_path, entrypoint, requirements)
+        with executor.execute(project_path, entrypoint, requirements) as execute_result:
+            logs, get_exit_code = execute_result.output, execute_result.get_exit_code
+            yield (logs, get_exit_code)
     except (ExecutorBuildException, ProjectValidationError) as exc:
-        logs, exit_code = (el for el in [str(exc)]), 1
-    else:
-        logs, exit_code = execute_result.output, execute_result.exit_code
-    return logs, exit_code
+        logs, get_exit_code = (el for el in [str(exc)]), lambda: 1
+        yield logs, get_exit_code

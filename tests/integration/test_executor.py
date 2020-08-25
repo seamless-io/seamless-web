@@ -29,17 +29,17 @@ def entrypoint_to_corrupted_program():
 
 def test_execute_succesfull(path_to_project, path_to_requirements, entrypoint):
     # we are reading from https://en.wikipedia.org/wiki/List_of_news_media_APIs
-    res = executor.execute(path_to_project, entrypoint, path_to_requirements)
-    assert "List of news media APIs" in ''.join(list(res.output))
-    assert res.exit_code == 0
+    with executor.execute(path_to_project, entrypoint, path_to_requirements) as res:
+        assert "List of news media APIs" in ''.join(list(res.output))
+        assert res.get_exit_code() == 0
 
 
 @pytest.mark.skip(reason="We do not handle return values yet")
 def test_execute_succesfull_return_value(path_to_project, path_to_requirements, entrypoint):
     # we are reading from https://en.wikipedia.org/wiki/List_of_news_media_APIs
-    res = executor.execute(path_to_project, entrypoint, path_to_requirements)
-    return_value_from_function = "Everything is alright"
-    assert return_value_from_function in ''.join(res.output)
+    with executor.execute(path_to_project, entrypoint, path_to_requirements) as res:
+        return_value_from_function = "Everything is alright"
+        assert return_value_from_function in ''.join(res.output)
 
 
 def test_execute_wrong_entrypoint_file(path_to_project, path_to_requirements):
@@ -51,24 +51,27 @@ def test_execute_wrong_entrypoint_file(path_to_project, path_to_requirements):
     exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Path to entrypoint file is not valid: "
                         f"`{wrong_entrypoint_filename}`")
     with pytest.raises(ExecutorBuildException, match=exc_msg):
-        executor.execute(path_to_project, wrong_entrypoint_filename, path_to_requirements)
+        with executor.execute(path_to_project, wrong_entrypoint_filename, path_to_requirements) as res:
+            print(f"ok {res}")
 
 
 def test_execute_wrong_requirements(path_to_project, entrypoint):
     wrong_requirements_path = 'requirements_wrong.txt'
     exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Cannot find requirements file `{wrong_requirements_path}`")
     with pytest.raises(ExecutorBuildException, match=exc_msg):
-        executor.execute(path_to_project, entrypoint, wrong_requirements_path)
+        with executor.execute(path_to_project, entrypoint, wrong_requirements_path) as res:
+            print(f"ok {res}")
 
 
 def test_execute_wrong_project_path(entrypoint, path_to_requirements):
     wrong_project_path = '/this/is/non/existing/path'
     exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Invalid project path directory `{wrong_project_path}` does not exist")
     with pytest.raises(ExecutorBuildException, match=exc_msg):
-        executor.execute(wrong_project_path, entrypoint, path_to_requirements)
+        with executor.execute(wrong_project_path, entrypoint, path_to_requirements) as res:
+            print(f"ok {res}")
 
 
 def test_execute_project_with_error(path_to_project, entrypoint_to_corrupted_program, path_to_requirements):
-    res = executor.execute(path_to_project, entrypoint_to_corrupted_program, path_to_requirements)
-    assert "Traceback" in ''.join(res.output)
-    assert res.exit_code == 1
+    with executor.execute(path_to_project, entrypoint_to_corrupted_program, path_to_requirements) as res:
+        assert "Traceback" in ''.join(res.output)
+        assert res.get_exit_code() == 1
