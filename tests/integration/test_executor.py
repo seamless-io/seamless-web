@@ -45,9 +45,8 @@ def test_execute_succesfull_return_value(path_to_project, path_to_requirements, 
 def test_execute_wrong_entrypoint_file(path_to_project, path_to_requirements):
     wrong_entrypoint_filename = 'wrong_entrypoint.smls'
     # # TODO: add suggestions later:
-    # # * "... did you provide dot-separated path to the function correctly?
-    # # * Maybe you meant: function.main"
-    # # if `.py` in entrypoint: "do not need to put file extensions in entrypoint"
+    # # * "... did you provide a path to the file correctly?
+    # # * Maybe you meant: function.py"
     exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Path to entrypoint file is not valid: "
                         f"`{wrong_entrypoint_filename}`")
     with pytest.raises(ExecutorBuildException, match=exc_msg):

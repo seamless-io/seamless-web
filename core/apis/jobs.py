@@ -166,8 +166,8 @@ def run() -> Response:
 
     file = request.files.get('seamless_project')
 
-    entrypoint = str(request.args.get('entrypoint', 'function.main'))
-    requirements = str(request.args.get('requirements', 'requirements.txt'))
+    entrypoint = str(request.args.get('entrypoint', config.DEFAULT_ENTRYPOINT))
+    requirements = str(request.args.get('requirements', config.DEFAULT_REQUIREMENTS))
 
     if not file:
         return Response('File not provided', 400)
