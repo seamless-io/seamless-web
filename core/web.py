@@ -24,8 +24,20 @@ APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
 
-
 db_session = None
+
+
+class DbSessionNotReadyException(Exception):
+    pass
+
+
+def get_db_session():
+    global db_session
+    if not db_session:
+        raise DbSessionNotReadyException('The db session for working in a Flask application'
+                                         'was requested before the Flask app is initialized.')
+    else:
+        return db_session
 
 
 def requires_auth(f):
