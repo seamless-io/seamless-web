@@ -22,10 +22,11 @@ class ExecuteResult:
 
     _exit_code: Optional[int]=None
 
-    def get_exit_code(self) -> int:
-        if not self._exit_code and self.get_exit_code_fn is not None:
+    def get_exit_code(self) -> Optional[int]:
+        if not self._exit_code:
+            assert self.get_exit_code_fn is not None
             self._exit_code = self.get_exit_code_fn()
-        return self._exit_code or 1
+        return self._exit_code
 
 
 @contextlib.contextmanager

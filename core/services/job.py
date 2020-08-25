@@ -191,7 +191,7 @@ def get_jobs_for_user(email: str):
     return user.jobs
 
 
-def _trigger_job_run(job: Job, trigger_type: str) -> int:
+def _trigger_job_run(job: Job, trigger_type: str) -> Optional[int]:
     job_run = JobRun(job_id=job.id, type=trigger_type)
     get_db_session().add(job_run)
     get_db_session().commit()  # we need to have an id generated before we start writing logs
