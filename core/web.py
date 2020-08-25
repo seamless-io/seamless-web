@@ -12,7 +12,7 @@ from flask_sqlalchemy_session import flask_scoped_session
 from app_config import Config
 import config
 from core.apis.auth0.auth import CoreAuthError
-from core.models import session_factory
+from core.models import get_session_factory
 from core.models.users import User
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
@@ -24,8 +24,20 @@ APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
 
-
 db_session = None
+
+
+class DbSessionNotReadyException(Exception):
+    pass
+
+
+def get_db_session():
+    global db_session
+    if not db_session:
+        raise DbSessionNotReadyException('The db session for working in a Flask application'
+                                         'was requested before the Flask app is initialized.')
+    else:
+        return db_session
 
 
 def requires_auth(f):
@@ -44,7 +56,7 @@ def create_app():
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
 
     global db_session
-    db_session = flask_scoped_session(session_factory, app)
+    db_session = flask_scoped_session(get_session_factory(), app)
 
     from core.apis.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=CLIENT_API)

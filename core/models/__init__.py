@@ -36,5 +36,5 @@ def _get_engine(db_prefix):
     return create_engine(get_sqlalchemy_url(db_prefix))
 
 
-engine = _get_engine(DB_PREFIX)
-session_factory = sessionmaker(bind=_get_engine(DB_PREFIX))
+def get_session_factory(db_prefix=DB_PREFIX):
+    return sessionmaker(bind=_get_engine(db_prefix))

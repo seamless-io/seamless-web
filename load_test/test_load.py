@@ -4,10 +4,10 @@ from time import sleep
 
 import requests
 
-from core.models.jobs import Job
-from core.models.job_runs import JobRunStatus
 from core.helpers import row2dict
-from core.web import db_session
+from core.models.job_runs import JobRunStatus
+from core.models.jobs import Job
+from load_test.conftest import db_session
 from load_test.test_seamless_project.function import pi, PI_DIGITS
 
 PUBLISH_URL = f"https://staging-app.seamlesscloud.io/api/v1/publish"

@@ -11,7 +11,7 @@ from core.models.job_runs import JobRun, JobRunStatus, JobRunType
 from core.models.jobs import Job, JobStatus
 from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
 from core.socket_signals import send_update
-from core.web import db_session
+from core.web import get_db_session
 from job_executor import project, executor
 from job_executor.exceptions import ExecutorBuildException
 from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError
@@ -73,7 +73,7 @@ def _create_job(name, cron, entrypoint, requirements, user_id):
             "schedule_is_active": True})
 
     job = Job(**job_attributes)
-    db_session.add(job)
+    get_db_session().add(job)
     return job
 
 
@@ -87,20 +87,20 @@ def delete(name: str, user: User):
     remove_job_schedule(job_id)
     remove_project_from_s3(job_id)
 
-    db_session.delete(job)
-    db_session.commit()
+    get_db_session().delete(job)
+    get_db_session().commit()
     return job_id
 
 
 def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: FileStorage):
-    existing_job = db_session.query(Job).filter_by(name=name, user_id=user.id).one_or_none()
+    existing_job = get_db_session().query(Job).filter_by(name=name, user_id=user.id).one_or_none()
     if existing_job:
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
         _check_user_quotas_for_job_creation(user)
         job = _create_job(name, cron, entrypoint, requirements, user.id)
 
-    db_session.commit()
+    get_db_session().commit()
     job.schedule_job()
 
     project.create(project_file, user.api_key, JobType.PUBLISHED, str(job.id))
@@ -109,7 +109,7 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
 
 
 def get(job_id: str, user_id: str) -> Job:
-    base_q = db_session.query(Job)
+    base_q = get_db_session().query(Job)
 
     if user_id == config.SCHEDULER_USER_ID:
         # if our automation executing script - do not check the user
@@ -146,7 +146,7 @@ def execute(job_id: str, trigger_type: str, user_id: str):
     else:
         job.status = JobStatus.Failed.value
 
-    db_session.commit()
+    get_db_session().commit()
 
 
 def get_next_executions(job_id: str, user_id: str) -> Optional[str]:
@@ -177,24 +177,24 @@ def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunL
 def enable_schedule(job_id: str, user_id: str):
     job = get(job_id, user_id)
     job.schedule_is_active = False
-    db_session.commit()
+    get_db_session().commit()
 
 
 def disable_schedule(job_id: str, user_id: str):
     job = get(job_id, user_id)
     job.schedule_is_active = False
-    db_session.commit()
+    get_db_session().commit()
 
 
 def get_jobs_for_user(email: str):
-    user = User.get_user_from_email(email, db_session)
+    user = User.get_user_from_email(email, get_db_session())
     return user.jobs
 
 
 def _trigger_job_run(job: Job, trigger_type: str) -> int:
     job_run = JobRun(job_id=job.id, type=trigger_type)
-    db_session.add(job_run)
-    db_session.commit()  # we need to have an id generated before we start writing logs
+    get_db_session().add(job_run)
+    get_db_session().commit()  # we need to have an id generated before we start writing logs
 
     send_update(
         'status',
@@ -222,7 +222,7 @@ def _trigger_job_run(job: Job, trigger_type: str) -> int:
         job_run.status = JobRunStatus.Ok.value
     else:
         job_run.status = JobRunStatus.Failed.value
-    db_session.commit()
+    get_db_session().commit()
 
     send_update(
         'status',
@@ -250,7 +250,7 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
         }
     )
 
-    db_session.add(job_run_log)
+    get_db_session().add(job_run_log)
 
 
 @contextlib.contextmanager
