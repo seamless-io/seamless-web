@@ -20,7 +20,7 @@ def path_to_requirements():
 
 @pytest.fixture
 def entrypoint():
-    return 'main_module.py'
+    return 'function.py'
 
 @pytest.fixture
 def entrypoint_to_corrupted_program():
@@ -74,3 +74,10 @@ def test_execute_project_with_error(path_to_project, entrypoint_to_corrupted_pro
     with executor.execute(path_to_project, entrypoint_to_corrupted_program, path_to_requirements) as res:
         assert "Traceback" in ''.join(res.output)
         assert res.get_exit_code() == 1
+
+
+def test_legacy_entrypoint(path_to_project, path_to_requirements):
+    legacy_entrypoint = 'function.main'
+    with executor.execute(path_to_project, legacy_entrypoint, path_to_requirements) as res:
+        assert "List of news media APIs" in ''.join(list(res.output))
+        assert res.get_exit_code() == 0

@@ -45,7 +45,11 @@ def execute(path_to_job_files: str,
     """
     # TODO: make separation between requirements_absolute and relative
     check_project_path(path_to_job_files)
-    check_entrypoint_file(path_to_job_files, entrypoint_filename)
+    if entrypoint_filename == 'function.main':
+        # we need to support only `function.main` situation, since it is the only one which was present at the time
+        entrypoint_filename = _legacy_entrypoint_handling(path_to_job_files, entrypoint_filename)
+    else:
+        check_entrypoint_file(path_to_job_files, entrypoint_filename)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
     with _run_container(path_to_job_files, entrypoint_filename, requirements_path) as container:
 
@@ -56,6 +60,29 @@ def execute(path_to_job_files: str,
             (str(log, 'utf-8') for log in container.logs(stream=True)),
             get_exit_code
         )
+
+
+def _legacy_entrypoint_handling(path_to_job_files: str, legacy_entrypoint: str) -> str:
+    """
+    Previously we had a way to provide `entrypoint` as `path.to.function`.
+    Now we support only "entryfile" which is executing as `python -u <entryfile>`
+
+    This function introduce backward compatibility functionality
+    """
+    entrypoint_file_name = "__start_smls__.py"
+    entrypoint_contents = f"""
+import importlib
+if "." in '{legacy_entrypoint}':
+    module = importlib.import_module('{legacy_entrypoint.split('.')[0]}')
+    module.{'.'.join(legacy_entrypoint.split('.')[1:])}()
+else:
+    exec(open("{legacy_entrypoint}.py").read())
+    """
+    with open(os.path.join(path_to_job_files, entrypoint_file_name), 'w') as entrypoint_file:
+        entrypoint_file.write(entrypoint_contents)
+    return entrypoint_file_name
+
+
 
 
 def check_entrypoint_file(job_directory: str, entrypoint_filename: str):
