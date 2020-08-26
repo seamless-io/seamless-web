@@ -55,7 +55,7 @@ def auth0_webhook():
             message = f'New user {email} (id: {user_id}) signed up!'
         except IntegrityError as e:
             if 'duplicate key value violates unique constraint "ix_users_email"' in str(e):
-                message = f'The use {email} signed in using different method than during the signup'
+                message = f'The user {email} signed in using different method than during the signup'
             else:
                 raise e
         if STAGE == 'prod':

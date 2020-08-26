@@ -1,12 +1,14 @@
 import json
 import os
 from functools import wraps
+from time import sleep
 from urllib.parse import urlencode
 
 import jinja2
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import Flask, render_template, session, url_for, redirect, jsonify
+from sqlalchemy.orm.exc import NoResultFound
 
 import config
 from app_config import Config
@@ -22,6 +24,10 @@ AUTH_API = '/auth'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
+
+
+class CannotFindSignedUpUserException(Exception):
+    pass
 
 
 def requires_auth(f):
@@ -70,7 +76,18 @@ def create_app():
 
         session['jwt_payload'] = userinfo
 
-        internal_user_id = User.get_user_from_email(userinfo['email'], get_db_session()).id
+        internal_user_id = None
+        for i in range(3):  # Try 3 times
+            try:
+                internal_user_id = User.get_user_from_email(userinfo['email'], get_db_session()).id
+            except NoResultFound:
+                sleep(1)  # when the user is signing up, we write asynchronously to the db, so we may need a delay
+            if internal_user_id:
+                break
+
+        if not internal_user_id:
+            raise CannotFindSignedUpUserException(f"We cannot find the user {userinfo} in our database."
+                                                  f"Maybe the user registration endpoint failed.")
 
         session['profile'] = {
             'user_id': userinfo['sub'],
