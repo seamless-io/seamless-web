@@ -3,6 +3,7 @@ import logging
 import requests
 from flask import Blueprint, request, jsonify
 from sentry_sdk import capture_exception
+from sqlalchemy.exc import IntegrityError
 
 from core.api_key import generate_api_key
 from core.apis.auth0.auth import requires_auth
@@ -49,10 +50,16 @@ def auth0_webhook():
     if (context['stats']['loginsCount'] > 1) or (context['protocol'] == 'oauth2-refresh-token'):
         message = f'The user {email} signed in'
     else:
-        user_id = add_user_to_db(email)
+        try:
+            user_id = add_user_to_db(email)
+            message = f'New user {email} (id: {user_id}) signed up!'
+        except IntegrityError as e:
+            if 'duplicate key value violates unique constraint "ix_users_email"' in str(e):
+                message = f'The use {email} signed in using different method than during the signup'
+            else:
+                raise e
         if STAGE == 'prod':
             send_telegram_message(email)
-        message = f'New user {email} (id: {user_id}) signed up!'
 
     logging.info(message)
     return jsonify({'message': message}), 200
