@@ -1,28 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
-import styled from 'styled-components';
 import { Row, Col } from 'react-bootstrap';
-import { AiOutlineFile, AiOutlineFolder } from 'react-icons/ai';
-import {
-  DiPython,
-  DiMarkdown,
-  DiJavascript1,
-  DiHtml5,
-  DiCss3,
-} from 'react-icons/di';
 
 import { getJobFolderStructure, getFileContent } from '../../api';
+import CodeEditor from './CodeEditor';
+import FolderTree from './FolderTree';
 import Notification from '../Notification/Notification';
 
-const FILE_ICONS = {
-  py: <DiPython />,
-  md: <DiMarkdown />,
-  js: <DiJavascript1 />,
-  html: <DiHtml5 />,
-  css: <DiCss3 />,
-};
+import './style.css';
 
-const CodeEditor = ({ jobId }) => {
+const WebIde = ({ jobId }) => {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
@@ -57,11 +44,6 @@ const CodeEditor = ({ jobId }) => {
       });
   }, []);
 
-  const Collapsible = styled.div`
-    height: ${p => (p.isOpen ? 'auto' : '0')};
-    overflow: hidden;
-  `;
-
   const showFileContent = ({ name, filePath }) => {
     setCurrentFile(name);
     getFileContent(jobId, name, filePath)
@@ -78,72 +60,6 @@ const CodeEditor = ({ jobId }) => {
       });
   };
 
-  const File = ({ name, filePath }) => {
-    let ext = name.split('.')[1];
-
-    return (
-      <div
-        className="smls-code-editor-styled-file"
-        onClick={() => showFileContent({ name, filePath })}
-      >
-        {/* render the extension or fallback to generic file icon  */}
-        {FILE_ICONS[ext] || <AiOutlineFile />}
-        <span>{name}</span>
-      </div>
-    );
-  };
-
-  const Folder = ({ name, children }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const handleToggle = e => {
-      e.preventDefault();
-      setIsOpen(!isOpen);
-    };
-
-    return (
-      <div className="smls-code-editor-styled-folder">
-        <div className="folder--label" onClick={handleToggle}>
-          <AiOutlineFolder />
-          <span>{name}</span>
-        </div>
-        <Collapsible isOpen={isOpen}>{children}</Collapsible>
-      </div>
-    );
-  };
-
-  const TreeRecursive = ({ data }) => {
-    // loop through the data
-    return data.map(item => {
-      // if its a file render <File />
-      if (item.type === 'file') {
-        return <File key={item.name} name={item.name} filePath={item.path} />;
-      }
-      // if its a folder render <Folder />
-      if (item.type === 'folder') {
-        return (
-          <Folder key={item.name} name={item.name}>
-            {/* Call the <TreeRecursive /> component with the current item.children */}
-            <TreeRecursive data={item.children} />
-          </Folder>
-        );
-      }
-    });
-  };
-
-  const Tree = ({ data, children }) => {
-    const isImparative = data && !children;
-
-    return (
-      <div className="smls-code-editor-styled-tree">
-        {isImparative ? <TreeRecursive data={data} /> : children}
-      </div>
-    );
-  };
-
-  Tree.File = File;
-  Tree.Folder = Folder;
-
   return (
     <>
       <Row className="smls-job-main-info">
@@ -159,7 +75,10 @@ const CodeEditor = ({ jobId }) => {
               </div>
             </Col>
           </Row>
-          <Tree data={folderStructure} />
+          <FolderTree
+            data={folderStructure}
+            showFileContent={showFileContent}
+          />
         </Col>
         <Col sm={8} className="smls-job-main-info-section">
           <Row>
@@ -168,7 +87,9 @@ const CodeEditor = ({ jobId }) => {
                 <h5>{`File: ${currentFile}`}</h5>
               </div>
             </Col>
-            <Col sm={12}>{fileContent}</Col>
+            <Col sm={12}>
+              <CodeEditor fileContent={fileContent} />
+            </Col>
           </Row>
         </Col>
       </Row>
@@ -183,4 +104,4 @@ const CodeEditor = ({ jobId }) => {
   );
 };
 
-export default CodeEditor;
+export default WebIde;

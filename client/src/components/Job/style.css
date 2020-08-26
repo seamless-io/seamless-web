@@ -301,32 +301,3 @@
 .smls-job-logs-message {
   font-size: 12px;
 }
-
-.smls-code-editor-styled-tree {
-  line-height: 1.5;
-}
-
-.smls-code-editor-styled-file {
-  padding-left: 20px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.smls-code-editor-styled-file span {
-  margin-left: 5px;
-}
-
-.smls-code-editor-styled-folder {
-  padding-left: 20px;
-  cursor: pointer;
-}
-
-.folder--label {
-  display: flex;
-  align-items: center;
-}
-
-.folder--label span {
-  margin-left: 5px;
-}

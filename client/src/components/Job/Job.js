@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 import Toggle from 'react-toggle';
@@ -15,7 +15,7 @@ import {
   getJobRunLogs,
 } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
-import CodeEditor from './CodeEditor';
+import WebIde from '../WebIde/WebIde';
 import Notification from '../Notification/Notification';
 
 import './style.css';
@@ -25,7 +25,6 @@ import timeHistory from '../../images/time-history.svg';
 
 const Job = () => {
   const job = useParams();
-  const history = useHistory();
   const downloadJobLink = `/api/v1/jobs/${job.id}/code`;
   const [name, setName] = useState('');
   const [schedule, setSchedule] = useState('');
@@ -241,7 +240,7 @@ const Job = () => {
 
   const displayJobBody = showIde => {
     if (showIde) {
-      return <CodeEditor jobId={job.id} />;
+      return <WebIde jobId={job.id} />;
     } else {
       return (
         <ExecutionTimeline
