@@ -26,3 +26,12 @@
 .folder--label span {
   margin-left: 5px;
 }
+
+.smls-code-editor-window {
+  border: 1px solid #eaeaea;
+}
+
+.smls-code-editor-window .CodeMirror {
+  min-height: 350px;
+  overflow: auto;
+}

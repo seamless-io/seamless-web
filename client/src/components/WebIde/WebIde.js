@@ -17,6 +17,7 @@ const WebIde = ({ jobId }) => {
   const [folderStructure, setFolderStructure] = useState('');
   const [fileContent, setFileContent] = useState('');
   const [currentFile, setCurrentFile] = useState('');
+  const [fileExtension, setFileExtension] = useState('');
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -45,6 +46,7 @@ const WebIde = ({ jobId }) => {
   }, []);
 
   const showFileContent = ({ name, filePath }) => {
+    setFileExtension(name.split('.')[1]);
     setCurrentFile(name);
     getFileContent(jobId, name, filePath)
       .then(payload => {
@@ -84,11 +86,14 @@ const WebIde = ({ jobId }) => {
           <Row>
             <Col sm={12}>
               <div className="smls-job-executiontimeline-logs-header">
-                <h5>{`File: ${currentFile}`}</h5>
+                <h5>{currentFile}</h5>
               </div>
             </Col>
             <Col sm={12}>
-              <CodeEditor fileContent={fileContent} />
+              <CodeEditor
+                fileContent={fileContent}
+                fileExtension={fileExtension}
+              />
             </Col>
           </Row>
         </Col>

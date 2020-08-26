@@ -59,17 +59,13 @@ const FolderTree = ({ data, showFileContent }) => {
   };
 
   const TreeRecursive = ({ data }) => {
-    // loop through the data
     return data.map(item => {
-      // if its a file render <File />
       if (item.type === 'file') {
         return <File key={item.name} name={item.name} filePath={item.path} />;
       }
-      // if its a folder render <Folder />
       if (item.type === 'folder') {
         return (
           <Folder key={item.name} name={item.name}>
-            {/* Call the <TreeRecursive /> component with the current item.children */}
             <TreeRecursive data={item.children} />
           </Folder>
         );
@@ -78,11 +74,11 @@ const FolderTree = ({ data, showFileContent }) => {
   };
 
   const Tree = ({ data, children }) => {
-    const isImparative = data && !children;
+    const isImperative = data && !children;
 
     return (
       <div className="smls-code-editor-styled-tree">
-        {isImparative ? <TreeRecursive data={data} /> : children}
+        {isImperative ? <TreeRecursive data={data} /> : children}
       </div>
     );
   };
