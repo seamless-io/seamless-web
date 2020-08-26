@@ -11,7 +11,7 @@ import core.services.user as user_service
 from core.helpers import row2dict
 from core.web import requires_auth
 
-from job_executor import project
+from job_executor.project import ProjectValidationError, convert_folder_to_json, get_file_content
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -120,7 +120,7 @@ def create_job():
         )
     except job_service.JobsQuotaExceededException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
-    except project.ProjectValidationError as e:
+    except ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except job_service.InvalidCronException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
@@ -209,3 +209,22 @@ def get_next_job_execution(job_id):
 @jobs_bp.errorhandler(job_service.JobNotFoundException)
 def handle_error(e):
     return jsonify(error=str(e)), 404
+
+
+@jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
+@requires_auth
+def get_job_code_json(job_id: str):
+    json_code = convert_folder_to_json(job_id)
+    if json_code:
+        return jsonify(json_code), 200
+    return "Not found", 404
+
+
+@jobs_bp.route('/jobs/<job_id>/folder/<file_name>', methods=['GET'])
+@requires_auth
+def get_job_file(job_id: str, file_name: str):
+    file_path = request.args.get('file_path')
+    file_content = get_file_content(job_id, file_path)
+    if file_content is not None:
+        return jsonify(file_content), 200
+    return "Not found", 404

@@ -146,7 +146,7 @@ def path_to_dict(path, api_key, job_id):
 def _is_valid_user(job_id: str) -> str:
     """
     Validates the current user to get information about the current job.
-    If a user is nont valid, it returns an empty string, otherwise - his API key.
+    If a user is not valid, it returns an empty string, otherwise - his API key.
     """
     email = session['profile']['email']
     with session_scope() as db_session:
