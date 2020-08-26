@@ -170,6 +170,7 @@ client/yarn-error.log*
 # SEAMLESS CUSTOM GITIGNORE
 seamless_package.tar.gz
 user_projects/
+tests/test_project/Dockerfile
 
 # Jupyter Notebook
 .ipynb_checkpoints

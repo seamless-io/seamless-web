@@ -1,7 +1,7 @@
 import cron_descriptor
 import pytest
 
-from backend.helpers import parse_cron
+from core.helpers import parse_cron
 
 
 def test_parse_cron():

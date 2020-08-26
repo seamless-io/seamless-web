@@ -39,7 +39,7 @@ def get_path_to_job(job_type: JobType,
         if not job_id:
             raise Exception("If job_type = JobType.PUBLISHED you need to provide job_id")
         # Add project because there may be multiple published projects
-        user_folder_path = str(os.path.join(user_folder_path, job_id))
+        user_folder_path = str(os.path.join(user_folder_path, str(job_id)))
     return os.path.abspath(user_folder_path)
 
 

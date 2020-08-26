@@ -7,12 +7,13 @@ import jinja2
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import Flask, render_template, session, url_for, redirect, jsonify
+from flask_sqlalchemy_session import flask_scoped_session
 
 from app_config import Config
 import config
-from backend.apis.auth0.auth import CoreAuthError
-from backend.db import get_session
-from backend.db.models import User
+from core.apis.auth0.auth import CoreAuthError
+from core.models import get_session_factory
+from core.models.users import User
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -22,6 +23,21 @@ AUTH_API = '/auth'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
+
+db_session = None
+
+
+class DbSessionNotReadyException(Exception):
+    pass
+
+
+def get_db_session():
+    global db_session
+    if not db_session:
+        raise DbSessionNotReadyException('The db session for working in a Flask application'
+                                         'was requested before the Flask app is initialized.')
+    else:
+        return db_session
 
 
 def requires_auth(f):
@@ -39,13 +55,16 @@ def create_app():
     app.config.from_object(Config)
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
 
-    from backend.apis.jobs import jobs_bp
+    global db_session
+    db_session = flask_scoped_session(get_session_factory(), app)
+
+    from core.apis.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=CLIENT_API)
 
-    from backend.apis.users import user_bp
+    from core.apis.users import user_bp
     app.register_blueprint(user_bp, url_prefix=CLIENT_API)
 
-    from backend.apis.auth0.users import auth_users_bp
+    from core.apis.auth0.users import auth_users_bp
     app.register_blueprint(auth_users_bp, url_prefix=AUTH_API)
 
     oauth = OAuth(app)
@@ -70,7 +89,7 @@ def create_app():
 
         session['jwt_payload'] = userinfo
 
-        internal_user_id = User.get_user_from_email(userinfo['email'], get_session()).id
+        internal_user_id = User.get_user_from_email(userinfo['email'], db_session).id
 
         session['profile'] = {
             'user_id': userinfo['sub'],
@@ -86,7 +105,7 @@ def create_app():
 
     @app.route('/debug-sentry')
     def trigger_error():
-        division_by_zero = 1 / 0
+        1 / 0
 
     @app.route('/logout')
     def logout():

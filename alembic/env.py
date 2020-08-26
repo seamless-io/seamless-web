@@ -1,15 +1,15 @@
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-from alembic import context
-
-from backend.db import get_sqlalchemy_url
-from backend.db.models.base import base
+from core.models import get_sqlalchemy_url
+from core.models.base import base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
+
 config = context.config
 
 # Interpret the config file for Python logging.
