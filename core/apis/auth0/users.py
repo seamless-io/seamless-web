@@ -37,10 +37,22 @@ def send_telegram_message(email):
 
 @auth_users_bp.route('/users', methods=['POST'])
 @requires_auth
-def create_user():
-    logging.info(request.json)
-    email = request.json['email']
-    user_id = add_user_to_db(email)
-    if STAGE == 'prod':
-        send_telegram_message(email)
-    return jsonify({'user_id': user_id}), 200
+def auth0_webhook():
+    data = request.json
+    logging.info('auth0_webhook')
+    logging.info(data)
+
+    user = data['user']
+    context = data['context']
+    email = user['email']
+
+    if (context['stats']['loginsCount'] > 1) or (context['protocol'] == 'oauth2-refresh-token'):
+        message = f'The user {email} signed in'
+    else:
+        user_id = add_user_to_db(email)
+        if STAGE == 'prod':
+            send_telegram_message(email)
+        message = f'New user {email} (id: {user_id}) signed up!'
+
+    logging.info(message)
+    return jsonify({'message': message}), 200
