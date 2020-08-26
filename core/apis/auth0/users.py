@@ -53,13 +53,13 @@ def auth0_webhook():
         try:
             user_id = add_user_to_db(email)
             message = f'New user {email} (id: {user_id}) signed up!'
+            if STAGE == 'prod':
+                send_telegram_message(email)
         except IntegrityError as e:
             if 'duplicate key value violates unique constraint "ix_users_email"' in str(e):
                 message = f'The user {email} signed in using different method than during the signup'
             else:
                 raise e
-        if STAGE == 'prod':
-            send_telegram_message(email)
 
     logging.info(message)
     return jsonify({'message': message}), 200
