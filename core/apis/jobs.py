@@ -9,6 +9,7 @@ import config
 
 import core.services.job as job_service
 import core.services.user as user_service
+from core import helpers
 from core.helpers import row2dict
 from core.web import requires_auth
 
@@ -123,7 +124,7 @@ def create_job():
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except project.ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
-    except job_service.InvalidCronException as e:
+    except helpers.InvalidCronException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
 
     return jsonify({'job_id': job.id,

@@ -1,11 +1,16 @@
 from datetime import datetime
 from typing import Tuple
 
-from cron_descriptor import get_description
+from cron_descriptor import FormatException
 
+from cron_descriptor import get_description
 
 # https://stackoverflow.com/questions/1958219/convert-sqlalchemy-row-object-to-python-dict
 from croniter import croniter
+
+
+class InvalidCronException(Exception):
+    pass
 
 
 def row2dict(row):
@@ -17,8 +22,23 @@ def row2dict(row):
 
 
 def parse_cron(expression: str) -> Tuple[str, str]:
-    human_readable_description = get_description(expression)
-    aws_cron = _cron_to_aws_cron(expression)
+    if '?' in expression:
+        raise InvalidCronException(f"Cannot parse the cron expression: '?' symbols are not allowed\n"
+                                   f"Please use https://crontab.guru/#{expression.replace(' ', '_')} as a reference.")
+    try:
+        human_readable_description = get_description(expression)
+        aws_cron = _cron_to_aws_cron(expression)
+    except FormatException as e:
+        raise InvalidCronException(f"Cannot parse the cron expression: {str(e)}\n You can find out what part of your "
+                                   "expression is not written in a standard notation by following this link "
+                                   f"https://crontab.guru/#{expression.replace(' ', '_')}.")
+    except ValueError as e:
+        if 'too many values to unpack (expected 5)' in str(e):
+            raise InvalidCronException("Currently we support only cron expressions that consist of 5 parts. "
+                                       "Your expression had more. "
+                                       "If you have any questions please shoot an email at hello@seamlesscloud.io")
+        else:
+            raise e
     return aws_cron, human_readable_description
 
 

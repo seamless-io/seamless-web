@@ -1,7 +1,6 @@
-import cron_descriptor
 import pytest
 
-from core.helpers import parse_cron
+from core.helpers import parse_cron, InvalidCronException
 
 
 def test_parse_cron():
@@ -17,7 +16,8 @@ def test_parse_cron():
             'Every 5 minutes, between 08:00 AM and 05:59 PM, Monday through Friday') == parse_cron(
         '0/5 8-17 * * MON-FRI')
 
-    with pytest.raises(cron_descriptor.Exception.FormatException):
+    with pytest.raises(InvalidCronException):
         parse_cron('10 * * *')
         parse_cron('THIS IS WRONG')
         parse_cron('* * * * no')
+        parse_cron('* * * * ?')
