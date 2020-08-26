@@ -10,13 +10,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
-from flask import session
 import boto3
+from flask import session
 from werkzeug.datastructures import FileStorage
 
-from backend.db import session_scope
-from backend.db.models import User
 from config import STAGE
+from core.models.users import User
+from core.web import get_db_session
 
 ALLOWED_EXTENSION = "tar.gz"
 UPLOAD_FOLDER = "user_projects"
@@ -149,15 +149,14 @@ def _is_valid_user(job_id: str) -> str:
     If a user is not valid, it returns an empty string, otherwise - his API key.
     """
     email = session['profile']['email']
-    with session_scope() as db_session:
-        user = User.get_user_from_email(email, db_session)
-        user_jobs = [job.id for job in user.jobs]
+    user = User.get_user_from_email(email, get_db_session())
+    user_jobs = [job.id for job in user.jobs]
 
-        # If the job does not belong to the current user, returns "Not found", 404.
-        if int(job_id) not in user_jobs:
-            return ''
+    # If the job does not belong to the current user, returns "Not found", 404.
+    if int(job_id) not in user_jobs:
+        return ''
 
-        return user.api_key
+    return user.api_key
 
 
 def convert_folder_to_json(job_id: str) -> list:
