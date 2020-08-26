@@ -120,23 +120,24 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
 
 
 def get(job_id: str, user_id: str) -> Job:
-    base_q = get_db_session().query(Job)
-
-    if user_id == config.SCHEDULER_USER_ID:
-        # if our automation executing script - do not check the user
-        job_q = base_q.filter_by(id=job_id)
-    else:
-        job_q = base_q.filter_by(id=job_id, user_id=user_id)
-
-    job = job_q.one_or_none()
+    job = get_db_session().query(Job).filter_by(id=job_id, user_id=user_id).one_or_none()
 
     if job is None:
         raise JobNotFoundException("Job Not Found")
     return job
 
 
-def execute_by_schedule(job_id: str):
-    return execute(job_id, JobRunType.Schedule.value, config.SCHEDULER_USER_ID)
+def get_user_id_from_job(job_id: str):
+    job = get_db_session().query(Job).filter_by(id=job_id).one_or_none()
+
+    if job is None:
+        raise JobNotFoundException("Job Not Found")
+    else:
+        return job.user_id
+
+
+def execute_by_schedule(job_id: str, user_id: str):
+    return execute(job_id, JobRunType.Schedule.value, user_id)
 
 
 def execute_by_button(job_id: str, user_id: str):
@@ -150,7 +151,7 @@ def execute(job_id: str, trigger_type: str, user_id: str):
     job = get(job_id, user_id)
     job.status = JobStatus.Executing.value
 
-    exit_code = _trigger_job_run(job, trigger_type)
+    exit_code = _trigger_job_run(job, trigger_type, user_id)
 
     if exit_code == 0:
         job.status = JobStatus.Ok.value
@@ -204,7 +205,7 @@ def get_jobs_for_user(email: str):
     return user.jobs
 
 
-def _trigger_job_run(job: Job, trigger_type: str) -> Optional[int]:
+def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]:
     job_run = JobRun(job_id=job.id, type=trigger_type)
     get_db_session().add(job_run)
     get_db_session().commit()  # we need to have an id generated before we start writing logs
@@ -216,6 +217,7 @@ def _trigger_job_run(job: Job, trigger_type: str) -> Optional[int]:
             'job_run_id': str(job_run.id),
             'status': job_run.status
         },
+        user_id
     )
 
     job_entrypoint = job.entrypoint or config.DEFAULT_ENTRYPOINT
@@ -229,12 +231,12 @@ def _trigger_job_run(job: Job, trigger_type: str) -> Optional[int]:
         with executor.execute(path_to_job_files, job_entrypoint, job_requirements) as executor_result:
             logs, get_exit_code = executor_result.output, executor_result.get_exit_code
             for line in logs:
-                _create_log_entry(line, str(job.id), str(job_run.id))
+                _create_log_entry(line, str(job.id), str(job_run.id), user_id)
             exit_code = get_exit_code()
     except ExecutorBuildException as exc:
         logs, get_exit_code = (el for el in [str(exc)]), lambda: 1
         for line in logs:
-            _create_log_entry(line, str(job.id), str(job_run.id))
+            _create_log_entry(line, str(job.id), str(job_run.id), user_id)
         exit_code = get_exit_code()
 
     if exit_code == 0:
@@ -250,12 +252,13 @@ def _trigger_job_run(job: Job, trigger_type: str) -> Optional[int]:
             'job_run_id': str(job_run.id),
             'status': job_run.status
         },
+        user_id
     )
 
     return exit_code
 
 
-def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
+def _create_log_entry(log_msg: str, job_id: str, job_run_id: str, user_id: str):
     now = datetime.utcnow()
     job_run_log = JobRunLog(job_run_id=job_run_id, timestamp=now, message=log_msg)
 
@@ -266,7 +269,8 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str):
             'job_run_id': job_run_id,
             'message': log_msg,
             'timestamp': str(now)
-        }
+        },
+        user_id
     )
 
     get_db_session().add(job_run_log)
