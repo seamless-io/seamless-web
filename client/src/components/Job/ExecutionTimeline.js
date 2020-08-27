@@ -93,7 +93,7 @@ const ExecutionTimeline = ({
         <Row>
           <Col>
             <div className="smls-job-info-section-col">
-              <h5>Execution Timeline</h5>
+              <h5 className="smls-job-small-header">Execution Timeline</h5>
             </div>
           </Col>
         </Row>
@@ -103,7 +103,7 @@ const ExecutionTimeline = ({
         <Row>
           <Col sm={12}>
             <div className="smls-job-executiontimeline-logs-header">
-              <h5>Logs</h5>
+              <h5 className="smls-job-small-header">Logs</h5>
               {loadStreamingLogs()}
             </div>
           </Col>

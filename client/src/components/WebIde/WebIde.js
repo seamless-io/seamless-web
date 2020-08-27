@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Spinner } from 'react-bootstrap';
 
 import { getJobFolderStructure, getFileContent } from '../../api';
 import CodeEditor from './CodeEditor';
@@ -18,6 +18,8 @@ const WebIde = ({ jobId }) => {
   const [fileContent, setFileContent] = useState('');
   const [currentFile, setCurrentFile] = useState('');
   const [fileExtension, setFileExtension] = useState('');
+  const [loadingFolderTree, setLoadingFolderTree] = useState(false);
+  const [loadingCodeEditor, setLoadingCodeEditor] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -31,11 +33,14 @@ const WebIde = ({ jobId }) => {
   };
 
   useEffect(() => {
+    setLoadingFolderTree(true);
     getJobFolderStructure(jobId)
       .then(payload => {
         setFolderStructure(payload);
+        setLoadingFolderTree(false);
       })
       .catch(() => {
+        setLoadingFolderTree(false);
         displayNotification(
           true,
           'Ooops!',
@@ -45,14 +50,25 @@ const WebIde = ({ jobId }) => {
       });
   }, []);
 
+  const defineFileExtension = fileName => {
+    if (fileName.includes('Dockerfile')) {
+      return 'dockerfile';
+    }
+
+    return fileName.split('.')[1];
+  };
+
   const showFileContent = ({ name, filePath }) => {
-    setFileExtension(name.split('.')[1]);
+    setLoadingCodeEditor(true);
+    setFileExtension(defineFileExtension(name));
     setCurrentFile(name);
     getFileContent(jobId, name, filePath)
       .then(payload => {
         setFileContent(payload);
+        setLoadingCodeEditor(false);
       })
       .catch(() => {
+        setLoadingCodeEditor(false);
         displayNotification(
           true,
           'Ooops!',
@@ -60,6 +76,51 @@ const WebIde = ({ jobId }) => {
           'danger'
         );
       });
+  };
+
+  const renderFolderTree = () => {
+    if (loadingFolderTree) {
+      return (
+        <div className="smls-web-ide-spinner-container">
+          <Spinner animation="border" role="status" />
+        </div>
+      );
+    }
+
+    return (
+      <FolderTree data={folderStructure} showFileContent={showFileContent} />
+    );
+  };
+
+  const renderCodeEditor = () => {
+    if (loadingCodeEditor) {
+      return (
+        <div className="smls-web-ide-spinner-container">
+          <Spinner animation="border" role="status" />
+        </div>
+      );
+    }
+
+    if (currentFile) {
+      return (
+        <Col sm={12}>
+          <Row>
+            <Col>
+              <CodeEditor
+                fileContent={fileContent}
+                fileExtension={fileExtension}
+              />
+            </Col>
+          </Row>
+        </Col>
+      );
+    }
+
+    return (
+      <div className="smls-job-logs-initial-screen-container">
+        Select a file from the left sidebar to view the content.
+      </div>
+    );
   };
 
   return (
@@ -73,28 +134,23 @@ const WebIde = ({ jobId }) => {
           <Row>
             <Col>
               <div className="smls-job-info-section-col">
-                <h5>Project Tree</h5>
+                <h5 className="smls-web-ide-header">Project structure</h5>
               </div>
             </Col>
           </Row>
-          <FolderTree
-            data={folderStructure}
-            showFileContent={showFileContent}
-          />
+          {renderFolderTree()}
         </Col>
         <Col sm={8} className="smls-job-main-info-section">
           <Row>
             <Col sm={12}>
               <div className="smls-job-executiontimeline-logs-header">
-                <h5>{currentFile}</h5>
+                <h5 className="smls-web-ide-header">{currentFile}</h5>
+                <span className="smls-web-ide-header-read-only">
+                  {currentFile ? 'Read only' : ''}
+                </span>
               </div>
             </Col>
-            <Col sm={12}>
-              <CodeEditor
-                fileContent={fileContent}
-                fileExtension={fileExtension}
-              />
-            </Col>
+            {renderCodeEditor()}
           </Row>
         </Col>
       </Row>

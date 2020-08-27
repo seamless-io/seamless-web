@@ -238,7 +238,7 @@ const Job = () => {
     setShowIde(!showIde);
   };
 
-  const displayJobBody = showIde => {
+  const displayJobBody = () => {
     if (showIde) {
       return <WebIde jobId={job.id} />;
     } else {
@@ -288,7 +288,9 @@ const Job = () => {
               type="button"
               onClick={openIde}
             >
-              <span className="smls-job-web-ide-button-text">Web IDE</span>
+              <span className="smls-job-web-ide-button-text">
+                {showIde ? 'Logs' : 'Web IDE'}
+              </span>
             </button>
             <a href={downloadJobLink}>
               <button className="smls-job-download-code-button" type="button">
@@ -328,7 +330,7 @@ const Job = () => {
       </Row>
 
       {/* Displays the execution timeline with logs or the web ide */}
-      {displayJobBody(showIde)}
+      {displayJobBody()}
 
       <Notification
         show={showNotification}

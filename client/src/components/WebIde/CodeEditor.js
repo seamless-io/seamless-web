@@ -9,6 +9,7 @@ require('codemirror/mode/javascript/javascript.js');
 require('codemirror/mode/htmlmixed/htmlmixed.js');
 require('codemirror/mode/markdown/markdown.js');
 require('codemirror/mode/css/css.js');
+require('codemirror/mode/dockerfile/dockerfile.js');
 
 const FILE_MODE = {
   py: 'python',
@@ -16,6 +17,7 @@ const FILE_MODE = {
   html: 'htmlmixed',
   md: 'markdown',
   css: 'css',
+  dockerfile: 'dockerfile',
 };
 
 const CodeEditor = ({ fileContent, fileExtension }) => {

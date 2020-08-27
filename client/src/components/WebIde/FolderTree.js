@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import styled from 'styled-components';
-import { AiOutlineFile, AiOutlineFolder } from 'react-icons/ai';
+import { AiOutlineFile, AiFillFolder, AiFillFolderOpen } from 'react-icons/ai';
 import {
   DiPython,
   DiMarkdown,
@@ -47,10 +47,16 @@ const FolderTree = ({ data, showFileContent }) => {
       setIsOpen(!isOpen);
     };
 
+    const folderIcon = isOpen ? (
+      <AiFillFolderOpen color="#016bff" />
+    ) : (
+      <AiFillFolder color="#016bff" />
+    );
+
     return (
       <div className="smls-code-editor-styled-folder">
         <div className="folder--label" onClick={handleToggle}>
-          <AiOutlineFolder />
+          {folderIcon}
           <span>{name}</span>
         </div>
         <Collapsible isOpen={isOpen}>{children}</Collapsible>

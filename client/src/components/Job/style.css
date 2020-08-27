@@ -301,3 +301,8 @@
 .smls-job-logs-message {
   font-size: 12px;
 }
+
+.smls-job-small-header {
+  font-size: 16px;
+  font-weight: bold;
+}

@@ -1,12 +1,23 @@
 .smls-code-editor-styled-tree {
   line-height: 1.5;
+  min-height: 350px;
+  max-height: 350px;
+  overflow: auto;
 }
 
 .smls-code-editor-styled-file {
-  padding-left: 20px;
+  padding-left: 13px;
   display: flex;
   align-items: center;
   cursor: pointer;
+  height: 32px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.smls-code-editor-styled-file:hover {
+  background-color: #f1f3f4;
 }
 
 .smls-code-editor-styled-file span {
@@ -14,13 +25,21 @@
 }
 
 .smls-code-editor-styled-folder {
-  padding-left: 20px;
+  padding-left: 13px;
   cursor: pointer;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.folder--label:hover {
+  background-color: #f1f3f4;
 }
 
 .folder--label {
   display: flex;
   align-items: center;
+  height: 32px;
 }
 
 .folder--label span {
@@ -33,5 +52,24 @@
 
 .smls-code-editor-window .CodeMirror {
   min-height: 350px;
+  max-height: 350px;
   overflow: auto;
+}
+
+.smls-web-ide-spinner-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.smls-web-ide-header {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.smls-web-ide-header-read-only {
+  font-size: 16px;
+  font-style: italic;
+  color: #bec4cc;
 }
