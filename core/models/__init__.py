@@ -1,10 +1,15 @@
 import os
 
+from flask import has_app_context
+from flask_sqlalchemy_session import flask_scoped_session
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 DB_PREFIX = 'SEAMLESS'
 EXISTING_DB = ('SEAMLESS', 'INTEGRATION_TEST')
+
+flask_db_session = None
+non_flask_db_session = None
 
 
 def get_sqlalchemy_url(db_prefix):
@@ -38,3 +43,20 @@ def _get_engine(db_prefix):
 
 def get_session_factory(db_prefix=DB_PREFIX):
     return sessionmaker(bind=_get_engine(db_prefix))
+
+
+def get_db_session():
+    if has_app_context():
+        # This branch is used when we're working in the scope of Flask app
+        global flask_db_session
+        if not flask_db_session:
+            from application import application
+            flask_db_session = flask_scoped_session(get_session_factory(), application)
+        return flask_db_session
+    else:
+        # We use a different session if we're outside of Flask app,
+        # for example running our code in a separate Thread
+        global non_flask_db_session
+        if not non_flask_db_session:
+            non_flask_db_session = scoped_session(get_session_factory(DB_PREFIX))()
+        return non_flask_db_session

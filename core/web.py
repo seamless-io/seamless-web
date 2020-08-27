@@ -1,18 +1,19 @@
 import json
 import os
 from functools import wraps
+from time import sleep
 from urllib.parse import urlencode
 
 import jinja2
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import Flask, render_template, session, url_for, redirect, jsonify
-from flask_sqlalchemy_session import flask_scoped_session
+from sqlalchemy.orm.exc import NoResultFound
 
-from app_config import Config
 import config
+from app_config import Config
 from core.apis.auth0.auth import CoreAuthError
-from core.models import get_session_factory
+from core.models import get_db_session
 from core.models.users import User
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
@@ -24,20 +25,9 @@ APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
 
-db_session = None
 
-
-class DbSessionNotReadyException(Exception):
+class CannotFindSignedUpUserException(Exception):
     pass
-
-
-def get_db_session():
-    global db_session
-    if not db_session:
-        raise DbSessionNotReadyException('The db session for working in a Flask application'
-                                         'was requested before the Flask app is initialized.')
-    else:
-        return db_session
 
 
 def requires_auth(f):
@@ -54,9 +44,6 @@ def create_app():
     app = Flask(__name__, static_folder=CLIENT_DIR, static_url_path='/static')
     app.config.from_object(Config)
     app.jinja_loader = jinja2.FileSystemLoader([TEMPLATES_DIR, CLIENT_DIR])
-
-    global db_session
-    db_session = flask_scoped_session(get_session_factory(), app)
 
     from core.apis.jobs import jobs_bp
     app.register_blueprint(jobs_bp, url_prefix=CLIENT_API)
@@ -89,7 +76,18 @@ def create_app():
 
         session['jwt_payload'] = userinfo
 
-        internal_user_id = User.get_user_from_email(userinfo['email'], db_session).id
+        internal_user_id = None
+        for i in range(3):  # Try 3 times
+            try:
+                internal_user_id = User.get_user_from_email(userinfo['email'], get_db_session()).id
+            except NoResultFound:
+                sleep(1)  # when the user is signing up, we write asynchronously to the db, so we may need a delay
+            if internal_user_id:
+                break
+
+        if not internal_user_id:
+            raise CannotFindSignedUpUserException(f"We cannot find the user {userinfo} in our database."
+                                                  f"Maybe the user registration endpoint failed.")
 
         session['profile'] = {
             'user_id': userinfo['sub'],

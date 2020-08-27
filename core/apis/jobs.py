@@ -1,6 +1,7 @@
 import logging
+from threading import Thread
 
-from flask import Blueprint, Response, jsonify, session, request, send_file
+from flask import Blueprint, Response, jsonify, session, request, send_file, current_app
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -8,6 +9,7 @@ import config
 
 import core.services.job as job_service
 import core.services.user as user_service
+from core import helpers
 from core.helpers import row2dict
 from core.web import requires_auth
 
@@ -122,7 +124,7 @@ def create_job():
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
-    except job_service.InvalidCronException as e:
+    except helpers.InvalidCronException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
 
     return jsonify({'job_id': job.id,
@@ -137,8 +139,20 @@ def run_job_by_schedule():
     """
     job_id = request.json['job_id']
     logging.info(f"Running job {job_id} based on schedule")
-    job_service.execute_by_schedule(job_id)
-    return f"Running job {job_id}", 200
+
+    # Since this is not triggered by the user from website or CLI, we don't have the user_id in the session.
+    # Thus we need to get it from the job directly.
+    user_id = job_service.get_user_id_from_job(job_id)
+
+    def background_task(app):
+        # Without Flask app context we cannot use the socket connection
+        with app.app_context():
+            job_service.execute_by_schedule(job_id, user_id)
+
+    thread = Thread(target=background_task, args=[current_app._get_current_object()])
+    thread.start()
+
+    return f"Running job {job_id}", 202
 
 
 @jobs_bp.route('/jobs/<job_id>/run', methods=['POST'])
