@@ -125,11 +125,11 @@ const WebIde = ({ jobId }) => {
 
   return (
     <>
-      <Row className="smls-job-main-info">
+      <Row className="smls-job-main-info" style={{ marginTop: '0px' }}>
         <Col
-          sm={4}
+          sm={3}
           className="smls-job-main-info-section"
-          style={{ borderRight: '2px solid #ebedf0' }}
+          style={{ borderRight: '1px solid #ebedf0' }}
         >
           <Row>
             <Col>
@@ -140,7 +140,7 @@ const WebIde = ({ jobId }) => {
           </Row>
           {renderFolderTree()}
         </Col>
-        <Col sm={8} className="smls-job-main-info-section">
+        <Col sm={9} className="smls-job-main-info-section">
           <Row>
             <Col sm={12}>
               <div className="smls-job-executiontimeline-logs-header">

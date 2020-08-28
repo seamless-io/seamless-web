@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Row, Col, Spinner } from 'react-bootstrap';
+import { Row, Col, Spinner, Modal } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 import moment from 'moment';
+import { AiOutlineCode } from 'react-icons/ai';
 
 import { socket } from '../../socket';
 import {
@@ -49,7 +50,7 @@ const Job = () => {
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
   const [notificationAlertType, setNotificationAlertType] = useState('');
-  const [showIde, setShowIde] = useState(false);
+  const [showCode, setShowCode] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -235,26 +236,7 @@ const Job = () => {
   };
 
   const openIde = () => {
-    setShowIde(!showIde);
-  };
-
-  const displayJobBody = () => {
-    if (showIde) {
-      return <WebIde jobId={job.id} />;
-    } else {
-      return (
-        <ExecutionTimeline
-          loadingExecutionTimeLine={loadingExecutionTimeLine}
-          lastFiveExecutions={lastFiveExecutions}
-          nextExecution={nextExecution}
-          logs={statusRun === 'EXECUTING' ? streamingLogs : historyLogs}
-          showLogs={showLogs}
-          loadingLogs={loadingLogs}
-          activeItem={activeItem}
-          loadingStreamingLogs={loadingStreamingLogs}
-        />
-      );
-    }
+    setShowCode(!showCode);
   };
 
   if (loading) {
@@ -288,9 +270,8 @@ const Job = () => {
               type="button"
               onClick={openIde}
             >
-              <span className="smls-job-web-ide-button-text">
-                {showIde ? 'Logs' : 'Web IDE'}
-              </span>
+              <AiOutlineCode />
+              <span className="smls-job-web-ide-button-text">Show code</span>
             </button>
             <a href={downloadJobLink}>
               <button className="smls-job-download-code-button" type="button">
@@ -328,10 +309,16 @@ const Job = () => {
           </div>
         </Col>
       </Row>
-
-      {/* Displays the execution timeline with logs or the web ide */}
-      {displayJobBody()}
-
+      <ExecutionTimeline
+        loadingExecutionTimeLine={loadingExecutionTimeLine}
+        lastFiveExecutions={lastFiveExecutions}
+        nextExecution={nextExecution}
+        logs={statusRun === 'EXECUTING' ? streamingLogs : historyLogs}
+        showLogs={showLogs}
+        loadingLogs={loadingLogs}
+        activeItem={activeItem}
+        loadingStreamingLogs={loadingStreamingLogs}
+      />
       <Notification
         show={showNotification}
         closeNotification={closeNotification}
@@ -339,6 +326,19 @@ const Job = () => {
         body={notificationBody}
         alertType={notificationAlertType}
       />
+
+      <Modal
+        show={showCode}
+        onHide={() => setShowCode(!showCode)}
+        dialogClassName="smls-web-ide-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <WebIde jobId={job.id} />
+        </Modal.Body>
+      </Modal>
     </>
   );
 };
