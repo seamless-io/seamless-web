@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from core.api_key import generate_api_key
 from core.apis.auth0.auth import requires_auth
+from core.models import db_commit
 from core.models.users import User
 from config import TELEGRAM_BOT_API_KEY, TELEGRAM_CHANNEL_ID, STAGE
 from core.web import get_db_session
@@ -21,7 +22,7 @@ def add_user_to_db(email):
                 api_key=generate_api_key())
     db_session = get_db_session()
     db_session.add(user)
-    db_session.commit()
+    db_commit()
     return user.id
 
 

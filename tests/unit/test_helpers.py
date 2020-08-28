@@ -1,6 +1,6 @@
 import pytest
 
-from core.helpers import parse_cron, InvalidCronException
+from helpers import parse_cron, InvalidCronException
 
 
 def test_parse_cron():

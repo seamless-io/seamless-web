@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.orm import scoped_session
 
 from core.api_key import generate_api_key
-from core.helpers import row2dict
+from helpers import row2dict
 from core.models import get_session_factory
 from core.models.users import User
 
