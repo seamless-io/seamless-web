@@ -1,8 +1,8 @@
 # TODO: all errors from executor internal functionality should be caught and processed accordingly
 # TODO: add periodic task to clean-up images: docker_client.images.prune(filters={'dangling': True})
+import contextlib
 import logging
 import os
-import contextlib
 from dataclasses import dataclass
 from typing import Optional, Generator, Any, Callable
 
@@ -15,8 +15,7 @@ from sentry_sdk import capture_exception
 from .exceptions import ExecutorBuildException
 
 DOCKER_FILE_NAME = "Dockerfile"
-REQUIREMENTS_FILENAME = "requirements.txt"
-JOB_LOGS_RETENTION_DAYS = 1
+
 
 @dataclass
 class ExecuteResult:
@@ -35,12 +34,14 @@ class ExecuteResult:
 @contextlib.contextmanager
 def execute(path_to_job_files: str,
             entrypoint_filename: str,
-            path_to_requirements: Optional[str] = None) -> Generator[ExecuteResult, Any, None]:
+            path_to_requirements: Optional[str] = None,
+            tag: Optional[str] = None) -> Generator[ExecuteResult, Any, None]:
     """
     Executing in docker container
     :param path_to_job_files: path to job files
     :param entrypoint: entrypoint provided by a user
     :param path_to_requirements: path to requirements provided by a user
+    :param tag: used to tag docker containers
     :return an instance of ExecuteResult
     """
     # TODO: make separation between requirements_absolute and relative
@@ -51,7 +52,7 @@ def execute(path_to_job_files: str,
     else:
         check_entrypoint_file(path_to_job_files, entrypoint_filename)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
-    with _run_container(path_to_job_files, entrypoint_filename, requirements_path) as container:
+    with _run_container(path_to_job_files, entrypoint_filename, requirements_path, tag) as container:
 
         def get_exit_code() -> int:
             return container.wait()['StatusCode']
@@ -121,7 +122,10 @@ def _ensure_requirements(job_directory: str, requirements: Optional[str]):
 
 
 @contextlib.contextmanager
-def _run_container(job_directory: str, entrypoint_filename: str, path_to_requirements: str) -> Container:
+def _run_container(job_directory: str,
+                   entrypoint_filename: str,
+                   path_to_requirements: str,
+                   tag: Optional[str]) -> Container:
     dockerfile_contents = f"""
 FROM python:3.8-slim
 WORKDIR /src
@@ -172,6 +176,7 @@ RUN pip install -r requirements.txt
             detach=True,
             mem_limit='128m',
             memswap_limit='128m',
+            name=tag
         )
     except Exception as exc:
         # catch

@@ -1,12 +1,16 @@
 import contextlib
 import os
 from datetime import datetime
-from typing import Optional, List
+from time import time
+from typing import Optional, List, Tuple
 
+from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import FileStorage
 
 import config
-from core.helpers import get_cron_next_execution, parse_cron
+from helpers import get_cron_next_execution, parse_cron, get_random_string
+from core.models import JobParameter, db_commit
+from core.models.job_parameters import PARAMETERS_LIMIT_PER_JOB
 from core.models.job_run_logs import JobRunLog
 from core.models.job_runs import JobRun, JobRunStatus, JobRunType
 from core.models.jobs import Job, JobStatus
@@ -18,6 +22,7 @@ from job_executor.exceptions import ExecutorBuildException
 from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_from_s3
 from job_executor.scheduler import remove_job_schedule, enable_job_schedule, disable_job_schedule
 
+CONTAINER_NAME_PREFIX = "SEAMLESS_JOB"
 EXECUTION_TIMELINE_HISTORY_LIMIT = 5
 
 
@@ -27,6 +32,22 @@ class JobNotFoundException(Exception):
 
 class JobsQuotaExceededException(Exception):
     pass
+
+
+class JobsParametersLimitExceededException(Exception):
+    pass
+
+
+class DuplicateParameterKeyException(Exception):
+    pass
+
+
+class ParameterNotFoundException(Exception):
+    pass
+
+
+def _generate_container_name(job_id, user_id):
+    return f'{CONTAINER_NAME_PREFIX}_{job_id}_USER_{user_id}_{time()}_{get_random_string(6)}'
 
 
 def _check_user_quotas_for_job_creation(user: User):
@@ -89,7 +110,7 @@ def delete(name: str, user: User):
     remove_project_from_s3(job_id)
 
     get_db_session().delete(job)
-    get_db_session().commit()
+    db_commit()
     return job_id
 
 
@@ -101,7 +122,7 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
         _check_user_quotas_for_job_creation(user)
         job = _create_job(name, cron, entrypoint, requirements, user.id)
 
-    get_db_session().commit()
+    db_commit()
     job.schedule_job()
 
     project.create(project_file, user.api_key, JobType.PUBLISHED, str(job.id))
@@ -148,7 +169,7 @@ def execute(job_id: str, trigger_type: str, user_id: str):
     else:
         job.status = JobStatus.Failed.value
 
-    get_db_session().commit()
+    db_commit()
 
 
 def get_next_executions(job_id: str, user_id: str) -> Optional[str]:
@@ -180,14 +201,14 @@ def enable_schedule(job_id: str, user_id: str):
     job = get(job_id, user_id)
     enable_job_schedule(job_id)
     job.schedule_is_active = True
-    get_db_session().commit()
+    db_commit()
 
 
 def disable_schedule(job_id: str, user_id: str):
     job = get(job_id, user_id)
     disable_job_schedule(job_id)
     job.schedule_is_active = False
-    get_db_session().commit()
+    db_commit()
 
 
 def get_jobs_for_user(email: str):
@@ -195,10 +216,44 @@ def get_jobs_for_user(email: str):
     return user.jobs
 
 
+def get_parameters_for_job(job_id: str, user_id: str) -> List[JobParameter]:
+    job = get(job_id, user_id)
+    return job.parameters
+
+
+def add_parameters_to_job(job_id: str, user_id: str, parameters: List[Tuple[str, str]]):
+    job = get(job_id, user_id)
+    if len(list(job.parameters)) + len(parameters) > PARAMETERS_LIMIT_PER_JOB:
+        raise JobsParametersLimitExceededException(f"You cannot have more than {PARAMETERS_LIMIT_PER_JOB} "
+                                                   f"Parameters per single Job.")
+    for key, value in parameters:
+        parameter = JobParameter(job_id=job.id, key=key, value=value)
+        get_db_session().add(parameter)
+    try:
+        db_commit()
+    except IntegrityError as e:
+        # Potential duplicate Key value. Let's check.
+        existing_keys = set([parameter.key for parameter in job.parameters])
+        new_keys = set([key for key, value in parameters])
+        duplicate_keys = set.intersection(existing_keys, new_keys)
+        if len(duplicate_keys) > 0:
+            raise DuplicateParameterKeyException("Parameter with the same Key already exists.")
+        else:
+            raise e
+
+
+def delete_job_parameter(job_id: str, user_id: str, parameter_id: str):
+    job = get(job_id, user_id)
+    affected_rows = job.parameters.filter_by(id=parameter_id).delete()
+    if affected_rows == 0:
+        raise ParameterNotFoundException(f'Cannot delete parameter {parameter_id}: Not Found')
+    db_commit()
+
+
 def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]:
     job_run = JobRun(job_id=job.id, type=trigger_type)
     get_db_session().add(job_run)
-    get_db_session().commit()  # we need to have an id generated before we start writing logs
+    db_commit()  # we need to have an id generated before we start writing logs
 
     send_update(
         'status',
@@ -218,7 +273,10 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
         restore_project_from_s3(path_to_job_files, str(job.id))
 
     try:
-        with executor.execute(path_to_job_files, job_entrypoint, job_requirements) as executor_result:
+        with executor.execute(path_to_job_files,
+                              job_entrypoint,
+                              job_requirements,
+                              _generate_container_name(str(job.id), user_id)) as executor_result:
             logs, get_exit_code = executor_result.output, executor_result.get_exit_code
             for line in logs:
                 _create_log_entry(line, str(job.id), str(job_run.id), user_id)
@@ -233,7 +291,7 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
         job_run.status = JobRunStatus.Ok.value
     else:
         job_run.status = JobRunStatus.Failed.value
-    get_db_session().commit()
+    db_commit()
 
     send_update(
         'status',
@@ -270,7 +328,10 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str, user_id: str):
 def execute_standalone(entrypoint: str, requirements: str, project_file: FileStorage, user: User):
     try:
         project_path = project.create(project_file, user.api_key, JobType.RUN)
-        with executor.execute(project_path, entrypoint, requirements) as execute_result:
+        with executor.execute(project_path,
+                              entrypoint,
+                              requirements,
+                              _generate_container_name('STANDALONE', str(user.id))) as execute_result:
             logs, get_exit_code = execute_result.output, execute_result.get_exit_code
             yield (logs, get_exit_code)
     except (ExecutorBuildException, ProjectValidationError) as exc:

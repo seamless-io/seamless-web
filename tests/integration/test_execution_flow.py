@@ -15,15 +15,13 @@ def path_to_project():
 @mock.patch('core.services.job.project.get_path_to_job', return_value=path_to_project())
 def test_execution_flow(get_path, send_update, session_id):
     pass  # TODO make it work
-    # session = get_session()
-    #
-    # job_runs_count_initial = session.query(JobRun).count()
+    # job_runs_count_initial = get_db_session().query(JobRun).count()
     #
     # # create job we want to execute later
     # job = Job(user_id=1, name=f'another_test_name_{session_id}',
     #           entrypoint='main_module.read_news', requirements='custom_requirements.txt')
-    # session.add(job)
-    # session.commit()
+    # get_db_session().add(job)
+    # db_commit()
     #
     # job_service.execute(job.id, JobRunType.RunButton.value, '1')
     #

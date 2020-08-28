@@ -5,6 +5,12 @@ from flask_sqlalchemy_session import flask_scoped_session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
+from .users import User
+from .jobs import Job
+from .job_runs import JobRun
+from .job_run_logs import JobRunLog
+from .job_parameters import JobParameter
+
 DB_PREFIX = 'SEAMLESS'
 EXISTING_DB = ('SEAMLESS', 'INTEGRATION_TEST')
 
@@ -60,3 +66,14 @@ def get_db_session():
         if not non_flask_db_session:
             non_flask_db_session = scoped_session(get_session_factory(DB_PREFIX))()
         return non_flask_db_session
+
+
+def db_commit():
+    """
+    https://stackoverflow.com/questions/8870217/why-do-i-get-sqlalchemy-nested-rollback-error
+    """
+    try:
+        get_db_session().commit()
+    except Exception as e:
+        get_db_session().rollback()
+        raise e

@@ -9,8 +9,8 @@ import config
 
 import core.services.job as job_service
 import core.services.user as user_service
-from core import helpers
-from core.helpers import row2dict
+import helpers
+from helpers import row2dict
 from core.web import requires_auth
 
 from job_executor import project
@@ -218,6 +218,41 @@ def get_next_job_execution(job_id):
     else:
         rv = next_execution
     return jsonify({"result": rv}), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/parameters', methods=['GET'])
+@requires_auth
+def get_job_parameters(job_id: str):
+    parameters = job_service.get_parameters_for_job(job_id, session['profile']['internal_user_id'])
+    parameters = [row2dict(parameter) for parameter in parameters]
+    return jsonify(parameters), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/parameters', methods=['POST'])
+@requires_auth
+def add_job_parameter(job_id: str):
+    data = request.json
+    key = data.get('key')
+    value = data.get('value')
+    if not (key and value):
+        return Response('The payload is not valid, it needs to have both name and value', 400)
+    try:
+        job_service.add_parameters_to_job(job_id, session['profile']['internal_user_id'], [(key, value)])
+    except job_service.JobsParametersLimitExceededException as e:
+        return Response(str(e), 400)
+    except job_service.DuplicateParameterKeyException as e:
+        return Response(str(e), 400)
+    return 'Successfully added a new parameter', 200
+
+
+@jobs_bp.route('/jobs/<job_id>/parameters/<parameter_id>', methods=['DELETE'])
+@requires_auth
+def delete_job_parameter(job_id: str, parameter_id: str):
+    try:
+        job_service.delete_job_parameter(job_id, session['profile']['internal_user_id'], parameter_id)
+    except job_service.ParameterNotFoundException as e:
+        return Response(str(e), 404)
+    return f'Successfully delete parameter {parameter_id}', 200
 
 
 @jobs_bp.errorhandler(job_service.JobNotFoundException)

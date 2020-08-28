@@ -31,6 +31,8 @@ class Job(base):
     user = relationship("User", back_populates="jobs")
     runs = relationship("JobRun", cascade="all,delete", back_populates="job",
                         order_by="desc(JobRun.created_at)", lazy='dynamic')
+    parameters = relationship("JobParameter", cascade="all,delete",
+                              back_populates="job", lazy='dynamic')
 
     name = Column(Text, nullable=False)
     # Alembic does not work very well with native postgres Enum type so the status column is Text

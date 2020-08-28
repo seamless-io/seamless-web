@@ -4,7 +4,7 @@ from time import sleep
 
 import requests
 
-from core.helpers import row2dict
+from helpers import row2dict
 from core.models.job_runs import JobRunStatus
 from core.models.jobs import Job
 from load_test.conftest import db_session

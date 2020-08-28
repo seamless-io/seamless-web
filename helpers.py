@@ -1,10 +1,10 @@
+import random
+import string
 from datetime import datetime
 from typing import Tuple
 
 from cron_descriptor import FormatException
-
 from cron_descriptor import get_description
-
 # https://stackoverflow.com/questions/1958219/convert-sqlalchemy-row-object-to-python-dict
 from croniter import croniter
 
@@ -76,3 +76,11 @@ class CronConversionException(Exception):
 def get_cron_next_execution(expression: str) -> str:
     cron = croniter(expression, datetime.utcnow())
     return cron.get_next(datetime).strftime('%B %d, %Y, %H:%M:%S')
+
+
+def time_diff_in_seconds(t1, t2):
+    return (t2 - t1).total_seconds()
+
+
+def get_random_string(n):
+    return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(n))
