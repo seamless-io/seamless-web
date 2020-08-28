@@ -272,7 +272,7 @@ def get_job_code_json(job_id: str):
 @jobs_bp.route('/jobs/<job_id>/folder/<file_name>', methods=['GET'])
 @requires_auth
 def get_job_file(job_id: str, file_name: str):
-    file_path = request.args.get('file_path')
+    file_path = str(request.args.get('file_path'))
     file_content = get_file_content(job_id, file_path)
     if file_content is not None:
         return jsonify(file_content), 200
