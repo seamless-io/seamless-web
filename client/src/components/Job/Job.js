@@ -271,7 +271,7 @@ const Job = () => {
               onClick={openIde}
             >
               <AiOutlineCode />
-              <span className="smls-job-web-ide-button-text">Show code</span>
+              <span className="smls-job-web-ide-button-text">Show Code</span>
             </button>
             <a href={downloadJobLink}>
               <button className="smls-job-download-code-button" type="button">
