@@ -99,4 +99,10 @@ const FolderTree = ({ data, showFileContent }) => {
   );
 };
 
-export default FolderTree;
+function folderPropsAreEqual(prevProps, nextProps) {
+  return prevProps.data === nextProps.data;
+}
+
+const MemorizedTree = React.memo(FolderTree, folderPropsAreEqual);
+
+export default MemorizedTree;

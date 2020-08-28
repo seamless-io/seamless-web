@@ -4,7 +4,7 @@ import { Row, Col, Spinner } from 'react-bootstrap';
 
 import { getJobFolderStructure, getFileContent } from '../../api';
 import CodeEditor from './CodeEditor';
-import FolderTree from './FolderTree';
+import MemorizedTree from './FolderTree';
 import Notification from '../Notification/Notification';
 
 import './style.css';
@@ -88,7 +88,7 @@ const WebIde = ({ jobId }) => {
     }
 
     return (
-      <FolderTree data={folderStructure} showFileContent={showFileContent} />
+      <MemorizedTree data={folderStructure} showFileContent={showFileContent} />
     );
   };
 
