@@ -2,7 +2,7 @@ import contextlib
 import os
 from datetime import datetime
 from time import time
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import FileStorage
@@ -275,6 +275,7 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
     try:
         with executor.execute(path_to_job_files,
                               job_entrypoint,
+                              job.get_parameters_as_dict(),
                               job_requirements,
                               _generate_container_name(str(job.id), user_id)) as executor_result:
             logs, get_exit_code = executor_result.output, executor_result.get_exit_code
@@ -325,11 +326,16 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str, user_id: str):
 
 
 @contextlib.contextmanager
-def execute_standalone(entrypoint: str, requirements: str, project_file: FileStorage, user: User):
+def execute_standalone(entrypoint: str,
+                       requirements: str,
+                       project_file: FileStorage,
+                       user: User):
+    parameters: Dict[str, str] = {}  # TODO implement a way to pass parameters during `smls run`
     try:
         project_path = project.create(project_file, user.api_key, JobType.RUN)
         with executor.execute(project_path,
                               entrypoint,
+                              parameters,
                               requirements,
                               _generate_container_name('STANDALONE', str(user.id))) as execute_result:
             logs, get_exit_code = execute_result.output, execute_result.get_exit_code

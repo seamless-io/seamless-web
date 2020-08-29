@@ -4,7 +4,7 @@ import contextlib
 import logging
 import os
 from dataclasses import dataclass
-from typing import Optional, Generator, Any, Callable
+from typing import Optional, Generator, Any, Callable, Dict
 
 import docker
 from docker.errors import BuildError
@@ -34,12 +34,14 @@ class ExecuteResult:
 @contextlib.contextmanager
 def execute(path_to_job_files: str,
             entrypoint_filename: str,
+            parameters: Dict[str, str],
             path_to_requirements: Optional[str] = None,
             tag: Optional[str] = None) -> Generator[ExecuteResult, Any, None]:
     """
     Executing in docker container
     :param path_to_job_files: path to job files
     :param entrypoint: entrypoint provided by a user
+    :param parameters: environment variables used in the job
     :param path_to_requirements: path to requirements provided by a user
     :param tag: used to tag docker containers
     :return an instance of ExecuteResult
@@ -52,7 +54,7 @@ def execute(path_to_job_files: str,
     else:
         check_entrypoint_file(path_to_job_files, entrypoint_filename)
     requirements_path = _ensure_requirements(path_to_job_files, path_to_requirements)
-    with _run_container(path_to_job_files, entrypoint_filename, requirements_path, tag) as container:
+    with _run_container(path_to_job_files, entrypoint_filename, requirements_path, parameters, tag) as container:
 
         def get_exit_code() -> int:
             return container.wait()['StatusCode']
@@ -125,6 +127,7 @@ def _ensure_requirements(job_directory: str, requirements: Optional[str]):
 def _run_container(job_directory: str,
                    entrypoint_filename: str,
                    path_to_requirements: str,
+                   parameters: Dict[str, str],
                    tag: Optional[str]) -> Container:
     dockerfile_contents = f"""
 FROM python:3.8-slim
@@ -176,7 +179,8 @@ RUN pip install -r requirements.txt
             detach=True,
             mem_limit='128m',
             memswap_limit='128m',
-            name=tag
+            name=tag,
+            environment=parameters
         )
     except Exception as exc:
         # catch

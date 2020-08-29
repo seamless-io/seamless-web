@@ -29,7 +29,8 @@ def entrypoint_to_corrupted_program():
 
 def test_execute_succesfull(path_to_project, path_to_requirements, entrypoint):
     # we are reading from https://en.wikipedia.org/wiki/List_of_news_media_APIs
-    with executor.execute(path_to_project, entrypoint, path_to_requirements) as res:
+    parameters = {}
+    with executor.execute(path_to_project, entrypoint, parameters, path_to_requirements) as res:
         assert "List of news media APIs" in ''.join(list(res.output))
         assert res.get_exit_code() == 0
 
@@ -37,7 +38,8 @@ def test_execute_succesfull(path_to_project, path_to_requirements, entrypoint):
 @pytest.mark.skip(reason="We do not handle return values yet")
 def test_execute_succesfull_return_value(path_to_project, path_to_requirements, entrypoint):
     # we are reading from https://en.wikipedia.org/wiki/List_of_news_media_APIs
-    with executor.execute(path_to_project, entrypoint, path_to_requirements) as res:
+    parameters = {}
+    with executor.execute(path_to_project, entrypoint, parameters, path_to_requirements) as res:
         return_value_from_function = "Everything is alright"
         assert return_value_from_function in ''.join(res.output)
 
@@ -47,18 +49,20 @@ def test_execute_wrong_entrypoint_file(path_to_project, path_to_requirements):
     # # TODO: add suggestions later:
     # # * "... did you provide a path to the file correctly?
     # # * Maybe you meant: function.py"
+    parameters = {}
     exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Path to entrypoint file is not valid: "
                         f"`{wrong_entrypoint_filename}`")
     with pytest.raises(ExecutorBuildException, match=exc_msg):
-        with executor.execute(path_to_project, wrong_entrypoint_filename, path_to_requirements) as res:
+        with executor.execute(path_to_project, wrong_entrypoint_filename, parameters, path_to_requirements) as res:
             print(f"ok {res}")
 
 
 def test_execute_wrong_requirements(path_to_project, entrypoint):
     wrong_requirements_path = 'requirements_wrong.txt'
     exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Cannot find requirements file `{wrong_requirements_path}`")
+    parameters = {}
     with pytest.raises(ExecutorBuildException, match=exc_msg):
-        with executor.execute(path_to_project, entrypoint, wrong_requirements_path) as res:
+        with executor.execute(path_to_project, entrypoint, parameters, wrong_requirements_path) as res:
             print(f"ok {res}")
 
 
@@ -71,13 +75,15 @@ def test_execute_wrong_project_path(entrypoint, path_to_requirements):
 
 
 def test_execute_project_with_error(path_to_project, entrypoint_to_corrupted_program, path_to_requirements):
-    with executor.execute(path_to_project, entrypoint_to_corrupted_program, path_to_requirements) as res:
+    parameters = {}
+    with executor.execute(path_to_project, entrypoint_to_corrupted_program, parameters, path_to_requirements) as res:
         assert "Traceback" in ''.join(res.output)
         assert res.get_exit_code() == 1
 
 
 def test_legacy_entrypoint(path_to_project, path_to_requirements):
     legacy_entrypoint = 'function.main'
-    with executor.execute(path_to_project, legacy_entrypoint, path_to_requirements) as res:
+    parameters = {}
+    with executor.execute(path_to_project, legacy_entrypoint, parameters, path_to_requirements) as res:
         assert "List of news media APIs" in ''.join(list(res.output))
         assert res.get_exit_code() == 0
