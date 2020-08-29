@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from core.api_key import generate_api_key
 from core.apis.auth0.auth import requires_auth
+from core.emails.client import send_welcome_email
 from core.models import db_commit
 from core.models.users import User
 from config import TELEGRAM_BOT_API_KEY, TELEGRAM_CHANNEL_ID, STAGE
@@ -56,6 +57,7 @@ def auth0_webhook():
             message = f'New user {email} (id: {user_id}) signed up!'
             if STAGE == 'prod':
                 send_telegram_message(email)
+                send_welcome_email(email)
         except IntegrityError as e:
             if 'duplicate key value violates unique constraint "ix_users_email"' in str(e):
                 message = f'The user {email} signed in using different method than during the signup'
