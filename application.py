@@ -11,7 +11,7 @@ from sentry_sdk import capture_exception
 from sentry_sdk.integrations.flask import FlaskIntegration
 from timeloop import Timeloop
 
-from config import SENTRY_DSN
+from config import SENTRY_DSN, STAGE
 from core.services.job import CONTAINER_NAME_PREFIX
 from core.telegram.client import send_daily_stats
 from core.web import create_app
@@ -57,13 +57,14 @@ def kill_containers_over_time_limit():
 
 @tl.job(interval=timedelta(hours=1))
 def send_daily_stats_to_telegram():
-    try:
-        if datetime.utcnow().hour == 12:  # every day at 12:00 UTC
-            send_daily_stats()
-    except Exception as e:
-        # We don't want the periodic task to shut down if some of its executions had an Exception
-        logging.error(e)
-        capture_exception(e)
+    if STAGE == 'prod':
+        try:
+            if datetime.utcnow().hour == 12:  # every day at 12:00 UTC
+                send_daily_stats()
+        except Exception as e:
+            # We don't want the periodic task to shut down if some of its executions had an Exception
+            logging.error(e)
+            capture_exception(e)
 
 
 @socketio.on('connect', namespace='/socket')
