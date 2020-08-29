@@ -13,6 +13,7 @@ from timeloop import Timeloop
 
 from config import SENTRY_DSN
 from core.services.job import CONTAINER_NAME_PREFIX
+from core.telegram.client import send_daily_stats
 from core.web import create_app
 from helpers import time_diff_in_seconds
 
@@ -48,6 +49,17 @@ def kill_containers_over_time_limit():
                 logging.info(f"Shutting down container {container.name} "
                              f"because it's running for {running_time_seconds} seconds")
                 container.kill()
+    except Exception as e:
+        # We don't want the periodic task to shut down if some of its executions had an Exception
+        logging.error(e)
+        capture_exception(e)
+
+
+@tl.job(interval=timedelta(hours=1))
+def send_daily_stats_to_telegram():
+    try:
+        if datetime.utcnow().hour == 12:  # every day at 12:00 UTC
+            send_daily_stats()
     except Exception as e:
         # We don't want the periodic task to shut down if some of its executions had an Exception
         logging.error(e)
