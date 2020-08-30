@@ -14,7 +14,6 @@ import boto3
 from werkzeug.datastructures import FileStorage
 
 from config import STAGE
-from core.services.job import restore_project_if_not_exists
 from core.services.user import is_valid_user
 
 ALLOWED_EXTENSION = "tar.gz"
@@ -104,6 +103,14 @@ def _extract_file_path(path: str, api_key: str, job_id: str) -> str:
 
     sep = f'{api_key}/{job_id}'
     return path[path.find(sep) + len(sep) + 1:]
+
+
+def restore_project_if_not_exists(path_to_job_files: str, job_id: str):
+    """
+    Creates a folder with user's jobs in `user_projects` folder if it is not exists.
+    """
+    if not os.path.exists(path_to_job_files):
+        restore_project_from_s3(path_to_job_files, job_id)
 
 
 def converts_folder_tree_to_dict(path, api_key, job_id):

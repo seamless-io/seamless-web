@@ -19,7 +19,7 @@ from core.socket_signals import send_update
 from core.web import get_db_session
 from job_executor import project, executor
 from job_executor.exceptions import ExecutorBuildException
-from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_from_s3
+from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_if_not_exists
 from job_executor.scheduler import remove_job_schedule, enable_job_schedule, disable_job_schedule
 
 CONTAINER_NAME_PREFIX = "SEAMLESS_JOB"
@@ -248,14 +248,6 @@ def delete_job_parameter(job_id: str, user_id: str, parameter_id: str):
     if affected_rows == 0:
         raise ParameterNotFoundException(f'Cannot delete parameter {parameter_id}: Not Found')
     db_commit()
-
-
-def restore_project_if_not_exists(path_to_job_files: str, job_id: str):
-    """
-    Creates a folder with user's jobs in `user_projects` folder if it is not exists.
-    """
-    if not os.path.exists(path_to_job_files):
-        restore_project_from_s3(path_to_job_files, job_id)
 
 
 def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]:
