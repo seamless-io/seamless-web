@@ -255,7 +255,7 @@ def restore_project_if_not_exists(path_to_job_files: str, job_id: str):
     Creates a folder with user's jobs in `user_projects` folder if it is not exists.
     """
     if not os.path.exists(path_to_job_files):
-        restore_project_from_s3(path_to_job_files, str(job.id))
+        restore_project_from_s3(path_to_job_files, job_id)
 
 
 def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]:
