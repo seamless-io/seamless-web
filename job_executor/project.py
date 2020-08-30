@@ -159,7 +159,7 @@ def _is_valid_user(job_id: str) -> str:
     return user.api_key
 
 
-def convert_folder_to_json(job_id: str) -> list:
+def get_job_folder_file_tree(job_id: str) -> list:
     """
     Converts a folder into a list of nested dicts.
     """
