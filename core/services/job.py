@@ -1,5 +1,4 @@
 import contextlib
-import os
 from datetime import datetime
 from time import time
 from typing import Optional, List, Tuple, Dict
