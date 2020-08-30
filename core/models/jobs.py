@@ -54,5 +54,8 @@ class Job(base):
             logging.info(f"Scheduling job: ({self.id}, {self.aws_cron}, active: {self.schedule_is_active})")
             scheduler.schedule(self.aws_cron, str(self.id), self.schedule_is_active)
 
+    def get_parameters_as_dict(self):
+        return {p.key: p.value for p in self.parameters}
+
     def __repr__(self):
         return '<Job %r %r %r>' % (self.id, self.name, self.aws_cron)
