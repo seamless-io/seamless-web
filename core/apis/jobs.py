@@ -6,13 +6,11 @@ from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import config
-
 import core.services.job as job_service
 import core.services.user as user_service
 import helpers
-from helpers import row2dict
 from core.web import requires_auth
-
+from helpers import row2dict
 from job_executor.project import ProjectValidationError, generate_project_structure, get_file_content
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -263,17 +261,19 @@ def handle_error(e):
 @jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 @requires_auth
 def get_project_structure(job_id: str):
-    project_structure = generate_project_structure(job_id)
-    if project_structure:
-        return jsonify(project_structure), 200
-    return "Not found", 404
+    job = job_service.get(job_id, session['profile']['internal_user_id'])
+    api_key = job.user.api_key
+    project_structure = generate_project_structure(job_id, api_key)
+    return jsonify(project_structure), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/file', methods=['GET'])
 @requires_auth
 def get_job_file(job_id: str):
     file_path = str(request.args.get('file_path'))
-    file_content = get_file_content(job_id, file_path)
-    if file_content is not None:
-        return jsonify(file_content), 200
-    return "Not found", 404
+
+    job = job_service.get(job_id, session['profile']['internal_user_id'])
+    api_key = job.user.api_key
+
+    file_content = get_file_content(job_id, api_key, file_path)
+    return jsonify(file_content), 200

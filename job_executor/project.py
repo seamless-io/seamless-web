@@ -14,7 +14,6 @@ import boto3
 from werkzeug.datastructures import FileStorage
 
 from config import STAGE
-from core.services.user import is_valid_user
 
 ALLOWED_EXTENSION = "tar.gz"
 UPLOAD_FOLDER = "user_projects"
@@ -149,14 +148,10 @@ def converts_folder_tree_to_dict(path, api_key, job_id):
     return d
 
 
-def generate_project_structure(job_id: str) -> list:
+def generate_project_structure(job_id: str, api_key: str) -> list:
     """
     Converts a folder into a list of nested dicts.
     """
-    api_key = is_valid_user(job_id)
-    if not api_key:
-        return []
-
     path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
     restore_project_if_not_exists(path_to_job_files, str(job_id))
 
@@ -165,14 +160,10 @@ def generate_project_structure(job_id: str) -> list:
     return project_dict['children']
 
 
-def get_file_content(job_id: str, file_path: str) -> Optional[str]:
+def get_file_content(job_id: str, api_key: str, file_path: str) -> Optional[str]:
     """
     Reads a content of a file as a string.
     """
-    api_key = is_valid_user(job_id)
-    if not api_key:
-        return None
-
     path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
     restore_project_if_not_exists(path_to_job_files, str(job_id))
 
