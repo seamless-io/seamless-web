@@ -13,7 +13,7 @@ import helpers
 from helpers import row2dict
 from core.web import requires_auth
 
-from job_executor.project import ProjectValidationError, convert_folder_to_json, get_file_content
+from job_executor.project import ProjectValidationError, generate_project_structure, get_file_content
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -262,16 +262,16 @@ def handle_error(e):
 
 @jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 @requires_auth
-def get_job_code_json(job_id: str):
-    json_code = convert_folder_to_json(job_id)
-    if json_code:
-        return jsonify(json_code), 200
+def get_project_structure(job_id: str):
+    project_structure = generate_project_structure(job_id)
+    if project_structure:
+        return jsonify(project_structure), 200
     return "Not found", 404
 
 
-@jobs_bp.route('/jobs/<job_id>/folder/<file_name>', methods=['GET'])
+@jobs_bp.route('/jobs/<job_id>/file', methods=['GET'])
 @requires_auth
-def get_job_file(job_id: str, file_name: str):
+def get_job_file(job_id: str):
     file_path = str(request.args.get('file_path'))
     file_content = get_file_content(job_id, file_path)
     if file_content is not None:

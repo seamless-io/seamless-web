@@ -62,7 +62,7 @@ const WebIde = ({ jobId }) => {
     setLoadingCodeEditor(true);
     setFileExtension(defineFileExtension(name));
     setCurrentFile(name);
-    getFileContent(jobId, name, filePath)
+    getFileContent(jobId, filePath)
       .then(payload => {
         setFileContent(payload);
         setLoadingCodeEditor(false);

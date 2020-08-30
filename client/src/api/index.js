@@ -54,9 +54,9 @@ export const getJobFolderStructure = async job_id => {
   return response.data;
 };
 
-export const getFileContent = async (job_id, file_name, file_path) => {
+export const getFileContent = async (job_id, file_path) => {
   let response = await axios.get(
-    `/api/v1/jobs/${job_id}/folder/${file_name}?file_path=${file_path}`
+    `/api/v1/jobs/${job_id}/file?file_path=${file_path}`
   );
   return response.data;
 };

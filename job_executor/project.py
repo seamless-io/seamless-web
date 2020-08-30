@@ -11,12 +11,11 @@ from pathlib import Path
 from typing import Optional
 
 import boto3
-from flask import session
 from werkzeug.datastructures import FileStorage
 
 from config import STAGE
-from core.models.users import User
-from core.web import get_db_session
+from core.services.job import restore_project_if_not_exists
+from core.services.user import is_valid_user
 
 ALLOWED_EXTENSION = "tar.gz"
 UPLOAD_FOLDER = "user_projects"
@@ -107,7 +106,7 @@ def _extract_file_path(path: str, api_key: str, job_id: str) -> str:
     return path[path.find(sep) + len(sep) + 1:]
 
 
-def path_to_dict(path, api_key, job_id):
+def converts_folder_tree_to_dict(path, api_key, job_id):
     """
     Represents a repository tree as a dictionary. It does recursive descending into directories and build a dict.
 
@@ -136,42 +135,25 @@ def path_to_dict(path, api_key, job_id):
     d = {'name': os.path.basename(path)}
     if os.path.isdir(path):
         d['type'] = 'folder'
-        d['children'] = [path_to_dict(os.path.join(path, x), api_key, job_id) for x in os.listdir(path)]
+        d['children'] = [converts_folder_tree_to_dict(os.path.join(path, x), api_key, job_id) for x in os.listdir(path)]
     else:
         d['type'] = 'file'
         d['path'] = _extract_file_path(path, api_key, job_id)
     return d
 
 
-def _is_valid_user(job_id: str) -> str:
-    """
-    Validates the current user to get information about the current job.
-    If a user is not valid, it returns an empty string, otherwise - his API key.
-    """
-    email = session['profile']['email']
-    user = User.get_user_from_email(email, get_db_session())
-    user_jobs = [job.id for job in user.jobs]
-
-    # If the job does not belong to the current user, returns "Not found", 404.
-    if int(job_id) not in user_jobs:
-        return ''
-
-    return user.api_key
-
-
-def get_job_folder_file_tree(job_id: str) -> list:
+def generate_project_structure(job_id: str) -> list:
     """
     Converts a folder into a list of nested dicts.
     """
-    api_key = _is_valid_user(job_id)
+    api_key = is_valid_user(job_id)
     if not api_key:
         return []
 
     path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
-    if not os.path.exists(path_to_job_files):
-        restore_project_from_s3(path_to_job_files, job_id)
+    restore_project_if_not_exists(path_to_job_files, str(job_id))
 
-    project_dict = path_to_dict(path_to_job_files, api_key, job_id)
+    project_dict = converts_folder_tree_to_dict(path_to_job_files, api_key, job_id)
 
     return project_dict['children']
 
@@ -180,13 +162,12 @@ def get_file_content(job_id: str, file_path: str) -> Optional[str]:
     """
     Reads a content of a file as a string.
     """
-    api_key = _is_valid_user(job_id)
+    api_key = is_valid_user(job_id)
     if not api_key:
         return None
 
     path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
-    if not os.path.exists(path_to_job_files):
-        restore_project_from_s3(path_to_job_files, job_id)
+    restore_project_if_not_exists(path_to_job_files, str(job_id))
 
     path_to_file = f'{path_to_job_files}/{file_path}'
     with open(path_to_file, 'r') as file:
