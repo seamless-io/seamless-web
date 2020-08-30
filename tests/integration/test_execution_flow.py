@@ -1,9 +1,10 @@
 import os
 from unittest import mock
 
-from core.services import job as job_service
-from core.models.jobs import Job
-from core.models.job_runs import JobRun, JobRunType
+# TODO: make it work
+# from core.services import job as job_service
+# from core.models.jobs import Job
+# from core.models.job_runs import JobRun, JobRunType
 
 
 def path_to_project():
