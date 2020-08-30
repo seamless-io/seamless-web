@@ -19,7 +19,7 @@ from core.socket_signals import send_update
 from core.web import get_db_session
 from job_executor import project, executor
 from job_executor.exceptions import ExecutorBuildException
-from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_if_not_exists
+from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError
 from job_executor.scheduler import remove_job_schedule, enable_job_schedule, disable_job_schedule
 
 CONTAINER_NAME_PREFIX = "SEAMLESS_JOB"
@@ -269,7 +269,6 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
     job_requirements = job.requirements or config.DEFAULT_REQUIREMENTS
 
     path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, job.user.api_key, str(job.id))
-    restore_project_if_not_exists(path_to_job_files, str(job.id))
 
     try:
         with executor.execute(path_to_job_files,

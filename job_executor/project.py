@@ -37,7 +37,19 @@ def get_path_to_job(job_type: JobType,
             raise Exception("If job_type = JobType.PUBLISHED you need to provide job_id")
         # Add project because there may be multiple published projects
         user_folder_path = str(os.path.join(user_folder_path, str(job_id)))
+
+    path_to_job_files = os.path.abspath(user_folder_path)
+    _restore_project_if_not_exists(path_to_job_files, job_id)
+
     return os.path.abspath(user_folder_path)
+
+
+def _restore_project_if_not_exists(path_to_job_files: str, job_id: str):
+    """
+    Creates a folder with user's jobs in `user_projects` folder if it is not exists.
+    """
+    if not os.path.exists(path_to_job_files):
+        restore_project_from_s3(path_to_job_files, job_id)
 
 
 def save_project_to_s3(fileobj, job_id):
@@ -104,14 +116,6 @@ def _extract_file_path(path: str, api_key: str, job_id: str) -> str:
     return path[path.find(sep) + len(sep) + 1:]
 
 
-def restore_project_if_not_exists(path_to_job_files: str, job_id: str):
-    """
-    Creates a folder with user's jobs in `user_projects` folder if it is not exists.
-    """
-    if not os.path.exists(path_to_job_files):
-        restore_project_from_s3(path_to_job_files, job_id)
-
-
 def converts_folder_tree_to_dict(path, api_key, job_id):
     """
     Represents a repository tree as a dictionary. It does recursive descending into directories and build a dict.
@@ -153,8 +157,6 @@ def generate_project_structure(job_id: str, api_key: str) -> list:
     Converts a folder into a list of nested dicts.
     """
     path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
-    restore_project_if_not_exists(path_to_job_files, str(job_id))
-
     project_dict = converts_folder_tree_to_dict(path_to_job_files, api_key, job_id)
 
     return project_dict['children']
@@ -165,8 +167,6 @@ def get_file_content(job_id: str, api_key: str, file_path: str) -> Optional[str]
     Reads a content of a file as a string.
     """
     path_to_job_files = get_path_to_job(JobType.PUBLISHED, api_key, job_id)
-    restore_project_if_not_exists(path_to_job_files, str(job_id))
-
     path_to_file = f'{path_to_job_files}/{file_path}'
     with open(path_to_file, 'r') as file:
         file_content = file.read()
