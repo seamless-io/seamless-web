@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Row, Col, Spinner } from 'react-bootstrap';
+import { Row, Col, Spinner, Modal } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 import moment from 'moment';
+import { AiOutlineCode } from 'react-icons/ai';
 
 import { socket } from '../../socket';
 import {
@@ -15,6 +16,7 @@ import {
   getJobRunLogs,
 } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
+import WebIde from '../WebIde/WebIde';
 import Notification from '../Notification/Notification';
 
 import './style.css';
@@ -48,6 +50,7 @@ const Job = () => {
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
   const [notificationAlertType, setNotificationAlertType] = useState('');
+  const [showCode, setShowCode] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -232,6 +235,10 @@ const Job = () => {
       });
   };
 
+  const openIde = () => {
+    setShowCode(!showCode);
+  };
+
   if (loading) {
     return (
       <div className="smls-jobs-spinner-container">
@@ -257,6 +264,14 @@ const Job = () => {
               onClick={runJob}
             >
               {runButtonContent()}
+            </button>
+            <button
+              className="smls-job-web-ide-button"
+              type="button"
+              onClick={openIde}
+            >
+              <AiOutlineCode />
+              <span className="smls-job-web-ide-button-text">Show Code</span>
             </button>
             <a href={downloadJobLink}>
               <button className="smls-job-download-code-button" type="button">
@@ -311,6 +326,19 @@ const Job = () => {
         body={notificationBody}
         alertType={notificationAlertType}
       />
+
+      <Modal
+        show={showCode}
+        onHide={() => setShowCode(!showCode)}
+        dialogClassName="smls-web-ide-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <WebIde jobId={job.id} />
+        </Modal.Body>
+      </Modal>
     </>
   );
 };

@@ -28,7 +28,7 @@ const ApplicationRoot = () => {
             <Route path="/account">
               <Account />
             </Route>
-            <Route path="/jobs/:id" component={Job}></Route>
+            <Route exact path="/jobs/:id" component={Job}></Route>
             <Route path="/guide">
               <Guide />
             </Route>

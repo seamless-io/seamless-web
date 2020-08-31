@@ -8,18 +8,22 @@
     "@testing-library/user-event": "^7.2.1",
     "axios": "^0.19.1",
     "bootstrap": "^4.5.0",
+    "codemirror": "^5.57.0",
     "moment": "^2.27.0",
     "parsel": "^0.3.0",
     "popper.js": "^1.16.1",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-bootstrap": "^1.1.1",
+    "react-codemirror2": "^7.2.1",
     "react-dom": "^16.13.1",
     "react-favicon": "0.0.18",
+    "react-icons": "^3.11.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "react-toggle": "^4.1.1",
-    "socket.io-client": "^2.3.0"
+    "socket.io-client": "^2.3.0",
+    "styled-components": "^5.1.1"
   },
   "scripts": {
     "start": "parcel watch ./src/index.html --public-url=/static/ --out-dir='../static'",

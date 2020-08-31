@@ -6,7 +6,6 @@ from urllib.parse import urlencode
 
 import jinja2
 from authlib.integrations.flask_client import OAuth
-from dotenv import load_dotenv
 from flask import Flask, render_template, session, url_for, redirect, jsonify
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -15,9 +14,6 @@ from app_config import Config
 from core.apis.auth0.auth import CoreAuthError
 from core.models import get_db_session
 from core.models.users import User
-
-dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
-load_dotenv(dotenv_path)
 
 CLIENT_API = '/api/v1'
 AUTH_API = '/auth'

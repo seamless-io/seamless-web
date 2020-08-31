@@ -172,3 +172,7 @@ seamless_package.tar.gz
 user_projects/
 __start_smls__.py
 tests/test_project/Dockerfile
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
