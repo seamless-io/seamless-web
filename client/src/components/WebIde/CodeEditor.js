@@ -21,22 +21,29 @@ const FILE_MODE = {
 };
 
 const CodeEditor = ({ fileContent, fileExtension }) => {
-  console.log(FILE_MODE[fileExtension]);
+  if (FILE_MODE[fileExtension] || fileExtension === 'txt') {
+    return (
+      <>
+        {
+          <CodeMirror
+            className="smls-code-editor-window"
+            value={fileContent}
+            options={{
+              mode: FILE_MODE[fileExtension],
+              theme: 'neo',
+              lineNumbers: true,
+              readOnly: true,
+            }}
+          />
+        }
+      </>
+    );
+  }
+
   return (
-    <>
-      {
-        <CodeMirror
-          className="smls-code-editor-window"
-          value={fileContent}
-          options={{
-            mode: FILE_MODE[fileExtension],
-            theme: 'neo',
-            lineNumbers: true,
-            readOnly: true,
-          }}
-        />
-      }
-    </>
+    <div className="smls-job-logs-initial-screen-container">
+      View is not available for this file extension.
+    </div>
   );
 };
 

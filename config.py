@@ -1,8 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-load_dotenv(dotenv_path)
 
 AUTH0_BASE_URL = os.getenv('AUTH0_BASE_URL')
 AUTH0_WEB_API_AUDIENCE = os.getenv('AUTH0_WEB_API_AUDIENCE')
