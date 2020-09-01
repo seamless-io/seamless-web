@@ -4,7 +4,7 @@ from email.message import EmailMessage
 import config
 
 
-def _send_email(recipient, subject, body):
+def send_email(recipient, subject, body):
     msg = EmailMessage()
     msg['From'] = config.EMAIL_AUTOMATION_SENDER
     msg['To'] = recipient
@@ -21,6 +21,6 @@ def _send_email(recipient, subject, body):
 
 def send_welcome_email(recipient):
     with open('core/emails/welcome.html', 'r') as file:
-        _send_email(recipient,
-                    'Welcome to Seamless Cloud community',
-                    file.read())
+        send_email(recipient,
+                   'Welcome to Seamless Cloud community',
+                   file.read())

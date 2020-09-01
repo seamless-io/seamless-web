@@ -31,7 +31,7 @@ class JobType(Enum):
 def get_path_to_job(job_type: JobType,
                     api_key: str,
                     job_id: Optional[str],
-                    restore_from_s3_if_not_exists: bool = False):
+                    restore_from_s3_if_not_exists: bool = True):
     user_folder_path = str(os.path.join(UPLOAD_FOLDER, job_type.value, api_key))
     if job_type == JobType.PUBLISHED:
         if not job_id:
