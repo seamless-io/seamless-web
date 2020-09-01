@@ -35,7 +35,7 @@ socketio = SocketIO(application, async_mode='threading')
 tl = Timeloop()
 
 
-@tl.job(interval=timedelta(seconds=60))
+@tl.job(interval=timedelta(minutes=5))
 def kill_containers_over_time_limit():
     try:
         docker_client = docker.from_env()
