@@ -30,7 +30,7 @@ application = create_app()
 # Disable information logs from socketio, including PING/PONG logs
 logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
-socketio = SocketIO(application, async_mode='threading')
+socketio = SocketIO(application, async_mode='threading', engineio_logger=True)
 
 tl = Timeloop()
 
