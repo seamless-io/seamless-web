@@ -21,6 +21,7 @@ const FILE_MODE = {
 };
 
 const CodeEditor = ({ fileContent, fileExtension }) => {
+  console.log(FILE_MODE[fileExtension]);
   return (
     <>
       {
