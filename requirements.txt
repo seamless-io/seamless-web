@@ -19,3 +19,4 @@ cron-descriptor~=1.2.24
 croniter~=0.3.34
 flask_sqlalchemy_session~=1.1
 timeloop~=1.0.2
+pyyaml~=5.3.1

@@ -11,7 +11,8 @@ import core.services.user as user_service
 import helpers
 from core.web import requires_auth
 from helpers import row2dict
-from job_executor.project import ProjectValidationError, generate_project_structure, get_file_content
+from job_executor import project
+from job_executor.project import generate_project_structure, get_file_content, read_bytes_from_sent_file
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -91,7 +92,7 @@ def create_job():
         return Response('Not authorized request', 401)
 
     try:
-        user = user_service.get(api_key)
+        user = user_service.get_by_api_key(api_key)
     except user_service.UserNotFoundException as e:
         return Response(str(e), 400)
 
@@ -110,17 +111,18 @@ def create_job():
     )
 
     try:
+        file = read_bytes_from_sent_file(project_file)
         job, is_existing = job_service.publish(
             job_name,
             cron_schedule,
             entrypoint,
             requirements,
             user,
-            project_file
+            file
         )
     except job_service.JobsQuotaExceededException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
-    except ProjectValidationError as e:
+    except project.ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except helpers.InvalidCronException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
@@ -174,7 +176,7 @@ def run() -> Response:
         return Response('Not authorized request', 401)
 
     try:
-        user = user_service.get(api_key)
+        user = user_service.get_by_api_key(api_key)
     except user_service.UserNotFoundException as exc:
         return Response(str(exc), 400)
 
@@ -197,7 +199,7 @@ def delete_job(job_name):
         return Response('Not authorized request', 401)
 
     try:
-        user = user_service.get(api_key)
+        user = user_service.get_by_api_key(api_key)
     except user_service.UserNotFoundException as e:
         return Response(str(e), 400)
 

@@ -1,4 +1,6 @@
 import contextlib
+import io
+import os
 from datetime import datetime
 from time import time
 from typing import Optional, List, Tuple, Dict
@@ -18,7 +20,8 @@ from core.socket_signals import send_update
 from core.web import get_db_session
 from job_executor import project, executor
 from job_executor.exceptions import ExecutorBuildException
-from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError
+from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_from_s3, \
+    read_bytes_from_sent_file
 from job_executor.scheduler import remove_job_schedule, enable_job_schedule, disable_job_schedule
 
 CONTAINER_NAME_PREFIX = "SEAMLESS_JOB"
@@ -78,7 +81,7 @@ def _update_job(job, cron, entrypoint, requirements):
     return job
 
 
-def _create_job(name, cron, entrypoint, requirements, user_id):
+def _create_job(name, cron, entrypoint, requirements, user_id, schedule_is_active):
     job_attributes = {
         'name': name,
         'user_id': user_id,
@@ -91,7 +94,7 @@ def _create_job(name, cron, entrypoint, requirements, user_id):
             "cron": cron,
             "aws_cron": aws_cron,
             "human_cron": human_cron,
-            "schedule_is_active": True})
+            "schedule_is_active": schedule_is_active})
 
     job = Job(**job_attributes)
     get_db_session().add(job)
@@ -113,13 +116,19 @@ def delete(name: str, user: User):
     return job_id
 
 
-def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: FileStorage):
+def publish(name: str,
+            cron: str,
+            entrypoint: str,
+            requirements: str,
+            user: User,
+            project_file: io.BytesIO,
+            schedule_is_active=True):
     existing_job = get_db_session().query(Job).filter_by(name=name, user_id=user.id).one_or_none()
     if existing_job:
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
         _check_user_quotas_for_job_creation(user)
-        job = _create_job(name, cron, entrypoint, requirements, user.id)
+        job = _create_job(name, cron, entrypoint, requirements, user.id, schedule_is_active)
 
     db_commit()
     job.schedule_job()
@@ -329,7 +338,8 @@ def execute_standalone(entrypoint: str,
                        user: User):
     parameters: Dict[str, str] = {}  # TODO implement a way to pass parameters during `smls run`
     try:
-        project_path = project.create(project_file, user.api_key, JobType.RUN)
+        file = read_bytes_from_sent_file(project_file)
+        project_path = project.create(file, user.api_key, JobType.RUN)
         with executor.execute(project_path,
                               entrypoint,
                               parameters,

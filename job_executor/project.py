@@ -30,7 +30,8 @@ class JobType(Enum):
 
 def get_path_to_job(job_type: JobType,
                     api_key: str,
-                    job_id: Optional[str]):
+                    job_id: Optional[str],
+                    restore_from_s3_if_not_exists: bool = False):
     user_folder_path = str(os.path.join(UPLOAD_FOLDER, job_type.value, api_key))
     if job_type == JobType.PUBLISHED:
         if not job_id:
@@ -39,7 +40,8 @@ def get_path_to_job(job_type: JobType,
         user_folder_path = str(os.path.join(user_folder_path, str(job_id)))
 
     path_to_job_files = os.path.abspath(user_folder_path)
-    _restore_project_if_not_exists(path_to_job_files, job_id)
+    if job_type == JobType.PUBLISHED and restore_from_s3_if_not_exists:
+        _restore_project_if_not_exists(path_to_job_files, job_id)
 
     return os.path.abspath(user_folder_path)
 
@@ -65,26 +67,29 @@ def remove_project_from_s3(job_id):
     logging.info(f"Files of job {job_id} removed from {USER_PROJECTS_S3_BUCKET} s3 bucket")
 
 
-def create(fileobj: FileStorage,
+def read_bytes_from_sent_file(fileobj: FileStorage) -> io.BytesIO:
+    if fileobj.filename and not fileobj.filename.endswith(ALLOWED_EXTENSION):
+        raise ProjectValidationError('File extension is not allowed')
+    return io.BytesIO(fileobj.read())
+
+
+def create(project_file: io.BytesIO,
            api_key: str,
            job_type: JobType,
            job_id: Optional[str] = None):
-    if fileobj.filename and not fileobj.filename.endswith(ALLOWED_EXTENSION):
-        raise ProjectValidationError('File extension is not allowed')
 
-    path = get_path_to_job(job_type, api_key, job_id)
+    path = get_path_to_job(job_type, api_key, job_id, restore_from_s3_if_not_exists=False)
     if os.path.exists(path):
         shutil.rmtree(path)  # Remove previously created project
     Path(path).mkdir(parents=True, exist_ok=True)
 
-    io_bytes = io.BytesIO(fileobj.read())
-    tar = tarfile.open(fileobj=io_bytes, mode='r')
+    tar = tarfile.open(fileobj=project_file, mode='r')
     tar.extractall(path=path)
     tar.close()
 
     if job_id:
-        io_bytes.seek(0)
-        save_project_to_s3(io_bytes, job_id)
+        project_file.seek(0)
+        save_project_to_s3(project_file, job_id)
 
     logging.info(f"File saved to {path}")
     return path

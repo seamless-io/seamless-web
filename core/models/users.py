@@ -36,6 +36,10 @@ class User(base):
     account_type = Column(Text, nullable=False, default=UserAccountType.Free.value)
 
     @staticmethod
+    def get_user_from_id(user_id, session):
+        return session.query(User).filter(User.id == user_id).one()
+
+    @staticmethod
     def get_user_from_api_key(api_key, session):
         return session.query(User).filter(User.api_key == api_key).one()
 

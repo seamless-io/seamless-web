@@ -67,6 +67,9 @@ def send_daily_stats_to_telegram():
             capture_exception(e)
 
 
+tl.start()
+
+
 @socketio.on('connect', namespace='/socket')
 def connected():
     """https://stackoverflow.com/questions/39423646/flask-socketio-emit-to-specific-user"""
@@ -76,5 +79,4 @@ def connected():
 
 
 if __name__ == '__main__':
-    tl.start()
     socketio.run(application, host='0.0.0.0', port=os.environ.get('PORT', 5000))

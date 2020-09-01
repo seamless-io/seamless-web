@@ -66,8 +66,6 @@ def execute(path_to_job_files: str,
 
         container.wait()
 
-
-
 def _legacy_entrypoint_handling(path_to_job_files: str, legacy_entrypoint: str) -> str:
     """
     Previously we had a way to provide `entrypoint` as `path.to.function`.
@@ -87,8 +85,6 @@ else:
     with open(os.path.join(path_to_job_files, entrypoint_file_name), 'w') as entrypoint_file:
         entrypoint_file.write(entrypoint_contents)
     return entrypoint_file_name
-
-
 
 
 def check_entrypoint_file(job_directory: str, entrypoint_filename: str):
@@ -151,7 +147,6 @@ RUN pip install -r requirements.txt
         # Log error for internal debugging
         logging.error(e)
         logging.error('\n'.join(full_error_log))
-        capture_exception(e)
 
         # Raise error to show back to user
         user_visible_error_log = []

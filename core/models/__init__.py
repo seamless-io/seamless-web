@@ -10,6 +10,7 @@ from .jobs import Job
 from .job_runs import JobRun
 from .job_run_logs import JobRunLog
 from .job_parameters import JobParameter
+from .job_templates import JobTemplate
 
 DB_PREFIX = 'SEAMLESS'
 EXISTING_DB = ('SEAMLESS', 'INTEGRATION_TEST')
