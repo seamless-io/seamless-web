@@ -1,4 +1,4 @@
-name: PROD_CI_CD
+name: PRODUCTION
 
 env:
   WEB_APPLICATION_NAME       : "web-prod"
@@ -6,7 +6,7 @@ env:
 
   PACKAGE_S3_BUCKET_NAME : "web-prod-packages"
   DEPLOY_PACKAGE_NAME    : "web_${{ github.sha }}.zip"
-  
+
   AWS_REGION_NAME           : "us-east-1"
 
 on:
@@ -15,7 +15,7 @@ on:
 
 jobs:
 
-  ci_cd:
+  deploy:
 
     runs-on: ubuntu-latest
 
