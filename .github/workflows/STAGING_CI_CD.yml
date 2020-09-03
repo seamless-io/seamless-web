@@ -6,21 +6,20 @@ env:
 
   PACKAGE_S3_BUCKET_NAME : "web-staging-packages"
   DEPLOY_PACKAGE_NAME    : "web_${{ github.sha }}.zip"
-  
+
   AWS_REGION_NAME           : "us-east-1"
 
 on:
-  pull_request:
-    branches: [ master ]
+  issue_comment:
+    types: [ created, edited ]
 
 jobs:
 
   ci_cd:
-
     runs-on: ubuntu-latest
+    if: github.event.comment.body == 'build staging'
 
     steps:
-
     - uses: actions/checkout@v2
 
     - uses: actions/setup-node@v1
