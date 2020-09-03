@@ -1,6 +1,7 @@
 import os
 from unittest import mock
 
+import pytest
 # TODO: make it work
 # from core.services import job as job_service
 # from core.models.jobs import Job
@@ -14,6 +15,7 @@ def path_to_project():
 
 @mock.patch('core.services.job.send_update')
 @mock.patch('core.services.job.project.get_path_to_job', return_value=path_to_project())
+@pytest.mark.usefixtures('postgres')
 def test_execution_flow(get_path, send_update, session_id):
     pass  # TODO make it work
     # job_runs_count_initial = get_db_session().query(JobRun).count()
