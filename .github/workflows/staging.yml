@@ -87,10 +87,3 @@ jobs:
       run: aws elasticbeanstalk update-environment --environment-name ${{ env.WEB_ENVIRONMENT_NAME }} --version-label "ver-${{ github.sha }}"
 
     ### DEPLOYING TO WEB ENVIRONMENT END ###
-
-    - uses: mshick/add-pr-comment@v1
-      with:
-        message: This branch was deployed to **STAGING**
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        allow-repeats: true
-
