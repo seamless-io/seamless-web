@@ -16,7 +16,7 @@ on:
 jobs:
 
   deploy:
-    if: contains(github.event.comment.body, "build staging")
+    if: github.event.comment.body == 'build staging'
     runs-on: ubuntu-latest
 
     steps:
