@@ -33,3 +33,12 @@ clean-db:
 	docker rm seamless-web_postgres_1
 	docker rmi seamless-web_migration
 	docker rmi $(docker images -f dangling=true -aq)
+
+unit-test:
+	pytest -v tests/unit
+
+integration-test:
+	PYTHONPATH=. pytest -v tests/integration
+
+test:
+	PYTHONPATH=. pytest -v tests

@@ -6,6 +6,7 @@ import time
 import docker
 import pytest
 
+from core.web import create_app
 
 SECOND = 1000000000
 
@@ -67,7 +68,6 @@ def postgres(docker_client, session_id):
     host = attrs['NetworkSettings']['Ports']['5432/tcp'][0]['HostIp']
     port = attrs['NetworkSettings']['Ports']['5432/tcp'][0]['HostPort']
 
-
     db_env = {
         'SEAMLESS_DB_HOST': host,
         'SEAMLESS_DB_PORT': port,
@@ -102,3 +102,20 @@ def postgres(docker_client, session_id):
 
         # rolling back environment
         os.environ = env_back
+
+
+@pytest.fixture
+def flask_test_client():
+    app = create_app()
+    app.config['TESTING'] = True
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            # We need to pretend there is a user authenticated
+            sess['profile'] = {
+                'user_id': '1',
+                'email': 'test@test.com',
+                'internal_user_id': '1'
+            }
+        with app.app_context():
+            yield client
