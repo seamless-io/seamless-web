@@ -50,7 +50,7 @@ jobs:
       run: mypy .
 
     - name: Test with pytest
-      run: pytest tests
+      run: PYTHONPATH=. pytest tests
 
     ### TESTS END ###
 
