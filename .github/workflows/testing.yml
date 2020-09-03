@@ -77,4 +77,4 @@ jobs:
           pip install -r test_requirements.txt
 
       - name: Run integration tests
-        run: pytest -v tests/integration
+        run: PYTHONPATH=. pytest -v tests/integration  # adding PYTHONPATH=. since we are executing bash command within the Python process
