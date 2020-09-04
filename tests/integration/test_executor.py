@@ -22,6 +22,7 @@ def path_to_requirements():
 def entrypoint():
     return 'function.py'
 
+
 @pytest.fixture
 def entrypoint_to_corrupted_program():
     return 'main_exception.py'
