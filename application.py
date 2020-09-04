@@ -55,11 +55,11 @@ def kill_containers_over_time_limit():
         capture_exception(e)
 
 
-@tl.job(interval=timedelta(hours=1))
+@tl.job(interval=timedelta(minutes=30))
 def send_daily_stats_to_telegram():
     if STAGE == 'prod':
         try:
-            if datetime.utcnow().hour == 12:  # every day at 12:00 UTC
+            if datetime.utcnow().hour == 13:  # every day at 13:00 UTC
                 send_daily_stats()
         except Exception as e:
             # We don't want the periodic task to shut down if some of its executions had an Exception
