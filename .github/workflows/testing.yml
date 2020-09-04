@@ -80,7 +80,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r test_requirements.txt
 
-      - name: Build client
+      - name: Build client  # we can possible not build a client, but create a vanilla `index.html` for integration tests
         run: cd client && npm install -g parcel && npm install && npm run build
 
       - name: Run integration tests
