@@ -6,6 +6,8 @@ import time
 import docker
 import pytest
 
+from core.models import get_db_session, db_commit, User
+
 
 SECOND = 1000000000
 
@@ -102,3 +104,25 @@ def postgres(docker_client, session_id):
 
         # rolling back environment
         os.environ = env_back
+
+
+@pytest.fixture
+def user_email():
+    return 'testuser@seamlesscloud.io'
+
+
+@pytest.fixture
+def user_api_key():
+    return '123'
+
+
+@pytest.fixture
+def user_id(postgres, user_email, user_api_key):
+    user = User(email=user_email, api_key=user_api_key)
+    get_db_session().add(user)
+    db_commit()
+
+    yield user.id
+
+    get_db_session().delete(user)
+    db_commit()
