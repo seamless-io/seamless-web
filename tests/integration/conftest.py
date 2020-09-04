@@ -6,6 +6,7 @@ import time
 import docker
 import pytest
 
+import config
 from core.web import create_app
 
 SECOND = 1000000000
@@ -108,6 +109,10 @@ def postgres(docker_client, session_id):
 def flask_test_client():
     app = create_app()
     app.config['TESTING'] = True
+
+    # We will use this test pass to authenticate requests like they come from from GitHub Actions
+    # for testing the Marketplace API
+    config.GITHUB_ACTIONS_PASSWORD = "test_pass"
 
     with app.test_client() as client:
         with client.session_transaction() as sess:
