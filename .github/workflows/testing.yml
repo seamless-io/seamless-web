@@ -71,10 +71,17 @@ jobs:
         with:
           python-version: 3.7
 
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r test_requirements.txt
 
-      - name: Run integration tests
+      - name: Build client
+        run: cd client && npm install -g parcel && npm install && npm run build
+
+          - name: Run integration tests
         run: PYTHONPATH=. pytest -v tests/integration  # adding PYTHONPATH=. since we are executing bash command within the Python process
