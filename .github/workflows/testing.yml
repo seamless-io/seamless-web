@@ -83,5 +83,5 @@ jobs:
       - name: Build client
         run: cd client && npm install -g parcel && npm install && npm run build
 
-          - name: Run integration tests
+      - name: Run integration tests
         run: PYTHONPATH=. pytest -v tests/integration  # adding PYTHONPATH=. since we are executing bash command within the Python process
