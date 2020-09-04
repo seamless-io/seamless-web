@@ -5,36 +5,11 @@ import time
 
 import docker
 import pytest
-from flask.testing import FlaskClient
-from werkzeug.datastructures import Headers
 
-from application import application
 from core.models import get_db_session, db_commit, User
 
 
 SECOND = 1000000000
-
-
-class CLIClient(FlaskClient):
-
-    def open(self, *args, **kwargs):
-        auth_headers = {
-            'Authorization': self._api_key
-        }
-        headers = kwargs.pop('headers', Headers())
-        if 'Authorization' not in headers:
-            # do not overwrite auth headers if provided
-            headers.extend(auth_headers)
-
-        kwargs['headers'] = headers
-        return super().open(*args, **kwargs)
-
-    def __init__(self, *args, **kwargs):
-        self._api_key = kwargs.pop("api_key", None)
-        if not self._api_key:
-            raise RuntimeError("CLI authorization realized via API key. "
-                               "Please, provide `api_key` in order to use Test CLI Client")
-        super().__init__(*args, **kwargs)
 
 
 def wait_on_condition(condition, delay=0.1, timeout=40):
@@ -151,25 +126,3 @@ def user_id(postgres, user_email, user_api_key):
 
     get_db_session().delete(user)
     db_commit()
-
-
-@pytest.fixture
-def web_client(postgres, user_id, user_email):
-    application.config['TESTING'] = True
-
-    with application.test_client() as client:
-        with client.session_transaction() as session:
-            session['jwt_payload'] = session['profile'] = {
-                'user_id': user_id,  # no matter what is in here
-                'email': user_email,
-                'internal_user_id': user_id
-            }
-        yield client
-
-
-@pytest.fixture
-def cli_client(user_api_key, user_id):  # we need to use `user_id` fixture here to create a user in the db
-    application.config['TESTING'] = True
-    application.test_client_class = CLIClient
-    with application.test_client(api_key=user_api_key) as client:
-        yield client
