@@ -3,14 +3,18 @@ import copy
 import uuid
 import subprocess
 import time
+import io
 import importlib
+import tarfile
 
+import boto3
 import docker
 import pytest
 import pytest_localstack
 
 import config
-from core.models import get_db_session, db_commit, User
+from job_executor import project
+from core.models import get_db_session, db_commit, User, Job
 
 
 SECOND = 1000000000
@@ -134,3 +138,40 @@ def user_id(postgres, user_email, user_api_key):
 
     get_db_session().delete(user)
     db_commit()
+
+
+@pytest.fixture
+def job_name():
+    return 'Integration test job name'
+
+
+@pytest.fixture
+def job_entrypoint():
+    # from tests/test_project
+    return 'function.py'
+
+
+@pytest.fixture
+def job_requirements():
+    # from tests/test_project
+    return 'custom_requirements.txt'
+
+
+@pytest.fixture(scope='session', autouse=True)
+def create_s3_bucket_for_user_projects(localstack):
+    s3 = boto3.client('s3')
+    s3.create_bucket(Bucket=project.USER_PROJECTS_S3_BUCKET)
+
+
+@pytest.fixture
+def archived_project():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    folder_to_archive = os.path.join(dir_path, '..', 'test_project', '.')
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode="w:gz") as tar:
+        tar.add(folder_to_archive)
+        tar.close()
+
+    handler.seek(0)  # going back to the start after writing into it
+    return handler
