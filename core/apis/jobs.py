@@ -26,7 +26,7 @@ def verify_password(username, password):
     """
     We are going to authenticate scheduler using hardcoded password
     """
-    if username == 'schedule' and check_password_hash(
+    if username == config.LAMBDA_PROXY_AUTH_USERNAME and check_password_hash(
             generate_password_hash(config.LAMBDA_PROXY_PASSWORD), password):
         return username
 
