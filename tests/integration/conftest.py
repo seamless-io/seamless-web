@@ -1,15 +1,20 @@
 import os
+import copy
 import uuid
 import subprocess
 import time
 
 import docker
 import pytest
+import pytest_localstack
 
 from core.models import get_db_session, db_commit, User
 
 
 SECOND = 1000000000
+
+
+localstack = pytest_localstack.patch_fixture(services=["s3"], scope='session', autouse=True)
 
 
 def wait_on_condition(condition, delay=0.1, timeout=40):
@@ -78,7 +83,7 @@ def postgres(docker_client, session_id):
         'SEAMLESS_DB_NAME': db_name
     }
 
-    env_back = os.environ
+    env_back = copy.deepcopy(os.environ)
     os.environ.update(db_env)
 
     print(db_env)
