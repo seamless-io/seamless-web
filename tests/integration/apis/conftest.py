@@ -28,6 +28,10 @@ class CLIClient(FlaskClient):
 
 @pytest.fixture
 def web_client(postgres, user_id, user_email):
+    """
+    Web client fixture. This fixture should be used when we are testing api's used by the frontend and complying
+    with auth0 authentication
+    """
     application.config['TESTING'] = True
 
     with application.test_client() as client:
@@ -42,6 +46,9 @@ def web_client(postgres, user_id, user_email):
 
 @pytest.fixture
 def cli_client(user_api_key, user_id):  # we need to use `user_id` fixture here to create a user in the db
+    """
+    CLI client fixture. This fixture should be used when we are testing api's used by the CLI and using API key auth
+    """
     application.config['TESTING'] = True
     application.test_client_class = CLIClient
     with application.test_client(api_key=user_api_key) as client:
