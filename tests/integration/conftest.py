@@ -3,11 +3,13 @@ import copy
 import uuid
 import subprocess
 import time
+import importlib
 
 import docker
 import pytest
 import pytest_localstack
 
+import config
 from core.models import get_db_session, db_commit, User
 
 
@@ -86,7 +88,7 @@ def postgres(docker_client, session_id):
     env_back = copy.deepcopy(os.environ)
     os.environ.update(db_env)
 
-    print(db_env)
+    importlib.reload(config)
 
     try:
         # applying migrations to the database
@@ -109,6 +111,7 @@ def postgres(docker_client, session_id):
 
         # rolling back environment
         os.environ = env_back
+        importlib.reload(config)
 
 
 @pytest.fixture
