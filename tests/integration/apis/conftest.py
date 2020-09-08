@@ -1,7 +1,6 @@
-import os
 import copy
-import runpy
 import importlib
+import os
 
 import pytest
 from flask.testing import FlaskClient
@@ -31,6 +30,7 @@ class CLIClient(FlaskClient):
             raise RuntimeError("CLI authorization realized via API key. "
                                "Please, provide `api_key` in order to use Test CLI Client")
         super().__init__(*args, **kwargs)
+
 
 @pytest.fixture
 def web_client(postgres, user_id, user_email):

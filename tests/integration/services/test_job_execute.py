@@ -3,11 +3,10 @@ from unittest import mock
 
 import pytest
 
-from core.services import job as job_service
-from core.models.jobs import Job
-from core.models.users import User
-from core.models.job_runs import JobRun, JobRunType
 from core.models import get_db_session, db_commit
+from core.models.job_runs import JobRun, JobRunType
+from core.models.jobs import Job
+from core.services import job as job_service
 
 
 def path_to_project():

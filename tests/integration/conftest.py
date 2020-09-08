@@ -1,11 +1,11 @@
-import os
 import copy
-import uuid
-import subprocess
-import time
-import io
 import importlib
+import io
+import os
+import subprocess
 import tarfile
+import time
+import uuid
 
 import boto3
 import docker
@@ -13,9 +13,9 @@ import pytest
 import pytest_localstack
 
 import config
+from core.models import get_db_session, db_commit, User
+from core.services.marketplace import JOB_TEMPLATES_S3_BUCKET
 from job_executor import project
-from core.models import get_db_session, db_commit, User, Job
-
 
 SECOND = 1000000000
 
@@ -163,6 +163,12 @@ def create_s3_bucket_for_user_projects(localstack):
     s3.create_bucket(Bucket=project.USER_PROJECTS_S3_BUCKET)
 
 
+@pytest.fixture(scope='session', autouse=True)
+def create_s3_bucket_for_templates(localstack):
+    s3 = boto3.client('s3')
+    s3.create_bucket(Bucket=JOB_TEMPLATES_S3_BUCKET)
+
+
 @pytest.fixture
 def archived_project():
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -175,3 +181,13 @@ def archived_project():
 
     handler.seek(0)  # going back to the start after writing into it
     return handler
+
+
+@pytest.fixture
+def archived_templates_repo():
+    package_name = 'templates.tar.gz'
+    tar = tarfile.open(package_name, "w:gz")
+    tar.add('tests/marketplace_templates_files', arcname='.')
+    tar.close()
+    yield package_name
+    os.remove(package_name)

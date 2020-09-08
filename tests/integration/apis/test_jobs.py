@@ -1,7 +1,4 @@
 import base64
-from unittest import mock
-
-import pytest
 
 import config
 

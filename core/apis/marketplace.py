@@ -4,6 +4,7 @@ from flask import Blueprint, request, Response, jsonify, session
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import config
 import helpers
 from config import (GITHUB_ACTIONS_PASSWORD, GITHUB_ACTIONS_USERNAME, DEFAULT_CRON_SCHEDULE, DEFAULT_ENTRYPOINT,
                     DEFAULT_REQUIREMENTS)
@@ -26,8 +27,10 @@ def verify_password(username, password):
     """
     We are going to authenticate github_actions using hardcoded password
     """
-    if username == GITHUB_ACTIONS_USERNAME and check_password_hash(
-            generate_password_hash(GITHUB_ACTIONS_PASSWORD), password):
+    print('1', username, config.GITHUB_ACTIONS_USERNAME)
+    print('2', password, config.GITHUB_ACTIONS_PASSWORD)
+    if username == config.GITHUB_ACTIONS_USERNAME and check_password_hash(
+            generate_password_hash(config.GITHUB_ACTIONS_PASSWORD), password):
         return username
 
 
