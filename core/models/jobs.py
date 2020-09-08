@@ -1,7 +1,7 @@
 import datetime
 import enum
 import logging
-import config
+import constants
 
 from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
@@ -40,8 +40,8 @@ class Job(base):
     # Alembic does not work very well with native postgres Enum type so the status column is Text
     status = Column(Text, default=JobStatus.New.value, nullable=False)
     # TODO: rename to `entrypoint_file`
-    entrypoint = Column(Text, default=config.DEFAULT_ENTRYPOINT)
-    requirements = Column(Text, default=config.DEFAULT_REQUIREMENTS)
+    entrypoint = Column(Text, default=constants.DEFAULT_ENTRYPOINT)
+    requirements = Column(Text, default=constants.DEFAULT_REQUIREMENTS)
 
     cron = Column(Text)
     aws_cron = Column(Text)

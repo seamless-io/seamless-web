@@ -1,6 +1,7 @@
 # I made the logic based on this tutorial
 # https://auth0.com/docs/quickstart/backend/python/01-authorization#validate-access-tokens
 import json
+import os
 import urllib.request
 from functools import wraps
 
@@ -8,7 +9,7 @@ import jwt
 from flask import request, _request_ctx_stack  # type: ignore
 from jwt.algorithms import RSAAlgorithm
 
-import config
+import constants
 
 ALGORITHMS = ["RS256"]
 
@@ -55,7 +56,7 @@ def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = get_token_auth_header(request)
-        with urllib.request.urlopen(config.AUTH0_BASE_URL + "/.well-known/jwks.json") as url:
+        with urllib.request.urlopen(os.getenv('AUTH0_BASE_URL') + "/.well-known/jwks.json") as url:
             jwks = json.loads(url.read().decode())
         unverified_header = jwt.get_unverified_header(token)
         rsa_key = {}
@@ -68,8 +69,8 @@ def requires_auth(f):
                     token,
                     rsa_key,
                     algorithms=ALGORITHMS,
-                    audience=config.AUTH0_WEB_API_AUDIENCE,
-                    issuer=config.AUTH0_BASE_URL + "/"
+                    audience=os.getenv('AUTH0_WEB_API_AUDIENCE'),
+                    issuer=os.getenv('AUTH0_BASE_URL') + "/"
                 )
             except jwt.ExpiredSignatureError:
                 raise CoreAuthError({"code": "token_expired",

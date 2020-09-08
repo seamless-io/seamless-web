@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError
@@ -8,7 +9,6 @@ from core.apis.auth0.auth import requires_auth
 from core.emails.client import send_welcome_email
 from core.models import db_commit
 from core.models.users import User
-from config import STAGE
 from core.telegram.client import notify_about_new_user
 from core.web import get_db_session
 
@@ -43,7 +43,7 @@ def auth0_webhook():
         try:
             user_id = add_user_to_db(email)
             message = f'New user {email} (id: {user_id}) signed up!'
-            if STAGE == 'prod':
+            if os.getenv('STAGE', 'local') == 'prod':
                 notify_about_new_user(email)
                 send_welcome_email(email)
         except IntegrityError as e:

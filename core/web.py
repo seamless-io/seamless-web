@@ -9,7 +9,7 @@ from authlib.integrations.flask_client import OAuth
 from flask import Flask, render_template, session, url_for, redirect, jsonify
 from sqlalchemy.orm.exc import NoResultFound
 
-import config
+import constants
 from app_config import Config
 from core.apis.auth0.auth import CoreAuthError
 from core.models import get_db_session
@@ -57,11 +57,11 @@ def create_app():
 
     auth0 = oauth.register(
         'auth0',
-        client_id=config.AUTH0_CLIENT_ID,
-        client_secret=config.AUTH0_CLIENT_SECRET,
-        api_base_url=config.AUTH0_BASE_URL,
-        access_token_url=config.AUTH0_BASE_URL + '/oauth/token' if config.AUTH0_BASE_URL else '',
-        authorize_url=config.AUTH0_BASE_URL + '/authorize' if config.AUTH0_BASE_URL else '',
+        client_id=os.getenv('AUTH0_CLIENT_ID'),
+        client_secret=os.getenv('AUTH0_CLIENT_SECRET'),
+        api_base_url=os.getenv('AUTH0_BASE_URL'),
+        access_token_url=os.getenv('AUTH0_BASE_URL') + '/oauth/token' if os.getenv('AUTH0_BASE_URL') else '',
+        authorize_url=os.getenv('AUTH0_BASE_URL') + '/authorize' if os.getenv('AUTH0_BASE_URL') else '',
         client_kwargs={
             'scope': 'openid profile email',
         },
@@ -97,7 +97,7 @@ def create_app():
 
     @app.route('/login')
     def login():
-        return auth0.authorize_redirect(redirect_uri=config.AUTH0_CALLBACK_URL,
+        return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL'),
                                         audience=None)
 
     @app.route('/debug-sentry')
@@ -107,7 +107,7 @@ def create_app():
     @app.route('/logout')
     def logout():
         session.clear()
-        params = {'returnTo': url_for('catch_all', _external=True), 'client_id': config.AUTH0_CLIENT_ID}
+        params = {'returnTo': url_for('catch_all', _external=True), 'client_id': os.getenv('AUTH0_CLIENT_ID')}
         return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
 
     @app.route('/health-check')

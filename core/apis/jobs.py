@@ -1,11 +1,12 @@
 import logging
+import os
 from threading import Thread
 
 from flask import Blueprint, Response, jsonify, session, request, send_file, current_app
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 
-import config
+import constants
 import core.services.job as job_service
 import core.services.user as user_service
 import helpers
@@ -26,8 +27,8 @@ def verify_password(username, password):
     """
     We are going to authenticate scheduler using hardcoded password
     """
-    if username == config.LAMBDA_PROXY_AUTH_USERNAME and check_password_hash(
-            generate_password_hash(config.LAMBDA_PROXY_PASSWORD), password):
+    if username == constants.LAMBDA_PROXY_AUTH_USERNAME and check_password_hash(
+            generate_password_hash(os.getenv('LAMBDA_PROXY_PASSWORD')), password):
         return username
 
 
@@ -182,8 +183,8 @@ def run() -> Response:
 
     file = request.files.get('seamless_project')
 
-    entrypoint = str(request.args.get('entrypoint', config.DEFAULT_ENTRYPOINT))
-    requirements = str(request.args.get('requirements', config.DEFAULT_REQUIREMENTS))
+    entrypoint = str(request.args.get('entrypoint', constants.DEFAULT_ENTRYPOINT))
+    requirements = str(request.args.get('requirements', constants.DEFAULT_REQUIREMENTS))
 
     if not file:
         return Response('File not provided', 400)

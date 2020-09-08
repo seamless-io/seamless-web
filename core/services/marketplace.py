@@ -9,12 +9,11 @@ import boto3
 import yaml
 from werkzeug.datastructures import FileStorage
 
-from config import STAGE
 from core.models import get_db_session, JobTemplate, db_commit
 
 EXTRACTED_PACKAGE_FOLDER_NAME = 'job_templates_folder'
 TEMPLATES_CONFIG_FILE = 'table_of_contents.yml'
-JOB_TEMPLATES_S3_BUCKET = f"web-{STAGE}-job-templates"
+JOB_TEMPLATES_S3_BUCKET = f"web-{os.getenv('STAGE', 'local')}-job-templates"
 ARCHIVE_EXTENSION = "tar.gz"
 s3 = boto3.client('s3', region_name=os.getenv('AWS_REGION_NAME'))
 

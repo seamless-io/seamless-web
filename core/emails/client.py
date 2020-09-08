@@ -1,12 +1,13 @@
+import os
 import smtplib
 from email.message import EmailMessage
 
-import config
+import constants
 
 
 def send_email(recipient, subject, body):
     msg = EmailMessage()
-    msg['From'] = config.EMAIL_AUTOMATION_SENDER
+    msg['From'] = constants.EMAIL_AUTOMATION_SENDER
     msg['To'] = recipient
     msg['Subject'] = subject
     msg.set_content(body, subtype='html')
@@ -14,8 +15,8 @@ def send_email(recipient, subject, body):
     with smtplib.SMTP('smtp.gmail.com', port=587) as smtp_server:
         smtp_server.ehlo()
         smtp_server.starttls()
-        smtp_server.login(config.EMAIL_AUTOMATION_SENDER,
-                          config.EMAIL_AUTOMATION_PASSWORD)
+        smtp_server.login(constants.EMAIL_AUTOMATION_SENDER,
+                          os.getenv('EMAIL_AUTOMATION_PASSWORD'))
         smtp_server.send_message(msg)
 
 

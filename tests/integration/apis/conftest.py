@@ -6,7 +6,7 @@ import pytest
 from flask.testing import FlaskClient
 from werkzeug.datastructures import Headers
 
-import config
+import constants
 from application import application
 
 
@@ -74,10 +74,10 @@ def automation_client(user_id):  # we need to use `user_id` fixture here to crea
     os.environ['GITHUB_ACTIONS_PASSWORD'] = '123'
     os.environ['LAMBDA_PROXY_PASSWORD'] = '555'
 
-    importlib.reload(config)  # for config module to fetch params from env
+    importlib.reload(constants)  # for config module to fetch params from env
 
     with application.test_client() as client:
         yield client
 
     os.environ = env_back
-    importlib.reload(config)
+    importlib.reload(constants)

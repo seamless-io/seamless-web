@@ -12,7 +12,7 @@ import docker
 import pytest
 import pytest_localstack
 
-import config
+import constants
 from core.models import get_db_session, db_commit, User
 from core.services.marketplace import JOB_TEMPLATES_S3_BUCKET
 from job_executor import project
@@ -92,7 +92,7 @@ def postgres(docker_client, session_id):
     env_back = copy.deepcopy(os.environ)
     os.environ.update(db_env)
 
-    importlib.reload(config)
+    importlib.reload(constants)
 
     try:
         # applying migrations to the database
@@ -115,7 +115,7 @@ def postgres(docker_client, session_id):
 
         # rolling back environment
         os.environ = env_back
-        importlib.reload(config)
+        importlib.reload(constants)
 
 
 @pytest.fixture

@@ -1,12 +1,13 @@
 import base64
+import os
 
-import config
+import constants
 from core.models import get_db_session, JobTemplate
 
 
 def _basic_auth_headers():
-    username = config.GITHUB_ACTIONS_USERNAME
-    password = config.GITHUB_ACTIONS_PASSWORD
+    username = constants.GITHUB_ACTIONS_USERNAME
+    password = os.getenv('GITHUB_ACTIONS_PASSWORD')
     headers = {
         'Authorization': 'Basic ' + base64.b64encode(bytes(f"{username}:{password}", 'utf-8')).decode('utf-8')
     }
