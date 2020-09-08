@@ -27,8 +27,6 @@ def verify_password(username, password):
     """
     We are going to authenticate github_actions using hardcoded password
     """
-    print('1', username, config.GITHUB_ACTIONS_USERNAME)
-    print('2', password, config.GITHUB_ACTIONS_PASSWORD)
     if username == config.GITHUB_ACTIONS_USERNAME and check_password_hash(
             generate_password_hash(config.GITHUB_ACTIONS_PASSWORD), password):
         return username
