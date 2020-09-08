@@ -92,8 +92,6 @@ def postgres(docker_client, session_id):
     env_back = copy.deepcopy(os.environ)
     os.environ.update(db_env)
 
-    importlib.reload(constants)
-
     try:
         # applying migrations to the database
         rv = subprocess.run(['alembic', 'upgrade', 'head'], env=os.environ)
@@ -115,7 +113,6 @@ def postgres(docker_client, session_id):
 
         # rolling back environment
         os.environ = env_back
-        importlib.reload(constants)
 
 
 @pytest.fixture
