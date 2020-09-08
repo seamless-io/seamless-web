@@ -3,6 +3,7 @@ import os
 
 import constants
 from core.models import get_db_session, JobTemplate
+from core.services.marketplace import fetch_template_from_s3
 
 
 def _basic_auth_headers():
@@ -37,3 +38,16 @@ def test_marketplace_update_flow(web_client, automation_client, archived_templat
     assert template.short_description == 'template1'
     assert template.long_description_url == 'template1'
     assert template.tags == 'template1'
+
+    file_on_s3 = fetch_template_from_s3(str(template.id))
+    assert file_on_s3.getbuffer().nbytes > 0  # There is a real archived that was saved to s3
+    # TODO assert that the file actually corresponds to files of the template
+
+    resp = web_client.get('/api/v1/templates')
+    assert resp.status_code == 200
+    assert len(resp.json) == 1  # There is one template that we've just uploaded
+    template_from_json = resp.json[0]
+    assert template_from_json['name'] == 'template1'
+    assert template_from_json['short_description'] == 'template1'
+    assert template_from_json['long_description_url'] == 'template1'
+    assert template_from_json['tags'] == 'template1'
