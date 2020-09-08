@@ -15,16 +15,20 @@ def _basic_auth_headers():
     return headers
 
 
+def test_marketplace_update_flow_auth_error(automation_client):
+    resp = automation_client.post('/api/v1/marketplace')
+    assert resp.status_code == 401  # We need to authenticate
+
+
+def test_marketplace_update_flow_no_file_error(automation_client):
+    resp = automation_client.post('/api/v1/marketplace', headers=_basic_auth_headers())
+    assert resp.status_code == 400  # We need to send a package with templates files
+
+
 def test_marketplace_update_flow(web_client, automation_client, archived_templates_repo):
     resp = web_client.get('/api/v1/templates')
     assert resp.status_code == 200
     assert len(resp.json) == 0  # There are no templates in the database yet
-
-    resp = automation_client.post('/api/v1/marketplace')
-    assert resp.status_code == 401  # We need to authenticate
-
-    resp = automation_client.post('/api/v1/marketplace', headers=_basic_auth_headers())
-    assert resp.status_code == 400  # We need to send a package with templates files
 
     resp = automation_client.post('/api/v1/marketplace', headers=_basic_auth_headers(),
                                   data={'templates': open(archived_templates_repo, 'rb')})
