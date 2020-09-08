@@ -61,9 +61,6 @@ def fetch_template_from_s3(job_template_id: str) -> io.BytesIO:
 def update_templates(templates_package):
     try:
         _unpack_templates_archive(templates_package, EXTRACTED_PACKAGE_FOLDER_NAME)
-        root_directory = Path('job_templates_folder')
-        print('DEBUG', sum(f.stat().st_size for f in root_directory.glob('**/*') if f.is_file()))
-        print('DEBUG', next(os.walk('job_templates_folder'))[1])
         templates_list_from_github = _get_templates_list_from_config(
             EXTRACTED_PACKAGE_FOLDER_NAME, TEMPLATES_CONFIG_FILE)
 
