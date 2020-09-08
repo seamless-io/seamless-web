@@ -49,6 +49,9 @@ jobs:
     - name: Check with mypy
       run: mypy .
 
+    - name: Build client
+      run: cd client && npm install -g parcel && npm install && npm run build
+
     - name: Test with pytest
       run: PYTHONPATH=. pytest tests
 
@@ -72,9 +75,6 @@ jobs:
     ### DB MIGRATION END ###
 
     ### CREATING PACKAGE START ###
-
-    - name: Build client
-      run: cd client && npm install -g parcel && npm install && npm run build
 
     - name: Create ZIP deployment package
       run: zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git* -x __pycache__/\* -x .pytest_cache/\* -x *.mypy* -x tests/\* -x test_requirements.txt -x Dockerfile* -x client/\*
