@@ -31,7 +31,8 @@ def test_marketplace_update_flow(web_client, automation_client, archived_templat
     assert len(resp.json) == 0  # There are no templates in the database yet
 
     resp = automation_client.post('/api/v1/marketplace', headers=_basic_auth_headers(),
-                                  data={'templates': open(archived_templates_repo, 'rb')})
+                                  data={'templates': (archived_templates_repo, "templates.tar.gz")},
+                                  content_type="multipart/form-data")
     assert resp.status_code == 200  # Good, now let's make sure the data is in database
 
     templates_in_db = get_db_session().query(JobTemplate).all()

@@ -182,9 +182,13 @@ def archived_project():
 
 @pytest.fixture
 def archived_templates_repo():
-    package_name = 'templates.tar.gz'
-    tar = tarfile.open(package_name, "w:gz")
-    tar.add('tests/marketplace_templates_files', arcname='.')
-    tar.close()
-    yield package_name
-    os.remove(package_name)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    template_files = os.path.join(dir_path, '..', 'marketplace_templates_files', '.')
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode="w:gz") as tar:
+        tar.add(template_files, arcname='.')
+        tar.close()
+
+    handler.seek(0)
+    yield handler
