@@ -61,10 +61,10 @@ def fetch_template_from_s3(job_template_id: str) -> io.BytesIO:
 def update_templates(templates_package):
     try:
         _unpack_templates_archive(templates_package, EXTRACTED_PACKAGE_FOLDER_NAME)
-        templates_list_from_github = _get_templates_list_from_config(
+        templates_list = _get_templates_list_from_config(
             EXTRACTED_PACKAGE_FOLDER_NAME, TEMPLATES_CONFIG_FILE)
 
-        for template_config in templates_list_from_github:
+        for template_config in templates_list:
             existing_template = JobTemplate.get_template_from_name(template_config['name'],
                                                                    get_db_session())
             if existing_template:
