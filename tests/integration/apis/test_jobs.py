@@ -1,14 +1,12 @@
 import base64
-from unittest import mock
+import os
 
-import pytest
-
-import config
+import constants
 
 
 def _basic_auth_headers():
-    username = config.LAMBDA_PROXY_AUTH_USERNAME
-    password = config.LAMBDA_PROXY_PASSWORD
+    username = constants.LAMBDA_PROXY_AUTH_USERNAME
+    password = os.getenv('LAMBDA_PROXY_PASSWORD')
     headers = {
         'Authorization': 'Basic ' + base64.b64encode(bytes(f"{username}:{password}", 'utf-8')).decode('utf-8')
     }

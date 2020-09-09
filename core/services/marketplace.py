@@ -3,18 +3,18 @@ import logging
 import os
 import shutil
 import tarfile
+from pathlib import Path
 from typing import List
 
 import boto3
 import yaml
 from werkzeug.datastructures import FileStorage
 
-from config import STAGE
 from core.models import get_db_session, JobTemplate, db_commit
 
 EXTRACTED_PACKAGE_FOLDER_NAME = 'job_templates_folder'
 TEMPLATES_CONFIG_FILE = 'table_of_contents.yml'
-JOB_TEMPLATES_S3_BUCKET = f"web-{STAGE}-job-templates"
+JOB_TEMPLATES_S3_BUCKET = f"web-{os.getenv('STAGE', 'local')}-job-templates"
 ARCHIVE_EXTENSION = "tar.gz"
 s3 = boto3.client('s3', region_name=os.getenv('AWS_REGION_NAME'))
 
@@ -61,10 +61,10 @@ def fetch_template_from_s3(job_template_id: str) -> io.BytesIO:
 def update_templates(templates_package):
     try:
         _unpack_templates_archive(templates_package, EXTRACTED_PACKAGE_FOLDER_NAME)
-        templates_list_from_github = _get_templates_list_from_config(
+        templates_list = _get_templates_list_from_config(
             EXTRACTED_PACKAGE_FOLDER_NAME, TEMPLATES_CONFIG_FILE)
 
-        for template_config in templates_list_from_github:
+        for template_config in templates_list:
             existing_template = JobTemplate.get_template_from_name(template_config['name'],
                                                                    get_db_session())
             if existing_template:

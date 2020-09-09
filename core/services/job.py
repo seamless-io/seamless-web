@@ -8,7 +8,7 @@ from typing import Optional, List, Tuple, Dict
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import FileStorage
 
-import config
+import constants
 from helpers import get_cron_next_execution, parse_cron, get_random_string
 from core.models import JobParameter, db_commit
 from core.models.job_parameters import PARAMETERS_LIMIT_PER_JOB
@@ -273,8 +273,8 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
         user_id
     )
 
-    job_entrypoint = job.entrypoint or config.DEFAULT_ENTRYPOINT
-    job_requirements = job.requirements or config.DEFAULT_REQUIREMENTS
+    job_entrypoint = job.entrypoint or constants.DEFAULT_ENTRYPOINT
+    job_requirements = job.requirements or constants.DEFAULT_REQUIREMENTS
 
     path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, job.user.api_key, str(job.id))
 

@@ -11,7 +11,6 @@ from sentry_sdk import capture_exception
 from sentry_sdk.integrations.flask import FlaskIntegration
 from timeloop import Timeloop
 
-from config import SENTRY_DSN, STAGE
 from core.services.job import CONTAINER_NAME_PREFIX
 from core.telegram.client import send_daily_stats
 from core.web import create_app
@@ -20,7 +19,7 @@ from helpers import time_diff_in_seconds
 JOB_EXECUTION_TIME_LIMIT_SECONDS = 30 * 60  # 30 minutes
 
 sentry_sdk.init(
-    dsn=SENTRY_DSN,
+    dsn=os.getenv('SENTRY_DSN'),
     integrations=[FlaskIntegration()]
 )
 
@@ -57,7 +56,7 @@ def kill_containers_over_time_limit():
 
 @tl.job(interval=timedelta(minutes=30))
 def send_daily_stats_to_telegram():
-    if STAGE == 'prod':
+    if os.getenv('STAGE', 'local') == 'prod':
         try:
             if datetime.utcnow().hour == 13:  # every day at 13:00 UTC
                 send_daily_stats()

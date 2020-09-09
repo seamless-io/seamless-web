@@ -1,0 +1,7 @@
+templates:
+  - name: template1
+    short_description: template1
+    path_to_files: template1
+    long_description_url: template1
+    tags:
+      - template1

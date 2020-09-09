@@ -41,7 +41,7 @@ jobs:
           pip install -r test_requirements.txt
 
       - name: Run unittests
-        run: pytest -v tests/unit
+        run: make unit-test
 
   mypy:
     runs-on: ubuntu-latest
@@ -84,4 +84,4 @@ jobs:
         run: cd client && npm install -g parcel && npm install && npm run build
 
       - name: Run integration tests
-        run: PYTHONPATH=. pytest -v tests/integration  # adding PYTHONPATH=. since we are executing bash command within the Python process
+        run: make integration-test

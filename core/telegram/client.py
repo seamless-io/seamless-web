@@ -1,16 +1,16 @@
 import logging
+import os
 from datetime import datetime, timedelta
 
 import requests
 from sentry_sdk import capture_exception
 
-from config import TELEGRAM_BOT_API_KEY, TELEGRAM_CHANNEL_ID
 from core.models import get_db_session, User, Job, JobRun
 
 
 def _send_message(message):
-    resp = requests.get(f'https://api.telegram.org/bot{TELEGRAM_BOT_API_KEY}/sendMessage',
-                        params={'chat_id': TELEGRAM_CHANNEL_ID,
+    resp = requests.get(f"https://api.telegram.org/bot{os.getenv('TELEGRAM_BOT_API_KEY')}/sendMessage",
+                        params={'chat_id': os.getenv('TELEGRAM_CHANNEL_ID'),
                                 'text': message})
     try:
         resp.raise_for_status()

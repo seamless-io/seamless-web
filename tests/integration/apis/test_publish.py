@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_vanilla(web_client):
     res = web_client.get('/', follow_redirects=True)
     assert res.status_code == 200

@@ -13,14 +13,12 @@ from typing import Optional
 import boto3
 from werkzeug.datastructures import FileStorage
 
-from config import STAGE
-
 ALLOWED_EXTENSION = "tar.gz"
 UPLOAD_FOLDER = "user_projects"
 DATETIME_FOLDER_NAME_FORMAT = "%m_%d_%Y_%H_%M_%S"
 
 s3 = boto3.client('s3', region_name=os.getenv('AWS_REGION_NAME'))
-USER_PROJECTS_S3_BUCKET = f"web-{STAGE}-jobs"
+USER_PROJECTS_S3_BUCKET = f"web-{os.getenv('STAGE', 'local')}-jobs"
 
 
 class JobType(Enum):

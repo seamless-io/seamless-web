@@ -1,21 +1,21 @@
-import os
 import copy
-import uuid
-import subprocess
-import time
-import io
 import importlib
+import io
+import os
+import subprocess
 import tarfile
+import time
+import uuid
 
 import boto3
 import docker
 import pytest
 import pytest_localstack
 
-import config
+import constants
+from core.models import get_db_session, db_commit, User
+from core.services.marketplace import JOB_TEMPLATES_S3_BUCKET
 from job_executor import project
-from core.models import get_db_session, db_commit, User, Job
-
 
 SECOND = 1000000000
 
@@ -92,8 +92,6 @@ def postgres(docker_client, session_id):
     env_back = copy.deepcopy(os.environ)
     os.environ.update(db_env)
 
-    importlib.reload(config)
-
     try:
         # applying migrations to the database
         rv = subprocess.run(['alembic', 'upgrade', 'head'], env=os.environ)
@@ -115,7 +113,6 @@ def postgres(docker_client, session_id):
 
         # rolling back environment
         os.environ = env_back
-        importlib.reload(config)
 
 
 @pytest.fixture
@@ -163,6 +160,12 @@ def create_s3_bucket_for_user_projects(localstack):
     s3.create_bucket(Bucket=project.USER_PROJECTS_S3_BUCKET)
 
 
+@pytest.fixture(scope='session', autouse=True)
+def create_s3_bucket_for_templates(localstack):
+    s3 = boto3.client('s3')
+    s3.create_bucket(Bucket=JOB_TEMPLATES_S3_BUCKET)
+
+
 @pytest.fixture
 def archived_project():
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -175,3 +178,17 @@ def archived_project():
 
     handler.seek(0)  # going back to the start after writing into it
     return handler
+
+
+@pytest.fixture
+def archived_templates_repo():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    template_files = os.path.join(dir_path, '..', 'marketplace_templates_files', '.')
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode="w:gz") as tar:
+        tar.add(template_files, arcname='.')
+        tar.close()
+
+    handler.seek(0)
+    yield handler
