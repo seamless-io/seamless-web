@@ -60,7 +60,7 @@ def test_non_existing_job_parameters(web_client):
     assert rv.status_code == 404
 
 
-# TODO we also need to test an actual execution of a job with parameters, this is just an api test
+@pytest.mark.skip(reason="requirements.txt has a known bug")
 def test_parameters_flow(web_client, published_job_with_parameters):
     test_parameter_1 = {"key": "key1", "value": "value1"}
     test_parameter_2 = {"key": "key2", "value": "value2"}
