@@ -30,7 +30,7 @@
   border: solid 2px #dde0e5;
   background-color: transparent;
   margin-right: 15px;
-  width: 30%;
+  width: 25%;
   float: right;
 }
 
@@ -51,7 +51,7 @@
   border: solid 2px #dde0e5;
   background-color: transparent;
   margin-right: 15px;
-  width: 30%;
+  width: 25%;
   float: right;
 }
 
@@ -310,4 +310,8 @@
 
 .smls-web-ide-modal {
   min-width: 90%;
+}
+
+.smls-job-param-modal {
+  min-width: 70%;
 }

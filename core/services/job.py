@@ -250,6 +250,16 @@ def add_parameters_to_job(job_id: str, user_id: str, parameters: List[Tuple[str,
             raise e
 
 
+def update_job_parameter(job_id: str, user_id: str, parameter_id: str, param_key: str, param_value: str):
+    job = get(job_id, user_id)
+    found_parameter = job.parameters.filter_by(id=parameter_id).one_or_none()
+    if not found_parameter:
+        raise ParameterNotFoundException(f'Cannot update parameter {parameter_id}: Not Found')
+    found_parameter.key = param_key
+    found_parameter.value = param_value
+    db_commit()
+
+
 def delete_job_parameter(job_id: str, user_id: str, parameter_id: str):
     job = get(job_id, user_id)
     affected_rows = job.parameters.filter_by(id=parameter_id).delete()

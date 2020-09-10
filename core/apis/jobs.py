@@ -258,6 +258,22 @@ def delete_job_parameter(job_id: str, parameter_id: str):
     return f'Successfully delete parameter {parameter_id}', 200
 
 
+@jobs_bp.route('/jobs/<job_id>/parameters/<parameter_id>', methods=['PUT'])
+@requires_auth
+def update_job_parameter(job_id: str, parameter_id: str):
+    data = request.json
+    key = data.get('key')
+    value = data.get('value')
+    if not (key and value):
+        return Response('The payload is not valid, it needs to have both name and value', 400)
+    try:
+        print(job_id, session['profile']['internal_user_id'], parameter_id, key, value)
+        job_service.update_job_parameter(job_id, session['profile']['internal_user_id'], parameter_id, key, value)
+    except job_service.ParameterNotFoundException as e:
+        return Response(str(e), 404)
+    return f'Successfully update parameter {parameter_id}', 200
+
+
 @jobs_bp.errorhandler(job_service.JobNotFoundException)
 def handle_error(e):
     return jsonify(error=str(e)), 404

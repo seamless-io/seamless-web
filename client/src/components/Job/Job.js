@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Row, Col, Spinner, Modal } from 'react-bootstrap';
+import { Row, Col, Spinner, Modal, FormControl } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 import moment from 'moment';
-import { AiOutlineCode } from 'react-icons/ai';
+import { AiOutlineCode, AiOutlineSetting } from 'react-icons/ai';
 
 import { socket } from '../../socket';
 import {
@@ -14,9 +14,14 @@ import {
   getLastExecutions,
   getNextJobExecution,
   getJobRunLogs,
+  getJobParameters,
+  createJobParameter,
+  deleteJobParameter,
+  updateJobParameter,
 } from '../../api';
 import ExecutionTimeline from './ExecutionTimeline';
 import WebIde from '../WebIde/WebIde';
+import Parameters from '../Parameters/Parameters';
 import Notification from '../Notification/Notification';
 
 import './style.css';
@@ -51,6 +56,16 @@ const Job = () => {
   const [notificationBody, setNotificationBody] = useState('');
   const [notificationAlertType, setNotificationAlertType] = useState('');
   const [showCode, setShowCode] = useState(false);
+  const [showParams, setShowParams] = useState(false);
+  const [jobParameters, setJobParameters] = useState([]);
+  const [paramKey, setParamKey] = useState('');
+  const [paramValue, setParamValue] = useState('');
+  const [showEditParam, setShowEditParam] = useState(false);
+  const [editedParamKey, setEditedParamKey] = useState('');
+  const [editedParamValue, setEditedParamValue] = useState('');
+  const [editedParamId, setEditedParamId] = useState('');
+  const [borderColor, setBorderColor] = useState('#ced4da');
+  const [loadingJobParams, setLoadingJobParams] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -172,6 +187,21 @@ const Job = () => {
       });
   }, []);
 
+  useEffect(() => {
+    getJobParameters(job.id)
+      .then(payload => {
+        setJobParameters(payload);
+      })
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to fetch job parameters :(',
+          'danger'
+        );
+      });
+  }, []);
+
   const runJob = () => {
     setStreamingLogs([]);
     setStatusRun('EXECUTING');
@@ -239,6 +269,126 @@ const Job = () => {
     setShowCode(!showCode);
   };
 
+  const openJobParams = () => {
+    setShowParams(!showParams);
+  };
+
+  const createParam = () => {
+    if (!paramKey.trim() || !paramValue.trim()) {
+      setBorderColor('#ff3c2e');
+      return displayNotification(
+        true,
+        'Ooops!',
+        'Parameter name and value are required.',
+        'warning'
+      );
+    }
+
+    setLoadingJobParams(true);
+    createJobParameter(job.id, paramKey, paramValue)
+      .then(() => {
+        setParamKey('');
+        setParamValue('');
+        setBorderColor('#ced4da');
+        getJobParameters(job.id)
+          .then(payload => {
+            setLoadingJobParams(false);
+            setJobParameters(payload);
+          })
+          .catch(() => {
+            displayNotification(
+              true,
+              'Ooops!',
+              'Unable to fetch job parameters :(',
+              'danger'
+            );
+          });
+      })
+      .catch(() => {
+        setLoadingJobParams(false);
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to created the job parameter :(',
+          'danger'
+        );
+      });
+  };
+
+  const deleteParam = e => {
+    setLoadingJobParams(true);
+    deleteJobParameter(job.id, e.target.getAttribute('data-id'))
+      .then(() => {
+        getJobParameters(job.id)
+          .then(payload => {
+            setLoadingJobParams(false);
+            setJobParameters(payload);
+          })
+          .catch(() => {
+            displayNotification(
+              true,
+              'Ooops!',
+              'Unable to fetch job parameters :(',
+              'danger'
+            );
+          });
+      })
+      .catch(() => {
+        setLoadingJobParams(false);
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to delete the job parameter :(',
+          'danger'
+        );
+      });
+  };
+
+  const editParam = e => {
+    setShowParams(!showParams);
+    setShowEditParam(!showEditParam);
+    setEditedParamId(e.target.getAttribute('data-id'));
+    setEditedParamKey(e.target.getAttribute('data-key'));
+    setEditedParamValue(e.target.getAttribute('data-value'));
+  };
+
+  const hideEditParam = () => {
+    setShowParams(!showParams);
+    setShowEditParam(!showEditParam);
+  };
+
+  const updateParam = () => {
+    setLoadingJobParams(true);
+    updateJobParameter(job.id, editedParamId, editedParamKey, editedParamValue)
+      .then(() => {
+        getJobParameters(job.id)
+          .then(payload => {
+            setLoadingJobParams(false);
+            setJobParameters(payload);
+          })
+          .catch(() => {
+            displayNotification(
+              true,
+              'Ooops!',
+              'Unable to fetch job parameters :(',
+              'danger'
+            );
+          });
+
+        setShowParams(!showParams);
+        setShowEditParam(!showEditParam);
+      })
+      .catch(() => {
+        setLoadingJobParams(false);
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to update the job parameter :(',
+          'danger'
+        );
+      });
+  };
+
   if (loading) {
     return (
       <div className="smls-jobs-spinner-container">
@@ -250,12 +400,12 @@ const Job = () => {
   return (
     <>
       <Row className="smls-job-header">
-        <Col className="smls-job-name-header">
+        <Col className="smls-job-name-header" sm={5}>
           <div className="smls-job-heade-container">
             <h1 className="smls-job-name-h1">{name}</h1>
           </div>
         </Col>
-        <Col className="smls-job-header-buttons-container">
+        <Col className="smls-job-header-buttons-container" sm={7}>
           <div className="smls-job-header-buttons">
             <button
               className="smls-job-run-button"
@@ -272,6 +422,16 @@ const Job = () => {
             >
               <AiOutlineCode />
               <span className="smls-job-web-ide-button-text">Show Code</span>
+            </button>
+            <button
+              className="smls-job-web-ide-button"
+              type="button"
+              onClick={openJobParams}
+            >
+              <AiOutlineSetting />
+              <span className="smls-job-web-ide-button-text">
+                Job Parameters
+              </span>
             </button>
             <a href={downloadJobLink}>
               <button className="smls-job-download-code-button" type="button">
@@ -337,6 +497,65 @@ const Job = () => {
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
           <WebIde jobId={job.id} />
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showParams}
+        onHide={() => setShowParams(!showParams)}
+        dialogClassName="smls-job-param-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Job Parameters</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <Parameters
+            jobParameters={jobParameters}
+            paramKey={paramKey}
+            paramValue={paramValue}
+            setKey={e => setParamKey(e.target.value)}
+            setValue={e => setParamValue(e.target.value)}
+            createParam={createParam}
+            editParam={editParam}
+            deleteParam={deleteParam}
+            borderColor={borderColor}
+            loadingJobParams={loadingJobParams}
+          />
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showEditParam}
+        onHide={hideEditParam}
+        dialogClassName="smls-job-param-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Edit job parameter</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <Row style={{ paddingTop: '16px' }}>
+            <Col sm={5}>
+              <FormControl
+                placeholder="Key"
+                value={editedParamKey}
+                onChange={e => setEditedParamKey(e.target.value.trim())}
+              />
+            </Col>
+            <Col sm={5}>
+              <FormControl
+                placeholder="Value"
+                value={editedParamValue}
+                onChange={e => setEditedParamValue(e.target.value)}
+              />
+            </Col>
+            <Col sm={2}>
+              <button
+                className="smls-job-param-save-changes"
+                type="button"
+                onClick={updateParam}
+              >
+                <span className="smls-job-param-button-text">Save changes</span>
+              </button>
+            </Col>
+          </Row>
         </Modal.Body>
       </Modal>
     </>

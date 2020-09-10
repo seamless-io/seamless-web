@@ -60,3 +60,34 @@ export const getFileContent = async (job_id, file_path) => {
   );
   return response.data;
 };
+
+export const getJobParameters = async job_id => {
+  let response = await axios.get(`/api/v1/jobs/${job_id}/parameters`);
+  return response.data;
+};
+
+export const createJobParameter = async (job_id, key, value) => {
+  let response = await axios.post(`/api/v1/jobs/${job_id}/parameters`, {
+    key: key,
+    value: value,
+  });
+  return response.data;
+};
+
+export const deleteJobParameter = async (job_id, parameter_id) => {
+  let response = await axios.delete(
+    `/api/v1/jobs/${job_id}/parameters/${parameter_id}`
+  );
+  return response.data;
+};
+
+export const updateJobParameter = async (job_id, parameter_id, key, value) => {
+  let response = await axios.put(
+    `/api/v1/jobs/${job_id}/parameters/${parameter_id}`,
+    {
+      key: key,
+      value: value,
+    }
+  );
+  return response.data;
+};
