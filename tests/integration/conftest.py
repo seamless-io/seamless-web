@@ -1,5 +1,4 @@
 import copy
-import importlib
 import io
 import os
 import subprocess
@@ -12,7 +11,6 @@ import docker
 import pytest
 import pytest_localstack
 
-import constants
 from core.models import get_db_session, db_commit, User
 from core.services.marketplace import JOB_TEMPLATES_S3_BUCKET
 from job_executor import project
@@ -20,7 +18,22 @@ from job_executor import project
 SECOND = 1000000000
 
 
-localstack = pytest_localstack.patch_fixture(services=["s3"], scope='session', autouse=True)
+localstack = pytest_localstack.patch_fixture(services=["s3", "events"], scope='session', autouse=True)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def lambda_proxy_env(localstack):
+    """
+    We use LAMBDA_PROXY_NAME and LAMBDA_PROXY_ARN while creating an event
+    """
+    os_back = copy.deepcopy(os.environ)
+
+    os.environ['LAMBDA_PROXY_NAME'] = 'proxy_lambda_name'
+    os.environ['LAMBDA_PROXY_ARN'] = 'proxy_lambda_arn'
+
+    yield
+
+    os.envion = os_back
 
 
 def wait_on_condition(condition, delay=0.1, timeout=40):
@@ -173,7 +186,7 @@ def archived_project():
 
     handler = io.BytesIO()
     with tarfile.open(fileobj=handler, mode="w:gz") as tar:
-        tar.add(folder_to_archive)
+        tar.add(folder_to_archive, arcname='.')
         tar.close()
 
     handler.seek(0)  # going back to the start after writing into it

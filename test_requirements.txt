@@ -1,6 +1,6 @@
 -r requirements.txt
 flake8
 pytest
-pytest-localstack
+git+https://github.com/finomayato/pytest-localstack.git#egg=pytest-localstack
 mypy
 scipy

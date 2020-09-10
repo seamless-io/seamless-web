@@ -1,12 +1,10 @@
 import copy
-import importlib
 import os
 
 import pytest
 from flask.testing import FlaskClient
 from werkzeug.datastructures import Headers
 
-import constants
 from application import application
 
 
@@ -39,6 +37,8 @@ def web_client(postgres, user_id, user_email):
     with auth0 authentication
     """
     application.config['TESTING'] = True
+    # This is a default class, but we need to explicitly set it because cli_client overwrites it
+    application.test_client_class = FlaskClient
 
     with application.test_client() as client:
         with client.session_transaction() as session:
@@ -56,6 +56,7 @@ def cli_client(user_api_key, user_id):  # we need to use `user_id` fixture here 
     CLI client fixture. This fixture should be used when we are testing api's used by the CLI and using API key auth
     """
     application.config['TESTING'] = True
+    # This is a custom testing client class, it is set for the scope of the test session, unless we set it back
     application.test_client_class = CLIClient
     with application.test_client(api_key=user_api_key) as client:
         yield client
@@ -68,6 +69,8 @@ def automation_client(user_id):  # we need to use `user_id` fixture here to crea
     and using BasicAuth
     """
     application.config['TESTING'] = True
+    # This is a default class, but we need to explicitly set it because cli_client overwrites it
+    application.test_client_class = FlaskClient
 
     env_back = copy.deepcopy(os.environ)
 

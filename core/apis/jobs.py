@@ -233,6 +233,8 @@ def get_job_parameters(job_id: str):
 @requires_auth
 def add_job_parameter(job_id: str):
     data = request.json
+    if not data:
+        return Response('There is no payload', 400)
     key = data.get('key')
     value = data.get('value')
     if not (key and value):

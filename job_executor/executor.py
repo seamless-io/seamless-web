@@ -10,8 +10,8 @@ import docker
 from docker.errors import BuildError
 from docker.models.containers import Container
 from docker.types import Mount
-from sentry_sdk import capture_exception
 
+from constants import DEFAULT_REQUIREMENTS
 from .exceptions import ExecutorBuildException
 
 DOCKER_FILE_NAME = "Dockerfile"
@@ -66,6 +66,7 @@ def execute(path_to_job_files: str,
 
         container.wait()
 
+
 def _legacy_entrypoint_handling(path_to_job_files: str, legacy_entrypoint: str) -> str:
     """
     Previously we had a way to provide `entrypoint` as `path.to.function`.
@@ -98,24 +99,30 @@ def check_project_path(path_to_job_files):
         raise ExecutorBuildException(f"Invalid project path directory `{path_to_job_files}` does not exist")
 
 
+# TODO this check is more complicated than it should be. Some context below
+# We have cases when we pass empty requirements - then we crate the requirements.txt file.
+# It works for smls run. But if we publish and run using the button - it was breaking because
+# in db we save records with default requirements.txt, so requirements variable was not empty and
+# it could not find the file.
 def _ensure_requirements(job_directory: str, requirements: Optional[str]):
     """
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
     """
     # path_to_requirements = f"{job_directory}/{requirements}"
-    if requirements is None:
-        # path was not provided by a user - create empty `requirements.txt`
-        relative_requirements_path = 'requirements.txt'
-        path_to_requirements = os.path.join(job_directory, 'requirements.txt')
-        with open(path_to_requirements, 'w'):
-            pass
-    else:
-        # path to requirements was provided by user. Check if exists
+    if requirements is not None and requirements != DEFAULT_REQUIREMENTS:
+        # path to requirements was provided by user and it's not a default one
         path_to_requirements = os.path.join(job_directory, requirements)
         if not os.path.exists(path_to_requirements):
             raise ExecutorBuildException(f"Cannot find requirements file `{requirements}`")
         else:
             relative_requirements_path = requirements
+    else:
+        # path was not provided by a user explicitly - create empty `requirements.txt`
+        relative_requirements_path = 'requirements.txt'
+        path_to_requirements = os.path.join(job_directory, 'requirements.txt')
+        with open(path_to_requirements, 'w'):
+            pass
+
     return relative_requirements_path
 
 

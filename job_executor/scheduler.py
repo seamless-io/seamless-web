@@ -1,11 +1,9 @@
-import os
 import json
 import logging
+import os
 
 import boto3
 from botocore.exceptions import ClientError
-
-import constants
 
 
 def _generate_cloudwatch_rule_name(job_id: str, stage: str) -> str:
