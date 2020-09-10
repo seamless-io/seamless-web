@@ -109,20 +109,18 @@ def _ensure_requirements(job_directory: str, requirements: Optional[str]):
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
     """
     # path_to_requirements = f"{job_directory}/{requirements}"
-    if requirements is not None and requirements != DEFAULT_REQUIREMENTS:
-        # path to requirements was provided by user and it's not a default one
+    if requirements is None:
+        # path was not provided by a user - create empty `requirements.txt`
+        relative_requirements_path = 'requirements.txt'
+        path_to_requirements = os.path.join(job_directory, 'requirements.txt')
+        with open(path_to_requirements, 'w'):
+            pass
+    else:
         path_to_requirements = os.path.join(job_directory, requirements)
         if not os.path.exists(path_to_requirements):
             raise ExecutorBuildException(f"Cannot find requirements file `{requirements}`")
         else:
             relative_requirements_path = requirements
-    else:
-        # path was not provided by a user explicitly - create empty `requirements.txt`
-        relative_requirements_path = 'requirements.txt'
-        path_to_requirements = os.path.join(job_directory, 'requirements.txt')
-        with open(path_to_requirements, 'w'):
-            pass
-
     return relative_requirements_path
 
 
