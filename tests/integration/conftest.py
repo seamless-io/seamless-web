@@ -11,6 +11,7 @@ import docker
 import pytest
 import pytest_localstack
 
+from constants import DEFAULT_ENTRYPOINT, DEFAULT_REQUIREMENTS
 from core.models import get_db_session, db_commit, User
 from core.services.marketplace import JOB_TEMPLATES_S3_BUCKET
 from job_executor import project
@@ -205,3 +206,103 @@ def archived_templates_repo():
 
     handler.seek(0)
     yield handler
+
+
+@pytest.fixture
+def archived_project_no_requirements():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    folder_to_archive = os.path.join(dir_path, '..', 'test_project_no_requirements')
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode="w:gz") as tar:
+        tar.add(folder_to_archive, arcname='.')
+        tar.close()
+
+    handler.seek(0)  # going back to the start after writing into it
+    return handler
+
+
+@pytest.fixture
+def published_job_no_requirements(cli_client, archived_project_no_requirements):
+    # Creating a job using CLI client
+    args = {
+        'name': 'published_job_no_requirements',
+        'entrypoint': DEFAULT_ENTRYPOINT,
+        'requirements': DEFAULT_REQUIREMENTS
+    }
+    rv = cli_client.put('/api/v1/publish',
+                        query_string=args,
+                        data={'seamless_project': (archived_project_no_requirements, "prj.tar.gz")},
+                        content_type="multipart/form-data")
+
+    yield rv.json['job_id']
+
+    # Deleting the job using CLI client
+    cli_client.delete(f'/api/v1/jobs/published_job_no_requirements')
+
+
+@pytest.fixture
+def archived_project_default_requirements():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    folder_to_archive = os.path.join(dir_path, '..', 'test_project_default_requirements')
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode="w:gz") as tar:
+        tar.add(folder_to_archive, arcname='.')
+        tar.close()
+
+    handler.seek(0)  # going back to the start after writing into it
+    return handler
+
+
+@pytest.fixture
+def published_job_default_requirements(cli_client, archived_project_default_requirements):
+    # Creating a job using CLI client
+    args = {
+        'name': 'published_job_default_requirements',
+        'entrypoint': DEFAULT_ENTRYPOINT,
+        'requirements': DEFAULT_REQUIREMENTS
+    }
+    rv = cli_client.put('/api/v1/publish',
+                        query_string=args,
+                        data={'seamless_project': (archived_project_default_requirements, "prj.tar.gz")},
+                        content_type="multipart/form-data")
+
+    yield rv.json['job_id']
+
+    # Deleting the job using CLI client
+    cli_client.delete(f'/api/v1/jobs/published_job_default_requirements')
+
+
+@pytest.fixture
+def archived_project_custom_requirements_custom_entrypoint():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    folder_to_archive = os.path.join(dir_path, '..', 'test_project_custom_requirements_custom_entrypoint')
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode="w:gz") as tar:
+        tar.add(folder_to_archive, arcname='.')
+        tar.close()
+
+    handler.seek(0)  # going back to the start after writing into it
+    return handler
+
+
+@pytest.fixture
+def published_job_custom_requirements_custom_entrypoint(cli_client,
+                                                        archived_project_custom_requirements_custom_entrypoint):
+    # Creating a job using CLI client
+    args = {
+        'name': 'published_job_custom_requirements_custom_entrypoint',
+        'entrypoint': 'custom_function.py',
+        'requirements': 'custom_requirements.txt'
+    }
+    rv = cli_client.put('/api/v1/publish',
+                        query_string=args,
+                        data={'seamless_project': (archived_project_custom_requirements_custom_entrypoint, "prj.tar.gz")},
+                        content_type="multipart/form-data")
+
+    yield rv.json['job_id']
+
+    # Deleting the job using CLI client
+    cli_client.delete(f'/api/v1/jobs/published_job_custom_requirements_custom_entrypoint')

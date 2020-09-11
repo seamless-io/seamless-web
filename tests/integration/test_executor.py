@@ -68,10 +68,11 @@ def test_execute_wrong_requirements(path_to_project, entrypoint):
 
 
 def test_execute_wrong_project_path(entrypoint, path_to_requirements):
+    parameters = {}
     wrong_project_path = '/this/is/non/existing/path'
     exc_msg = re.escape(f"{ExecutorBuildException.PREFIX} Invalid project path directory `{wrong_project_path}` does not exist")
     with pytest.raises(ExecutorBuildException, match=exc_msg):
-        with executor.execute(wrong_project_path, entrypoint, path_to_requirements) as res:
+        with executor.execute(wrong_project_path, entrypoint, parameters, path_to_requirements) as res:
             print(f"ok {res}")
 
 

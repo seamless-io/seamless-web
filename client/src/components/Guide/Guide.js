@@ -74,11 +74,6 @@ const Guide = () => {
               <code>cd stock_monitoring_job</code>
               <br />
               <code className="smls-code-comment">
-                # execute the job on the Seamless Cloud server
-              </code>
-              <code>smls run</code>
-              <br />
-              <code className="smls-code-comment">
                 # deploy and schedule the job every day at 00:00 UTC
               </code>
               <code>

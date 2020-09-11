@@ -35,7 +35,7 @@ class ExecuteResult:
 def execute(path_to_job_files: str,
             entrypoint_filename: str,
             parameters: Dict[str, str],
-            path_to_requirements: Optional[str] = None,
+            path_to_requirements: str,
             tag: Optional[str] = None) -> Generator[ExecuteResult, Any, None]:
     """
     Executing in docker container
@@ -99,29 +99,22 @@ def check_project_path(path_to_job_files):
         raise ExecutorBuildException(f"Invalid project path directory `{path_to_job_files}` does not exist")
 
 
-# TODO this check is more complicated than it should be. Some context below
-# We have cases when we pass empty requirements - then we crate the requirements.txt file.
-# It works for smls run. But if we publish and run using the button - it was breaking because
-# in db we save records with default requirements.txt, so requirements variable was not empty and
-# it could not find the file.
-def _ensure_requirements(job_directory: str, requirements: Optional[str]):
+def _ensure_requirements(job_directory: str, requirements: str):
     """
     Dockerfile execute `ADD` operations with requirements. So, we are ensuring that it exists
     """
     # path_to_requirements = f"{job_directory}/{requirements}"
-    if requirements is None:
-        # path was not provided by a user - create empty `requirements.txt`
-        relative_requirements_path = 'requirements.txt'
-        path_to_requirements = os.path.join(job_directory, 'requirements.txt')
-        with open(path_to_requirements, 'w'):
-            pass
-    else:
-        path_to_requirements = os.path.join(job_directory, requirements)
-        if not os.path.exists(path_to_requirements):
-            raise ExecutorBuildException(f"Cannot find requirements file `{requirements}`")
+    path_to_requirements = os.path.join(job_directory, requirements)
+    if not os.path.exists(path_to_requirements):
+        if requirements == DEFAULT_REQUIREMENTS:
+            # We need to create an empty requirements file for container to work
+            path_to_requirements = os.path.join(job_directory, DEFAULT_REQUIREMENTS)
+            with open(path_to_requirements, 'w'):
+                pass
         else:
-            relative_requirements_path = requirements
-    return relative_requirements_path
+            raise ExecutorBuildException(f"Cannot find requirements file `{requirements}`")
+
+    return requirements
 
 
 @contextlib.contextmanager

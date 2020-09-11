@@ -166,33 +166,6 @@ def run_job(job_id):
     return f"Running job {job_id}", 200
 
 
-@jobs_bp.route('/run', methods=['POST'])
-def run() -> Response:
-    """
-    Executing job when triggered manually via CLI
-    """
-    # TODO: create a model for storing standalone executions
-    api_key = request.headers.get('Authorization')
-    if not api_key:
-        return Response('Not authorized request', 401)
-
-    try:
-        user = user_service.get_by_api_key(api_key)
-    except user_service.UserNotFoundException as exc:
-        return Response(str(exc), 400)
-
-    file = request.files.get('seamless_project')
-
-    entrypoint = str(request.args.get('entrypoint', constants.DEFAULT_ENTRYPOINT))
-    requirements = str(request.args.get('requirements', constants.DEFAULT_REQUIREMENTS))
-
-    if not file:
-        return Response('File not provided', 400)
-
-    with job_service.execute_standalone(entrypoint, requirements, file, user) as (logs, _):
-        return Response(logs, content_type="text/event-stream", headers={'X-Accel-Buffering': 'no'})
-
-
 @jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])
 def delete_job(job_name):
     api_key = request.headers.get('Authorization')

@@ -339,24 +339,3 @@ def _create_log_entry(log_msg: str, job_id: str, job_run_id: str, user_id: str):
     )
 
     get_db_session().add(job_run_log)
-
-
-@contextlib.contextmanager
-def execute_standalone(entrypoint: str,
-                       requirements: str,
-                       project_file: FileStorage,
-                       user: User):
-    parameters: Dict[str, str] = {}  # TODO implement a way to pass parameters during `smls run`
-    try:
-        file = read_bytes_from_sent_file(project_file)
-        project_path = project.create(file, user.api_key, JobType.RUN)
-        with executor.execute(project_path,
-                              entrypoint,
-                              parameters,
-                              requirements,
-                              _generate_container_name('STANDALONE', str(user.id))) as execute_result:
-            logs, get_exit_code = execute_result.output, execute_result.get_exit_code
-            yield (logs, get_exit_code)
-    except (ExecutorBuildException, ProjectValidationError) as exc:
-        logs, get_exit_code = (el for el in [str(exc)]), lambda: 1
-        yield logs, get_exit_code
