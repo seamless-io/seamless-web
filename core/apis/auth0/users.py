@@ -43,8 +43,9 @@ def auth0_webhook():
         try:
             user_id = add_user_to_db(email)
             message = f'New user {email} (id: {user_id}) signed up!'
+            pricing_plan = context['request']['query'].get('pricing_plan')
             if os.getenv('STAGE', 'local') == 'prod':
-                notify_about_new_user(email)
+                notify_about_new_user(email, pricing_plan)
                 send_welcome_email(email)
         except IntegrityError as e:
             if 'duplicate key value violates unique constraint "ix_users_email"' in str(e):
