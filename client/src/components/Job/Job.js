@@ -66,6 +66,7 @@ const Job = () => {
   const [editedParamId, setEditedParamId] = useState('');
   const [borderColor, setBorderColor] = useState('#ced4da');
   const [loadingJobParams, setLoadingJobParams] = useState(false);
+  const [showFaqParams, setShowFaqParams] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -354,6 +355,16 @@ const Job = () => {
 
   const hideEditParam = () => {
     setShowParams(!showParams);
+    setShowFaqParams(!showFaqParams);
+  };
+
+  const hideFaqParams = () => {
+    setShowParams(!showParams);
+    setShowEditParam(!showEditParam);
+  };
+
+  const renderFaqParams = () => {
+    setShowParams(!showParams);
     setShowEditParam(!showEditParam);
   };
 
@@ -505,7 +516,10 @@ const Job = () => {
         dialogClassName="smls-job-param-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Job Parameters</Modal.Title>
+          <Modal.Title>
+            Job Parameters{' '}
+            <span onClick={renderFaqParams}>How to use job parameters</span>
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
           <Parameters
@@ -554,6 +568,23 @@ const Job = () => {
               >
                 <span className="smls-job-param-button-text">Save changes</span>
               </button>
+            </Col>
+          </Row>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showFaqParams}
+        onHide={hideFaqParams}
+        dialogClassName="smls-job-param-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>How to use job parameters</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <Row style={{ paddingTop: '16px' }}>
+            <Col>
+              Config vars change the way your app behaves. In addition to
+              creating your own, some add-ons come with their own.
             </Col>
           </Row>
         </Modal.Body>
