@@ -19,8 +19,8 @@ def _send_message(message):
         capture_exception(e)
 
 
-def notify_about_new_user(email):
-    _send_message(f"Fuck yeah, new user {email}")
+def notify_about_new_user(email, pricing_plan):
+    _send_message(f"Fuck yeah, new user {email} subscribed for {pricing_plan} pricing plan")
 
 
 def send_daily_stats():

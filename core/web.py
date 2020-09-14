@@ -6,10 +6,9 @@ from urllib.parse import urlencode
 
 import jinja2
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, render_template, session, url_for, redirect, jsonify
+from flask import Flask, render_template, session, url_for, redirect, jsonify, request
 from sqlalchemy.orm.exc import NoResultFound
 
-import constants
 from app_config import Config
 from core.apis.auth0.auth import CoreAuthError
 from core.models import get_db_session
@@ -99,7 +98,8 @@ def create_app():
     def login():
         print(os.getenv('AUTH0_CALLBACK_URL'))
         return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL'),
-                                        audience=None)
+                                        audience=None,
+                                        pricing_plan=request.args.get('pricing_plan', 'free'))
 
     @app.route('/debug-sentry')
     def trigger_error():
@@ -122,7 +122,7 @@ def create_app():
         response.status_code = ex.status_code
         return response
 
-    # Catch all to server the react app
+    # Catch all to serve the react app
     @app.route('/', methods=['GET'])
     @app.route('/<path:path>', methods=['GET'])
     @requires_auth
