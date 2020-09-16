@@ -1,3 +1,5 @@
+from typing import Dict
+
 from sqlalchemy.orm.exc import NoResultFound
 
 from core.models.users import User
@@ -23,3 +25,10 @@ def get_by_id(user_id: str):
     except NoResultFound:
         raise UserNotFoundException(f'Cannot find a user with id: {user_id}')
     return user
+
+
+def create_user(data: Dict):
+    """
+    Creates a "Personal" workspace (team) and ties it to the user created
+    """
+    pass
