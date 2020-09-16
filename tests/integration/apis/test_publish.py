@@ -26,3 +26,10 @@ def test_publish_success(cli_client, job_name, job_entrypoint, job_requirements,
                         data={'seamless_project': (archived_project, "prj.tar.gz")},
                         content_type="multipart/form-data")
     assert rv.status_code == 200
+
+
+def test_publish_to_the_team():
+    """
+    Now we need to ensure that the user publishes his job to the right workspace
+    """
+    pass
