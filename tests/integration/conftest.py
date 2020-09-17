@@ -19,7 +19,10 @@ from job_executor import project
 SECOND = 1000000000
 
 
-localstack = pytest_localstack.patch_fixture(services=["s3", "events"], scope='session', autouse=True)
+localstack = pytest_localstack.patch_fixture(services=["s3", "events"],
+                                             scope='session',
+                                             autouse=True,
+                                             localstack_version='0.11.4')
 
 
 @pytest.fixture(scope='session', autouse=True)

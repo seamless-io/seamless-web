@@ -1,28 +1,10 @@
 import datetime
-import enum
-from dataclasses import dataclass
 
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
 from core.api_key import API_KEY_LENGTH
 from core.models.base import base
-
-
-class UserAccountType(enum.Enum):
-    Free = "FREE"
-    Professional = "PROFESSIONAL"
-
-
-@dataclass
-class AccountLimits:
-    jobs: int
-
-
-ACCOUNT_LIMITS_BY_TYPE = {
-    UserAccountType.Free: AccountLimits(jobs=2),
-    UserAccountType.Professional: AccountLimits(jobs=10)
-}
 
 
 class User(base):
@@ -30,22 +12,22 @@ class User(base):
 
     id = Column(Integer, primary_key=True)
     jobs = relationship("Job", back_populates="user", lazy='dynamic')
+    owned_workspaces = relationship("Workspace", back_populates="owner", lazy='dynamic')
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    account_type = Column(Text, nullable=False, default=UserAccountType.Free.value)
 
     @staticmethod
     def get_user_from_id(user_id, session):
-        return session.query(User).filter(User.id == user_id).one()
+        return session.query(User).filter(User.id == user_id).one_or_none()
 
     @staticmethod
     def get_user_from_api_key(api_key, session):
-        return session.query(User).filter(User.api_key == api_key).one()
+        return session.query(User).filter(User.api_key == api_key).one_or_none()
 
     @staticmethod
     def get_user_from_email(email, session):
-        return session.query(User).filter(User.email == email).one()
+        return session.query(User).filter(User.email == email).one_or_none()
 
     def __repr__(self):
         return '<User %r>' % self.id

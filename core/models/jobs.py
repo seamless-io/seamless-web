@@ -21,15 +21,17 @@ class JobStatus(enum.Enum):
 
 class Job(base):
     __tablename__ = 'jobs'
-    __table_args__ = (UniqueConstraint('user_id',
+    __table_args__ = (UniqueConstraint('workspace_id',
                                        'name',
-                                       name='job_names_must_be_unique_within_user'),
+                                       name='job_names_must_be_unique_within_workspace'),
                       )
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
+    workspace_id = Column(Integer, ForeignKey('workspaces.id'))
     job_template_id = Column(Integer, ForeignKey('job_templates.id', name='jobs_job_template_id_fkey'), nullable=True)
     user = relationship("User", back_populates="jobs")
+    workspace = relationship("Workspace", back_populates="jobs")
     runs = relationship("JobRun", cascade="all,delete", back_populates="job",
                         order_by="desc(JobRun.created_at)", lazy='dynamic')
     parameters = relationship("JobParameter", cascade="all,delete",

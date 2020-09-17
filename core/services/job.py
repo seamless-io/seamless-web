@@ -1,27 +1,24 @@
-import contextlib
 import io
-import os
 from datetime import datetime
 from time import time
-from typing import Optional, List, Tuple, Dict
+from typing import Optional, List, Tuple
 
 from sqlalchemy.exc import IntegrityError
-from werkzeug.datastructures import FileStorage
 
 import constants
-from helpers import get_cron_next_execution, parse_cron, get_random_string
-from core.models import JobParameter, db_commit
+from core.models import JobParameter, db_commit, Workspace
 from core.models.job_parameters import PARAMETERS_LIMIT_PER_JOB
 from core.models.job_run_logs import JobRunLog
 from core.models.job_runs import JobRun, JobRunStatus, JobRunType
 from core.models.jobs import Job, JobStatus
-from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
+from core.models.users import User
+from core.models.workspaces import PLAN_LIMITS_BY_TYPE, Plan
 from core.socket_signals import send_update
 from core.web import get_db_session
+from helpers import get_cron_next_execution, parse_cron, get_random_string
 from job_executor import project, executor
 from job_executor.exceptions import ExecutorBuildException
-from job_executor.project import JobType, remove_project_from_s3, ProjectValidationError, restore_project_from_s3, \
-    read_bytes_from_sent_file
+from job_executor.project import JobType, remove_project_from_s3
 from job_executor.scheduler import remove_job_schedule, enable_job_schedule, disable_job_schedule
 
 CONTAINER_NAME_PREFIX = "SEAMLESS_JOB"
@@ -52,16 +49,16 @@ def _generate_container_name(job_id, user_id):
     return f'{CONTAINER_NAME_PREFIX}_{job_id}_USER_{user_id}_{time()}_{get_random_string(6)}'
 
 
-def _check_user_quotas_for_job_creation(user: User):
+def _check_workspace_quotas_for_job_creation(workspace: Workspace):
     """
     Checks if user has a plan which permits creation of the new job.
 
     Returns the existing job or raising JobsQuotaExceededException exception otherwise
     """
-    account_limits = ACCOUNT_LIMITS_BY_TYPE[UserAccountType(user.account_type)]
-    jobs_limit = account_limits.jobs
-    if len(list(user.jobs)) >= jobs_limit:
-        raise JobsQuotaExceededException('You have reached the limit of jobs for your account')
+    plan_limits = PLAN_LIMITS_BY_TYPE[Plan(workspace.plan)]
+    jobs_limit = plan_limits.jobs
+    if len(list(workspace.jobs)) >= jobs_limit:
+        raise JobsQuotaExceededException(f'You have reached the limit of jobs for your workspace {workspace.name}')
 
 
 def _update_job(job, cron, entrypoint, requirements):
@@ -123,11 +120,14 @@ def publish(name: str,
             user: User,
             project_file: io.BytesIO,
             schedule_is_active=True):
+    # TODO workspace should be a parameter, but for now assume every user has only one workspaces
+    # TODO and the user is the owner
+    workspace = user.owned_workspaces[0]
     existing_job = get_db_session().query(Job).filter_by(name=name, user_id=user.id).one_or_none()
     if existing_job:
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
-        _check_user_quotas_for_job_creation(user)
+        _check_workspace_quotas_for_job_creation(user.owned_workspaces[0])
         job = _create_job(name, cron, entrypoint, requirements, user.id, schedule_is_active)
 
     db_commit()

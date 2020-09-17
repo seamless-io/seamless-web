@@ -1,12 +1,24 @@
+from core.models import get_db_session, User
+from core.models.workspaces import Plan
+from core.services.user import sign_up
 
 
-def test_free():
+def test_personal(postgres):
     """
-    When user is registered with using "Basic" free plan or default "Sign Up" next things should happen:
-    * Personal Team (workspace) should be created
-    * Registered user should be a part of this team
+    When user is registered with using "Personal" plan or default "Sign Up" next things should happen:
+    * User record should be created
+    * Personal Workspace should be created
+    * Registered user should be a part of workspace created
     """
-    pass
+    plan = Plan.Personal.value
+    email = f"sign_up_{plan}_test@test.com"
+    sign_up(email, plan)
+
+    user = User.get_user_from_email(email, get_db_session())
+    assert len(list(user.owned_workspaces)) == 1
+    workspace = user.owned_workspaces[0]
+    assert workspace.plan == plan
+    assert workspace.subscription_is_active is True
 
 
 def test_startup():
