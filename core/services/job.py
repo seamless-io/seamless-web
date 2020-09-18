@@ -45,6 +45,10 @@ class ParameterNotFoundException(Exception):
     pass
 
 
+class AmbiguousWorkspaceException(Exception):
+    pass
+
+
 def _generate_container_name(job_id, user_id):
     return f'{CONTAINER_NAME_PREFIX}_{job_id}_USER_{user_id}_{time()}_{get_random_string(6)}'
 
@@ -78,10 +82,11 @@ def _update_job(job, cron, entrypoint, requirements):
     return job
 
 
-def _create_job(name, cron, entrypoint, requirements, user_id, schedule_is_active):
+def _create_job(name, cron, entrypoint, requirements, user_id, schedule_is_active, workspace_id):
     job_attributes = {
         'name': name,
         'user_id': user_id,
+        'workspace_id': workspace_id,
         'entrypoint': entrypoint,
         'requirements': requirements
     }
@@ -119,16 +124,20 @@ def publish(name: str,
             requirements: str,
             user: User,
             project_file: io.BytesIO,
-            schedule_is_active=True):
-    # TODO workspace should be a parameter, but for now assume every user has only one workspaces
-    # TODO and the user is the owner
-    workspace = user.owned_workspaces[0]
-    existing_job = get_db_session().query(Job).filter_by(name=name, user_id=user.id).one_or_none()
+            schedule_is_active=True,
+            workspace=None):
+    if not workspace:
+        if len(list(user.owned_workspaces)) > 1:
+            raise AmbiguousWorkspaceException(f"The user {user.id} has more than one workspace,"
+                                              f" you need to specify which one are you publishing a job to.")
+        else:
+            workspace = user.owned_workspaces[0]
+    existing_job = get_db_session().query(Job).filter_by(name=name, user_id=user.id, workspace_id=workspace.id).one_or_none()
     if existing_job:
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
-        _check_workspace_quotas_for_job_creation(user.owned_workspaces[0])
-        job = _create_job(name, cron, entrypoint, requirements, user.id, schedule_is_active)
+        _check_workspace_quotas_for_job_creation(workspace)
+        job = _create_job(name, cron, entrypoint, requirements, user.id, schedule_is_active, workspace.id)
 
     db_commit()
     job.schedule_job()

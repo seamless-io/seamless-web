@@ -12,7 +12,8 @@ import pytest
 import pytest_localstack
 
 from constants import DEFAULT_ENTRYPOINT, DEFAULT_REQUIREMENTS
-from core.models import get_db_session, db_commit, User
+from core.models import get_db_session, db_commit, User, Workspace
+from core.models.workspaces import Plan
 from core.services.marketplace import JOB_TEMPLATES_S3_BUCKET
 from job_executor import project
 
@@ -148,9 +149,15 @@ def user_id(postgres, user_email, user_api_key):
     get_db_session().add(user)
     db_commit()
 
+    plan = Plan.Personal.value
+    workspace = Workspace(owner_id=user.id, name=plan, plan=plan, subscription_is_active=True)
+    get_db_session().add(workspace)
+    db_commit()
+
     yield user.id
 
     get_db_session().delete(user)
+    get_db_session().delete(workspace)
     db_commit()
 
 

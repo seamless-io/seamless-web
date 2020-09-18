@@ -51,9 +51,14 @@ def sign_up(email, pricing_plan):
     """
     Creates a user record in the database and workspace(s) according to the pricing plan
     """
-    existing_user = User.get_user_from_email(email, get_db_session())
+    try:
+        existing_user = User.get_user_from_email(email, get_db_session())
+    except NoResultFound:
+        existing_user = False
+
     if existing_user:
         raise UserAlreadyExists(f'The user {email} already exists in the database')
+
     user_id = _create(email)
     workspace_id = create_workspace(str(user_id), plan=Plan.Personal)
     logging.info(f"Created user {user_id}, with workspace {workspace_id} in db")
