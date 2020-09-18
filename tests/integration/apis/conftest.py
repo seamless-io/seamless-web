@@ -43,9 +43,9 @@ def web_client(postgres, user_id, user_email):
     with application.test_client() as client:
         with client.session_transaction() as session:
             session['jwt_payload'] = session['profile'] = {
-                'user_id': user_id,  # no matter what is in here
+                'auth0_user_id': user_id,  # no matter what is in here
                 'email': user_email,
-                'internal_user_id': user_id
+                'user_id': user_id
             }
         yield client
 

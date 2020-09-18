@@ -34,3 +34,10 @@ def add_user_to_workspace(user_id: str, workspace_id: str):
     get_db_session().add(user_workspace_link)
     db_commit()
     return user_workspace_link.id
+
+
+def get_available_workspaces(user_id: str):
+    user_workspace_links = get_db_session().query(UserWorkspace).filter(
+        UserWorkspace.user_id == user_id).all()
+    workspaces_ids = [link.workspace_id for link in user_workspace_links]
+    return get_db_session().query(Workspace).filter(Workspace.id.in_(workspaces_ids)).all()
