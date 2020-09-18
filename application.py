@@ -74,7 +74,7 @@ def connected():
     """https://stackoverflow.com/questions/39423646/flask-socketio-emit-to-specific-user"""
 
     logging.info(f"{session['profile']['email']} connected to the socket")
-    join_room(session['profile']['internal_user_id'])
+    join_room(session['profile']['user_id'])
 
 
 if __name__ == '__main__':

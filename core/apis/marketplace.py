@@ -70,7 +70,7 @@ def create_job_from_template(template_id):
             DEFAULT_CRON_SCHEDULE,
             DEFAULT_ENTRYPOINT,
             DEFAULT_REQUIREMENTS,
-            user_service.get_by_id(session['profile']['internal_user_id']),
+            user_service.get_by_id(session['profile']['user_id']),
             template_file,
             schedule_is_active=False
         )

@@ -35,8 +35,9 @@ def verify_password(username, password):
 @jobs_bp.route('/jobs', methods=['GET'])
 @requires_auth
 def get_jobs():
-    email = session['profile']['email']
-    jobs = job_service.get_jobs_for_user(email)
+    user_id = session['profile']['user_id']
+    workspace_id = session['profile']['workspace_id']
+    jobs = job_service.get_jobs_for_user_and_workspace(user_id, workspace_id)
     rv = [row2dict(job) for job in jobs]
     return jsonify(rv), 200
 
@@ -44,7 +45,7 @@ def get_jobs():
 @jobs_bp.route('/jobs/<job_id>', methods=['GET'])
 @requires_auth
 def get_job(job_id):
-    job = job_service.get(job_id, session['profile']['internal_user_id'])
+    job = job_service.get(job_id, session['profile']['user_id'])
     return jsonify(row2dict(job)), 200
 
 
@@ -54,7 +55,7 @@ def enable_job(job_id):
     """
     If job is scheduled - enables schedule
     """
-    user_id = session['profile']['internal_user_id']
+    user_id = session['profile']['user_id']
     if request.args.get('is_enabled') == 'true':
         job_service.enable_schedule(job_id, user_id)
     else:
@@ -65,7 +66,7 @@ def enable_job(job_id):
 @jobs_bp.route('/jobs/<job_id>/runs/<job_run_id>/logs', methods=['GET'])
 @requires_auth
 def get_job_logs(job_id: str, job_run_id: str):
-    job_run_logs = job_service.get_logs_for_run(job_id, session['profile']['internal_user_id'], job_run_id)
+    job_run_logs = job_service.get_logs_for_run(job_id, session['profile']['user_id'], job_run_id)
     logs = [row2dict(log_record) for log_record in job_run_logs]
     return jsonify(logs), 200
 
@@ -73,14 +74,14 @@ def get_job_logs(job_id: str, job_run_id: str):
 @jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
 @requires_auth
 def get_job_code(job_id: str):
-    code = job_service.get_code(job_id, session['profile']['internal_user_id'])
+    code = job_service.get_code(job_id, session['profile']['user_id'])
     return send_file(code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
 @requires_auth
 def get_job_executions_history(job_id: str):
-    prev_executions = job_service.get_prev_executions(job_id, session['profile']['internal_user_id'])
+    prev_executions = job_service.get_prev_executions(job_id, session['profile']['user_id'])
     return jsonify({'last_executions': [{'status': run.status,
                                          'created_at': run.created_at,
                                          'run_id': run.id} for run in prev_executions]}), 200
@@ -162,7 +163,7 @@ def run_job(job_id):
     """
     Executing job when triggered manually via UI
     """
-    job_service.execute_by_button(job_id, session['profile']['internal_user_id'])
+    job_service.execute_by_button(job_id, session['profile']['user_id'])
     return f"Running job {job_id}", 200
 
 
@@ -186,7 +187,7 @@ def delete_job(job_name):
 @jobs_bp.route('/jobs/<job_id>/next_execution', methods=['GET'])
 @requires_auth
 def get_next_job_execution(job_id):
-    next_execution = job_service.get_next_executions(job_id, session['profile']['internal_user_id'])
+    next_execution = job_service.get_next_executions(job_id, session['profile']['user_id'])
     if not next_execution:
         rv = "Not scheduled"
     else:
@@ -197,7 +198,7 @@ def get_next_job_execution(job_id):
 @jobs_bp.route('/jobs/<job_id>/parameters', methods=['GET'])
 @requires_auth
 def get_job_parameters(job_id: str):
-    parameters = job_service.get_parameters_for_job(job_id, session['profile']['internal_user_id'])
+    parameters = job_service.get_parameters_for_job(job_id, session['profile']['user_id'])
     parameters = [row2dict(parameter) for parameter in parameters]
     return jsonify(parameters), 200
 
@@ -213,7 +214,7 @@ def add_job_parameter(job_id: str):
     if not (key and value):
         return Response('The payload is not valid, it needs to have both name and value', 400)
     try:
-        job_service.add_parameters_to_job(job_id, session['profile']['internal_user_id'], [(key, value)])
+        job_service.add_parameters_to_job(job_id, session['profile']['user_id'], [(key, value)])
     except job_service.JobsParametersLimitExceededException as e:
         return Response(str(e), 400)
     except job_service.DuplicateParameterKeyException as e:
@@ -225,7 +226,7 @@ def add_job_parameter(job_id: str):
 @requires_auth
 def delete_job_parameter(job_id: str, parameter_id: str):
     try:
-        job_service.delete_job_parameter(job_id, session['profile']['internal_user_id'], parameter_id)
+        job_service.delete_job_parameter(job_id, session['profile']['user_id'], parameter_id)
     except job_service.ParameterNotFoundException as e:
         return Response(str(e), 404)
     return f'Successfully delete parameter {parameter_id}', 200
@@ -240,8 +241,8 @@ def update_job_parameter(job_id: str, parameter_id: str):
     if not (key and value):
         return Response('The payload is not valid, it needs to have both name and value', 400)
     try:
-        print(job_id, session['profile']['internal_user_id'], parameter_id, key, value)
-        job_service.update_job_parameter(job_id, session['profile']['internal_user_id'], parameter_id, key, value)
+        print(job_id, session['profile']['user_id'], parameter_id, key, value)
+        job_service.update_job_parameter(job_id, session['profile']['user_id'], parameter_id, key, value)
     except job_service.ParameterNotFoundException as e:
         return Response(str(e), 404)
     return f'Successfully update parameter {parameter_id}', 200
@@ -255,7 +256,7 @@ def handle_error(e):
 @jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 @requires_auth
 def get_project_structure(job_id: str):
-    job = job_service.get(job_id, session['profile']['internal_user_id'])
+    job = job_service.get(job_id, session['profile']['user_id'])
     api_key = job.user.api_key
     project_structure = generate_project_structure(job_id, api_key)
     return jsonify(project_structure), 200
@@ -266,7 +267,7 @@ def get_project_structure(job_id: str):
 def get_job_file(job_id: str):
     file_path = str(request.args.get('file_path'))
 
-    job = job_service.get(job_id, session['profile']['internal_user_id'])
+    job = job_service.get(job_id, session['profile']['user_id'])
     api_key = job.user.api_key
 
     file_content = get_file_content(job_id, api_key, file_path)

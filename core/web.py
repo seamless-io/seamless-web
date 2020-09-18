@@ -13,6 +13,7 @@ from app_config import Config
 from core.apis.auth0.auth import CoreAuthError
 from core.models import get_db_session
 from core.models.users import User
+from core.services.workspace import get_user_personal_workspace
 
 CLIENT_API = '/api/v1'
 AUTH_API = '/auth'
@@ -30,6 +31,14 @@ def requires_auth(f):
     def decorated(*args, **kwargs):
         if 'profile' not in session:
             return redirect('/login')
+
+        # TODO this block is needed to invalidate old sessions because
+        #  I have changed the session object recently.
+        #  After sufficient time passes this could be safely deleted
+        #  Added on Sep 18 2020
+        if 'internal_user_id' in session:
+            return redirect('/logout')
+
         return f(*args, **kwargs)
 
     return decorated
@@ -74,23 +83,26 @@ def create_app():
 
         session['jwt_payload'] = userinfo
 
-        internal_user_id = None
+        user_id = None
         for i in range(3):  # Try 3 times
             try:
-                internal_user_id = User.get_user_from_email(userinfo['email'], get_db_session()).id
+                user_id = User.get_user_from_email(userinfo['email'], get_db_session()).id
             except NoResultFound:
                 sleep(1)  # when the user is signing up, we write asynchronously to the db, so we may need a delay
-            if internal_user_id:
+            if user_id:
                 break
 
-        if not internal_user_id:
+        if not user_id:
             raise CannotFindSignedUpUserException(f"We cannot find the user {userinfo} in our database."
                                                   f"Maybe the user registration endpoint failed.")
 
+        workspace = get_user_personal_workspace(user_id)
+
         session['profile'] = {
-            'user_id': userinfo['sub'],
+            'auth0_user_id': userinfo['sub'],
             'email': userinfo['email'],
-            'internal_user_id': internal_user_id
+            'user_id': user_id,
+            'workspace_id': str(workspace.id)  # Set Personal workspace by default
         }
         return redirect('/')
 

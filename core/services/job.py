@@ -228,9 +228,9 @@ def disable_schedule(job_id: str, user_id: str):
     db_commit()
 
 
-def get_jobs_for_user(email: str):
-    user = User.get_user_from_email(email, get_db_session())
-    return user.jobs
+def get_jobs_for_user_and_workspace(user_id: str, workspace_id: str):
+    user = User.get_user_from_id(user_id, get_db_session())
+    return user.jobs.filter(Job.workspace_id == workspace_id)
 
 
 def get_parameters_for_job(job_id: str, user_id: str) -> List[JobParameter]:
