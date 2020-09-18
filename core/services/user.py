@@ -8,7 +8,7 @@ from core.emails.client import send_welcome_email
 from core.models import db_commit
 from core.models.users import User
 from core.models.workspaces import Plan
-from core.services.workspace import create_workspace
+from core.services.workspace import create_workspace, add_user_to_workspace
 from core.telegram.client import notify_about_new_user
 from core.web import get_db_session
 
@@ -62,9 +62,12 @@ def sign_up(email, pricing_plan):
     user_id = _create(email)
     # We create Personal workspace for all accounts disregarding of the chosen plan
     personal_workspace_id = create_workspace(str(user_id), plan=Plan.Personal)
+    add_user_to_workspace(user_id, personal_workspace_id)
+
     paid_workspace_id = None
     if pricing_plan != Plan.Personal.value:
         paid_workspace_id = create_workspace(str(user_id), plan=Plan(pricing_plan))
+        add_user_to_workspace(user_id, paid_workspace_id)
 
     logging.info(f"Created user {user_id}, with personal workspace {personal_workspace_id} "
                  f"{'' if not paid_workspace_id else f'and {pricing_plan} workspace {paid_workspace_id}'}")

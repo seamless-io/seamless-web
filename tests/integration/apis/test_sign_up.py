@@ -1,4 +1,5 @@
 from core.models import get_db_session, User
+from core.models.users_workspaces import UserWorkspace
 from core.models.workspaces import Plan
 from core.services.user import sign_up
 
@@ -16,9 +17,14 @@ def test_personal(postgres):
 
     user = User.get_user_from_email(email, get_db_session())
     assert len(list(user.owned_workspaces)) == 1
+
     workspace = user.owned_workspaces[0]
     assert workspace.plan == plan
     assert workspace.subscription_is_active is True
+
+    # Let's also check that the user is added to the Workspace
+    get_db_session().query(UserWorkspace).filter(
+        UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == workspace.id).one()
 
 
 def test_startup(postgres):
@@ -47,6 +53,12 @@ def test_startup(postgres):
     assert startup_workspace.plan == plan
     assert startup_workspace.subscription_is_active is False
 
+    # Let's also check that the user is added to created Workspaces
+    get_db_session().query(UserWorkspace).filter(
+        UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == personal_workspace.id).one()
+    get_db_session().query(UserWorkspace).filter(
+        UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == startup_workspace.id).one()
+
 
 def test_business(postgres):
     """
@@ -73,6 +85,12 @@ def test_business(postgres):
 
     assert business_workspace.plan == plan
     assert business_workspace.subscription_is_active is False
+
+    # Let's also check that the user is added to created Workspaces
+    get_db_session().query(UserWorkspace).filter(
+        UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == personal_workspace.id).one()
+    get_db_session().query(UserWorkspace).filter(
+        UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == business_workspace.id).one()
 
 
 def test_enterprise():
