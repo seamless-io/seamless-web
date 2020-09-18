@@ -12,7 +12,10 @@ class User(base):
 
     id = Column(Integer, primary_key=True)
     jobs = relationship("Job", back_populates="user", lazy='dynamic')
-    owned_workspaces = relationship("Workspace", back_populates="owner", lazy='dynamic')
+    owned_workspaces = relationship("Workspace",
+                                    back_populates="owner",
+                                    order_by="desc(Workspace.created_at)",
+                                    lazy='dynamic')
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

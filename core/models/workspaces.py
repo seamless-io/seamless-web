@@ -1,7 +1,8 @@
+import datetime
 import enum
 from dataclasses import dataclass
 
-from sqlalchemy import Column, Integer, Text, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, Text, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 
 from core.models.base import base
@@ -37,6 +38,8 @@ class Workspace(base):
     name = Column(Text, nullable=False)
     plan = Column(Text, nullable=False)
     subscription_is_active = Column(Boolean, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     def __repr__(self):
         return '<Workspace %r %r %r>' % (self.id, self.name, self.plan)

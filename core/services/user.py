@@ -60,8 +60,14 @@ def sign_up(email, pricing_plan):
         raise UserAlreadyExists(f'The user {email} already exists in the database')
 
     user_id = _create(email)
-    workspace_id = create_workspace(str(user_id), plan=Plan.Personal)
-    logging.info(f"Created user {user_id}, with workspace {workspace_id} in db")
+    # We create Personal workspace for all accounts disregarding of the chosen plan
+    personal_workspace_id = create_workspace(str(user_id), plan=Plan.Personal)
+    paid_workspace_id = None
+    if pricing_plan != Plan.Personal.value:
+        paid_workspace_id = create_workspace(str(user_id), plan=Plan(pricing_plan))
+
+    logging.info(f"Created user {user_id}, with personal workspace {personal_workspace_id} "
+                 f"{'' if not paid_workspace_id else f'and {pricing_plan} workspace {paid_workspace_id}'}")
     if os.getenv('STAGE', 'local') == 'prod':
         notify_about_new_user(email, pricing_plan)
         send_welcome_email(email)
