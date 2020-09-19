@@ -1,7 +1,29 @@
+from flask.testing import FlaskClient
+
+from application import application
 from core.models import get_db_session, User
 from core.models.users_workspaces import UserWorkspace
 from core.models.workspaces import Plan
 from core.services.user import sign_up
+
+
+def _get_web_client_with_credentials(user_id, user_email):
+    """
+    Web client fixture. This fixture should be used when we are testing api's used by the frontend and complying
+    with auth0 authentication
+    """
+    application.config['TESTING'] = True
+    # This is a default class, but we need to explicitly set it because cli_client overwrites it
+    application.test_client_class = FlaskClient
+
+    with application.test_client() as client:
+        with client.session_transaction() as session:
+            session['jwt_payload'] = session['profile'] = {
+                'auth0_user_id': user_id,  # no matter what is in here
+                'email': user_email,
+                'user_id': user_id
+            }
+        return client
 
 
 def test_personal(postgres):
@@ -25,6 +47,16 @@ def test_personal(postgres):
     # Let's also check that the user is added to the Workspace
     get_db_session().query(UserWorkspace).filter(
         UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == workspace.id).one()
+
+    client = _get_web_client_with_credentials(user.id, email)
+
+    resp = client.get('/api/v1/workspaces')
+    assert resp.status_code == 200
+    assert len(resp.json) == 1
+
+    assert resp.json[0]['owner_id'] == str(user.id)
+    assert resp.json[0]['plan'] == plan
+    assert resp.json[0]['subscription_is_active'] == 'True'
 
 
 def test_startup(postgres):
@@ -59,6 +91,22 @@ def test_startup(postgres):
     get_db_session().query(UserWorkspace).filter(
         UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == startup_workspace.id).one()
 
+    client = _get_web_client_with_credentials(user.id, email)
+
+    resp = client.get('/api/v1/workspaces')
+    assert resp.status_code == 200
+    assert len(resp.json) == 2
+
+    # This is Personal workspace (because of the way we sort workspaces by created date)
+    assert resp.json[0]['owner_id'] == str(user.id)
+    assert resp.json[0]['plan'] == Plan.Personal.value
+    assert resp.json[0]['subscription_is_active'] == 'True'
+
+    # This is Startup workspace (because of the way we sort workspaces by created date)
+    assert resp.json[1]['owner_id'] == str(user.id)
+    assert resp.json[1]['plan'] == plan
+    assert resp.json[1]['subscription_is_active'] == 'False'
+
 
 def test_business(postgres):
     """
@@ -91,6 +139,22 @@ def test_business(postgres):
         UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == personal_workspace.id).one()
     get_db_session().query(UserWorkspace).filter(
         UserWorkspace.user_id == user.id, UserWorkspace.workspace_id == business_workspace.id).one()
+
+    client = _get_web_client_with_credentials(user.id, email)
+
+    resp = client.get('/api/v1/workspaces')
+    assert resp.status_code == 200
+    assert len(resp.json) == 2
+
+    # This is Personal workspace (because of the way we sort workspaces by created date)
+    assert resp.json[0]['owner_id'] == str(user.id)
+    assert resp.json[0]['plan'] == Plan.Personal.value
+    assert resp.json[0]['subscription_is_active'] == 'True'
+
+    # This is Business workspace (because of the way we sort workspaces by created date)
+    assert resp.json[1]['owner_id'] == str(user.id)
+    assert resp.json[1]['plan'] == plan
+    assert resp.json[1]['subscription_is_active'] == 'False'
 
 
 def test_enterprise():
