@@ -1,3 +1,4 @@
+import io
 import logging
 import os
 from threading import Thread
@@ -12,8 +13,7 @@ import core.services.user as user_service
 import helpers
 from core.web import requires_auth
 from helpers import row2dict
-from job_executor import project
-from job_executor.project import generate_project_structure, get_file_content, read_bytes_from_sent_file
+from core.code_editor import generate_project_structure, get_file_content
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -35,8 +35,8 @@ def verify_password(username, password):
 @jobs_bp.route('/jobs', methods=['GET'])
 @requires_auth
 def get_jobs():
-    email = session['profile']['email']
-    jobs = job_service.get_jobs_for_user(email)
+    user_id = session['profile']['internal_user_id']
+    jobs = job_service.get_jobs_for_user(user_id)
     rv = [row2dict(job) for job in jobs]
     return jsonify(rv), 200
 
@@ -112,7 +112,9 @@ def create_job():
     )
 
     try:
-        file = read_bytes_from_sent_file(project_file)
+        if project_file.filename and not project_file.filename.endswith(constants.ARCHIVE_EXTENSION):
+            Response('File extension is not supported', 400)
+        file = io.BytesIO(project_file.read())
         job, is_existing = job_service.publish(
             job_name,
             cron_schedule,
@@ -122,8 +124,6 @@ def create_job():
             file
         )
     except job_service.JobsQuotaExceededException as e:
-        return Response(str(e), 400)  # TODO: ensure that error code is correct
-    except project.ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except helpers.InvalidCronException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
@@ -255,9 +255,8 @@ def handle_error(e):
 @jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 @requires_auth
 def get_project_structure(job_id: str):
-    job = job_service.get(job_id, session['profile']['internal_user_id'])
-    api_key = job.user.api_key
-    project_structure = generate_project_structure(job_id, api_key)
+    job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
+    project_structure = generate_project_structure(job_id)
     return jsonify(project_structure), 200
 
 
@@ -265,9 +264,6 @@ def get_project_structure(job_id: str):
 @requires_auth
 def get_job_file(job_id: str):
     file_path = str(request.args.get('file_path'))
-
-    job = job_service.get(job_id, session['profile']['internal_user_id'])
-    api_key = job.user.api_key
-
-    file_content = get_file_content(job_id, api_key, file_path)
+    job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
+    file_content = get_file_content(job_id,  file_path)
     return jsonify(file_content), 200

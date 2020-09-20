@@ -3,20 +3,18 @@ import logging
 import os
 import shutil
 import tarfile
-from pathlib import Path
 from typing import List
 
-import boto3
 import yaml
 from werkzeug.datastructures import FileStorage
 
+from constants import ARCHIVE_EXTENSION
+from core import storage
 from core.models import get_db_session, JobTemplate, db_commit
+from core.storage import Type
 
 EXTRACTED_PACKAGE_FOLDER_NAME = 'job_templates_folder'
 TEMPLATES_CONFIG_FILE = 'table_of_contents.yml'
-JOB_TEMPLATES_S3_BUCKET = f"web-{os.getenv('STAGE', 'local')}-job-templates"
-ARCHIVE_EXTENSION = "tar.gz"
-s3 = boto3.client('s3', region_name=os.getenv('AWS_REGION_NAME'))
 
 
 class JobTemplateNotFoundException(Exception):
@@ -43,19 +41,6 @@ def _archive_template_files(job_template_id: str, path_to_template_files: str) -
     tar.add(path_to_template_files, arcname='.')
     tar.close()
     return archive_location
-
-
-def _save_template_to_s3(fileobj, job_template_id):
-    s3.upload_fileobj(Fileobj=fileobj,
-                      Bucket=JOB_TEMPLATES_S3_BUCKET,
-                      Key=f"{job_template_id}.{ARCHIVE_EXTENSION}")
-    logging.info(f"Files of job template {job_template_id} saved to {JOB_TEMPLATES_S3_BUCKET} s3 bucket")
-
-
-def fetch_template_from_s3(job_template_id: str) -> io.BytesIO:
-    s3_response_object = s3.get_object(Bucket=JOB_TEMPLATES_S3_BUCKET,
-                                       Key=f"{job_template_id}.{ARCHIVE_EXTENSION}")
-    return io.BytesIO(s3_response_object['Body'].read())
 
 
 def update_templates(templates_package):
@@ -87,7 +72,7 @@ def update_templates(templates_package):
                                                   template_config['path_to_files'])
             archive_location = _archive_template_files(str(template.id), path_to_template_files)
             with open(archive_location, "rb") as f:
-                _save_template_to_s3(f, str(template.id))
+                storage.save(io.BytesIO(f.read()), Type.Template, str(template.id))
         # Notice that we do not delete templates automatically if we cannot find them in config
         # Deleting a template is a complex workflow (because of its dependencies) and also pretty risky
         # So for now you need to delete templates manually from the db if you need to
@@ -111,4 +96,4 @@ def get_templates():
 
 
 def get_template_package(template_id):
-    return fetch_template_from_s3(template_id)
+    return storage.get_archive(Type.Template, template_id)

@@ -13,13 +13,15 @@ import pytest_localstack
 
 from constants import DEFAULT_ENTRYPOINT, DEFAULT_REQUIREMENTS
 from core.models import get_db_session, db_commit, User
-from core.services.marketplace import JOB_TEMPLATES_S3_BUCKET
-from job_executor import project
+from core.storage import Type, _get_s3_bucket_name
 
 SECOND = 1000000000
 
 
-localstack = pytest_localstack.patch_fixture(services=["s3", "events"], scope='session', autouse=True)
+localstack = pytest_localstack.patch_fixture(services=["s3", "events"],
+                                             scope='session',
+                                             autouse=True,
+                                             localstack_version='0.11.4')
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -169,15 +171,10 @@ def job_requirements():
 
 
 @pytest.fixture(scope='session', autouse=True)
-def create_s3_bucket_for_user_projects(localstack):
+def create_s3_buckets(localstack):
     s3 = boto3.client('s3')
-    s3.create_bucket(Bucket=project.USER_PROJECTS_S3_BUCKET)
-
-
-@pytest.fixture(scope='session', autouse=True)
-def create_s3_bucket_for_templates(localstack):
-    s3 = boto3.client('s3')
-    s3.create_bucket(Bucket=JOB_TEMPLATES_S3_BUCKET)
+    s3.create_bucket(Bucket=_get_s3_bucket_name(Type.Job))
+    s3.create_bucket(Bucket=_get_s3_bucket_name(Type.Template))
 
 
 @pytest.fixture
