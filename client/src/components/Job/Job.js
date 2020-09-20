@@ -591,6 +591,9 @@ const Job = () => {
               <Col>
                 <div className="smls-guide-code-section">
                   <code className="smls-code-comment">
+                    # If you are new in programming, there is a useful blog
+                    about environment variables:
+                    https://www.twilio.com/blog/2017/01/how-to-set-environment-variables.html
                     # Job parameters are environment variables that change the
                     way your job behaves. <br /># For example, you set up via
                     SeamlessCloud UI two parameters:
@@ -609,7 +612,7 @@ const Job = () => {
                     # If you change values of variabels to
                     DB_HOST=staging-server.com:5432 and DB_PASSWORD=4321, and
                     click "Run" <br />
-                    # your job will connect to your staging database.
+                    # your job will connect to your database.
                     <br />
                     <br /># For local development, it is better to use{' '}
                     <i>.env</i> file: https://pypi.org/project/python-dotenv/

@@ -96,7 +96,6 @@ def create_app():
 
     @app.route('/login')
     def login():
-        print(os.getenv('AUTH0_CALLBACK_URL'))
         return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL'),
                                         audience=None,
                                         pricing_plan=request.args.get('pricing_plan', 'free'))
