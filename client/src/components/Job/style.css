@@ -315,3 +315,20 @@
 .smls-job-param-modal {
   min-width: 70%;
 }
+
+.smls-job-params-guide {
+  font-size: 14px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.33;
+  letter-spacing: normal;
+  color: #9299a3;
+  cursor: pointer;
+}
+
+.smls-job-params-quide-container {
+  min-height: 320px;
+  max-height: 320px;
+  overflow: auto;
+}

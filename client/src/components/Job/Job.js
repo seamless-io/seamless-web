@@ -66,6 +66,7 @@ const Job = () => {
   const [editedParamId, setEditedParamId] = useState('');
   const [borderColor, setBorderColor] = useState('#ced4da');
   const [loadingJobParams, setLoadingJobParams] = useState(false);
+  const [showFaqParams, setShowFaqParams] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -357,6 +358,21 @@ const Job = () => {
     setShowEditParam(!showEditParam);
   };
 
+  const switchParameters = () => {
+    setShowFaqParams(true);
+    setShowParams(false);
+  };
+
+  const closeParams = () => {
+    setShowParams(!showParams);
+    setShowFaqParams(false);
+  };
+
+  const closeFaqParams = () => {
+    setShowFaqParams(false);
+    setShowParams(true);
+  };
+
   const updateParam = () => {
     setLoadingJobParams(true);
     updateJobParameter(job.id, editedParamId, editedParamKey, editedParamValue)
@@ -501,13 +517,16 @@ const Job = () => {
       </Modal>
       <Modal
         show={showParams}
-        onHide={() => setShowParams(!showParams)}
+        onHide={closeParams}
         dialogClassName="smls-job-param-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>Job Parameters</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
+          <span onClick={switchParameters} className="smls-job-params-guide">
+            How to use job parameters?
+          </span>
           <Parameters
             jobParameters={jobParameters}
             paramKey={paramKey}
@@ -556,6 +575,54 @@ const Job = () => {
               </button>
             </Col>
           </Row>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showFaqParams}
+        onHide={closeFaqParams}
+        dialogClassName="smls-job-param-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>How to use job parameters?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <div className="smls-job-params-quide-container">
+            <Row style={{ paddingTop: '16px' }}>
+              <Col>
+                <div className="smls-guide-code-section">
+                  <code className="smls-code-comment">
+                    # If you are new in programming, there is a useful blog
+                    about environment variables:
+                    https://www.twilio.com/blog/2017/01/how-to-set-environment-variables.html
+                    <br />
+                    <br />
+                    # Job parameters are environment variables that change the
+                    way your job behaves. <br /># For example, you set up via
+                    SeamlessCloud UI two parameters:
+                    DB_HOST=prod-server.com:5432 and DB_PASSWORD=1234. <br />#
+                    Then you can access these variables in your code:
+                  </code>
+                  <br />
+                  <code>
+                    import os <br />
+                    <br />
+                    DB_HOST = os.getenv('DB_HOST') <br />
+                    DB_PASSWORD = os.getenv('DB_PASSWORD')
+                  </code>
+                  <code className="smls-code-comment">
+                    <br />
+                    # If you change values of variabels to
+                    DB_HOST=staging-server.com:5432 and DB_PASSWORD=4321, and
+                    click "Run" <br />
+                    # your job will connect to your database.
+                    <br />
+                    <br /># For local development, it is better to use{' '}
+                    <i>.env</i> file: https://pypi.org/project/python-dotenv/
+                  </code>
+                </div>
+              </Col>
+            </Row>
+          </div>
         </Modal.Body>
       </Modal>
     </>
