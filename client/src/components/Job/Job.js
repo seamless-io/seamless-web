@@ -525,7 +525,7 @@ const Job = () => {
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
           <span onClick={switchParameters} className="smls-job-params-guide">
-            How to use job parameters
+            How to use job parameters?
           </span>
           <Parameters
             jobParameters={jobParameters}
@@ -583,7 +583,7 @@ const Job = () => {
         dialogClassName="smls-job-param-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>How to use job parameters</Modal.Title>
+          <Modal.Title>How to use job parameters?</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
           <div className="smls-job-params-quide-container">
@@ -594,6 +594,8 @@ const Job = () => {
                     # If you are new in programming, there is a useful blog
                     about environment variables:
                     https://www.twilio.com/blog/2017/01/how-to-set-environment-variables.html
+                    <br />
+                    <br />
                     # Job parameters are environment variables that change the
                     way your job behaves. <br /># For example, you set up via
                     SeamlessCloud UI two parameters:
