@@ -11,6 +11,7 @@ from sentry_sdk import capture_exception
 from sentry_sdk.integrations.flask import FlaskIntegration
 from timeloop import Timeloop
 
+from core import storage
 from core.services.job import CONTAINER_NAME_PREFIX
 from core.telegram.client import send_daily_stats
 from core.web import create_app
@@ -25,6 +26,9 @@ sentry_sdk.init(
 
 # The name of this variable (as well as this file) is important for Beanstalk
 application = create_app()
+
+# Initialized cached file storage
+storage.init()
 
 # Disable information logs from socketio, including PING/PONG logs
 logging.getLogger('socketio').setLevel(logging.ERROR)

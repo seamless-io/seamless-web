@@ -14,7 +14,7 @@ from constants import (DEFAULT_CRON_SCHEDULE, DEFAULT_ENTRYPOINT,
                        DEFAULT_REQUIREMENTS)
 from core.web import requires_auth
 from helpers import row2dict
-from job_executor import project
+from core import code_editor
 
 marketplace_bp = Blueprint('marketplace', __name__)
 
@@ -65,6 +65,8 @@ def create_job_from_template(template_id):
     template = marketplace_service.get_template(template_id)
     template_file = marketplace_service.get_template_package(template_id)
     try:
+        if template_file.filename and not template_file.filename.endswith(constants.ARCHIVE_EXTENSION):
+            Response('File extension is not supported', 400)
         job, is_existing = job_service.publish(
             template.name,  # TODO check if name already exists
             DEFAULT_CRON_SCHEDULE,
@@ -75,8 +77,6 @@ def create_job_from_template(template_id):
             schedule_is_active=False
         )
     except job_service.JobsQuotaExceededException as e:
-        return Response(str(e), 400)  # TODO: ensure that error code is correct
-    except project.ProjectValidationError as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except helpers.InvalidCronException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct

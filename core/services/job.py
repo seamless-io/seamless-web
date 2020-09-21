@@ -6,7 +6,9 @@ from typing import Optional, List, Tuple
 from sqlalchemy.exc import IntegrityError
 
 import constants
-from core.models import JobParameter, db_commit, Workspace
+import core.storage as storage
+from core.models import JobParameter, db_commit
+from core.models import Workspace
 from core.models.job_parameters import PARAMETERS_LIMIT_PER_JOB
 from core.models.job_run_logs import JobRunLog
 from core.models.job_runs import JobRun, JobRunStatus, JobRunType
@@ -16,9 +18,8 @@ from core.models.workspaces import PLAN_LIMITS_BY_TYPE, Plan
 from core.socket_signals import send_update
 from core.web import get_db_session
 from helpers import get_cron_next_execution, parse_cron, get_random_string
-from job_executor import project, executor
+from job_executor import executor
 from job_executor.exceptions import ExecutorBuildException
-from job_executor.project import JobType, remove_project_from_s3
 from job_executor.scheduler import remove_job_schedule, enable_job_schedule, disable_job_schedule
 
 CONTAINER_NAME_PREFIX = "SEAMLESS_JOB"
@@ -82,7 +83,7 @@ def _update_job(job, cron, entrypoint, requirements):
     return job
 
 
-def _create_job(name, cron, entrypoint, requirements, user_id, schedule_is_active, workspace_id):
+def _create_job_in_db(name, cron, entrypoint, requirements, user_id, schedule_is_active, workspace_id):
     job_attributes = {
         'name': name,
         'user_id': user_id,
@@ -108,10 +109,10 @@ def delete(name: str, user: User):
     if not job:
         raise JobNotFoundException("Job Not Found")
 
-    job_id = job.id
+    job_id = str(job.id)
 
     remove_job_schedule(job_id)
-    remove_project_from_s3(job_id)
+    storage.delete(storage.Type.Job, job_id)
 
     get_db_session().delete(job)
     db_commit()
@@ -137,12 +138,12 @@ def publish(name: str,
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
         _check_workspace_quotas_for_job_creation(workspace)
-        job = _create_job(name, cron, entrypoint, requirements, user.id, schedule_is_active, workspace.id)
+        job = _create_job_in_db(name, cron, entrypoint, requirements, user.id, schedule_is_active, workspace.id)
 
     db_commit()
     job.schedule_job()
 
-    project.create(project_file, user.api_key, JobType.PUBLISHED, str(job.id))
+    storage.save(project_file, storage.Type.Job, str(job.id))
 
     return job, bool(existing_job)
 
@@ -203,8 +204,8 @@ def get_prev_executions(job_id: str, user_id: str) -> List[JobRun]:
 
 # TODO: add return notation
 def get_code(job_id: str, user_id: str):
-    job = get(job_id, user_id)
-    code = project.fetch_project_from_s3(job.id)
+    get(job_id, user_id)  # Basically checking access rights for this user to this job
+    code = storage.get_archive(storage.Type.Job, job_id)
     return code
 
 
@@ -295,7 +296,7 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
     job_entrypoint = job.entrypoint or constants.DEFAULT_ENTRYPOINT
     job_requirements = job.requirements or constants.DEFAULT_REQUIREMENTS
 
-    path_to_job_files = project.get_path_to_job(project.JobType.PUBLISHED, job.user.api_key, str(job.id))
+    path_to_job_files = storage.get_path_to_files(storage.Type.Job, str(job.id))
 
     try:
         with executor.execute(path_to_job_files,

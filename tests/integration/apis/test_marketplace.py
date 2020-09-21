@@ -2,8 +2,9 @@ import base64
 import os
 
 import constants
+from core import storage
 from core.models import get_db_session, JobTemplate
-from core.services.marketplace import fetch_template_from_s3
+from core.storage import Type
 
 
 def _basic_auth_headers():
@@ -44,7 +45,7 @@ def test_marketplace_update_flow(web_client, automation_client, archived_templat
     assert template.long_description_url == 'template1'
     assert template.tags == 'template1'
 
-    file_on_s3 = fetch_template_from_s3(str(template.id))
+    file_on_s3 = storage.get_archive(Type.Template, str(template.id))
     assert file_on_s3.getbuffer().nbytes > 0  # There is a real file that was saved to s3
     # TODO assert that the file actually corresponds to files of the template
 
