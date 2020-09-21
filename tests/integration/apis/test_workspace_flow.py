@@ -9,7 +9,7 @@ from core.services.user import sign_up
 
 def _get_web_client_with_credentials(user_id, user_email):
     """
-    Web client fixture. This fixture should be used when we are testing api's used by the frontend and complying
+    Web client fixture. This fixture should be used when we are testing API used by the frontend and complying
     with auth0 authentication
     """
     application.config['TESTING'] = True
