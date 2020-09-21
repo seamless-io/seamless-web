@@ -58,6 +58,16 @@ def test_personal(postgres):
     assert resp.json[0]['plan'] == plan
     assert resp.json[0]['subscription_is_active'] == 'True'
 
+    # We should not be able to upgrade or downgrade Personal workspace
+    resp = client.post(f'/api/v1/workspaces/{str(workspace.id)}/upgrade/Startup')
+    assert resp.status_code == 400
+    resp = client.post(f'/api/v1/workspaces/{str(workspace.id)}/upgrade/Business')
+    assert resp.status_code == 400
+    resp = client.post(f'/api/v1/workspaces/{str(workspace.id)}/downgrade/Startup')
+    assert resp.status_code == 400
+    resp = client.post(f'/api/v1/workspaces/{str(workspace.id)}/downgrade/Business')
+    assert resp.status_code == 400
+
 
 def test_startup(postgres):
     """
@@ -107,6 +117,20 @@ def test_startup(postgres):
     assert resp.json[1]['plan'] == plan
     assert resp.json[1]['subscription_is_active'] == 'False'
 
+    # We should only be able to upgrade Startup plan to Business
+    resp = client.post(f'/api/v1/workspaces/{str(startup_workspace.id)}/upgrade/Startup')
+    assert resp.status_code == 400
+    resp = client.post(f'/api/v1/workspaces/{str(startup_workspace.id)}/downgrade/Startup')
+    assert resp.status_code == 400
+    resp = client.post(f'/api/v1/workspaces/{str(startup_workspace.id)}/downgrade/Business')
+    assert resp.status_code == 400
+
+    resp = client.post(f'/api/v1/workspaces/{str(startup_workspace.id)}/upgrade/Business')
+    assert resp.status_code == 200
+    get_db_session().refresh(startup_workspace)
+    assert startup_workspace.plan == Plan.Business.value
+    assert startup_workspace.subscription_is_active is False  # User needs to pay
+
 
 def test_business(postgres):
     """
@@ -155,6 +179,19 @@ def test_business(postgres):
     assert resp.json[1]['owner_id'] == str(user.id)
     assert resp.json[1]['plan'] == plan
     assert resp.json[1]['subscription_is_active'] == 'False'
+
+    # We should only be able to downgrade Business plan to Startup
+    resp = client.post(f'/api/v1/workspaces/{str(business_workspace.id)}/upgrade/Startup')
+    assert resp.status_code == 400
+    resp = client.post(f'/api/v1/workspaces/{str(business_workspace.id)}/downgrade/Business')
+    assert resp.status_code == 400
+    resp = client.post(f'/api/v1/workspaces/{str(business_workspace.id)}/upgrade/Business')
+    assert resp.status_code == 400
+
+    resp = client.post(f'/api/v1/workspaces/{str(business_workspace.id)}/downgrade/Startup')
+    assert resp.status_code == 200
+    get_db_session().refresh(business_workspace)
+    assert business_workspace.plan == Plan.Startup.value
 
 
 def test_enterprise():
