@@ -74,3 +74,5 @@ def sign_up(email, pricing_plan=Plan.Personal):
     if os.getenv('STAGE', 'local') == 'prod':
         notify_about_new_user(email, pricing_plan)
         send_welcome_email(email)
+
+    return user_id
