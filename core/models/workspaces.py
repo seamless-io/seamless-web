@@ -60,7 +60,7 @@ class Invitation(base):
     user_email = Column(Text, nullable=False)
     workspace_id = Column(Integer, nullable=False)
 
-    status = Column(Text, nullable=False)
+    status = Column(Text, nullable=False, default=InvitationStatus.pending.value)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
