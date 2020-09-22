@@ -55,20 +55,12 @@ def get_session_factory(db_prefix=DB_PREFIX):
 
 
 def get_db_session():
-    if has_app_context():
-        # This branch is used when we're working in the scope of Flask app
-        global flask_db_session
-        if not flask_db_session:
-            from application import application
-            flask_db_session = flask_scoped_session(get_session_factory(), application)
-        return flask_db_session
-    else:
-        # We use a different session if we're outside of Flask app,
-        # for example running our code in a separate Thread
-        global non_flask_db_session
-        if not non_flask_db_session:
-            non_flask_db_session = scoped_session(get_session_factory(DB_PREFIX))()
-        return non_flask_db_session
+    # We use a different session if we're outside of Flask app,
+    # for example running our code in a separate Thread
+    global non_flask_db_session
+    if not non_flask_db_session:
+        non_flask_db_session = scoped_session(get_session_factory(DB_PREFIX))()
+    return non_flask_db_session
 
 
 def db_commit():
