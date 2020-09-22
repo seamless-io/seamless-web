@@ -47,7 +47,7 @@ def _create(email: str):
     return user.id
 
 
-def sign_up(email, pricing_plan):
+def sign_up(email, pricing_plan=Plan.Personal):
     """
     Creates a user record in the database and workspace(s) according to the pricing plan
     """
