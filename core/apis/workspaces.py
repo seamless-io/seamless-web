@@ -7,7 +7,7 @@ from helpers import row2dict
 workspaces_bp = Blueprint('workspaces', __name__)
 
 
-@workspaces_bp.route('/workspaces', methods=['GET'])
+@workspaces_bp.route('/', methods=['GET'])
 @requires_auth
 def get_workspaces():
     user_id = session['profile']['user_id']
@@ -16,7 +16,7 @@ def get_workspaces():
     return jsonify(rv), 200
 
 
-@workspaces_bp.route('/workspaces/<workspace_id>/upgrade/<plan>', methods=['POST'])
+@workspaces_bp.route('/<workspace_id>/upgrade/<plan>', methods=['POST'])
 @requires_auth
 def upgrade_workspace(workspace_id, plan):
     user_id = session['profile']['user_id']
@@ -27,7 +27,7 @@ def upgrade_workspace(workspace_id, plan):
     return Response("Upgrade was successful", 200)
 
 
-@workspaces_bp.route('/workspaces/<workspace_id>/downgrade/<plan>', methods=['POST'])
+@workspaces_bp.route('/<workspace_id>/downgrade/<plan>', methods=['POST'])
 @requires_auth
 def downgrade_workspace(workspace_id, plan):
     user_id = session['profile']['user_id']
@@ -36,6 +36,21 @@ def downgrade_workspace(workspace_id, plan):
     except workspace_service.PlanChangeError as e:
         return Response(str(e), 400)
     return Response("Downgrade was successful", 200)
+
+
+@workspaces_bp.route('/<workspace_id>/invite/<user_email>')
+def invite_user(workspace_id, user_email):
+    return Response('OK', 200)
+
+
+@workspaces_bp.route('/<workspace_id>/remove/<user_email>')
+def remove_user(workspace_id, user_email):
+    return Response('OK', 200)
+
+
+@workspace_bp.route('/<workspace_id>/accept/<accept_key>')
+def accept_invintaion(workspace_id, accept_key):
+    return Response('OK', 200)
 
 
 @workspaces_bp.errorhandler(workspace_service.WorkspaceNotFound)

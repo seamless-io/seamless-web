@@ -83,3 +83,26 @@ def downgrade_workspace(user_id: str, workspace_id: str, plan: str):
         db_commit()
     else:
         raise PlanChangeError(f"Cannot downgrade {workspace.plan} to {plan}")
+
+
+def invite_user(user_id: str, workspace_id: str):
+    """
+    When a user adding another one to his workspace
+    """
+    pass
+
+
+def remove_user(user_id: str, workspace_id: str):
+    """
+    Removes user from the workspace:
+    * by owner
+    * by the user itself
+    """
+    pass
+
+
+def accept_invintation(user_id: str, workspace_id: str):
+    """
+    When user follows a link in the email with invintation to workspace
+    """
+    pass
