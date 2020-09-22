@@ -57,8 +57,8 @@ class Invitation(base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
 
-    user_id = Column(Integer)
-    workspace_id = Column(Integer)
+    user_email = Column(Text, nullable=False)
+    workspace_id = Column(Integer, nullable=False)
 
     status = Column(Text, nullable=False)
 
