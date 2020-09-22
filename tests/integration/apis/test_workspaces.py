@@ -1,4 +1,5 @@
 import pytest
+from flask.testing import FlaskClient
 
 from core.models import get_db_session, db_commit
 from core.models.workspaces import Invitation, InvitationStatus, Plan
@@ -6,6 +7,8 @@ from core.models.users_workspaces import UserWorkspace
 
 from core.services import workspace as service
 from core.services import user as user_service
+
+from application import application
 
 
 @pytest.fixture
@@ -44,7 +47,6 @@ def workspace_id(user_id):
     return service.create_workspace(user_id, Plan.Personal)
 
 
-@pytest.mark.xfail(reason='not implemented yet')
 def test_invite_user(web_client, workspace_id, invitee_email):
     url = f'/api/v1/workspaces/{workspace_id}/invite/{invitee_email}'
     res = web_client.get(url)
@@ -53,7 +55,8 @@ def test_invite_user(web_client, workspace_id, invitee_email):
     session = get_db_session()
 
     invitation = session.query(Invitation).filter_by(workspace_id=workspace_id, user_email=invitee_email).one()
-    assert invitation.status == InvitationStatus.pending.value
+    assert invitation.status == InvitationStatus.pending.value, \
+        "Invitation object should be created with `pending` status"
 
 
 @pytest.fixture
@@ -77,29 +80,30 @@ def test_invite_accepted_by_wrong_user():
     pass
 
 
-@pytest.mark.xfail(reason='not implemented yet')
 def test_user_accept_invitation(invitee_web_client, invitation_id, workspace_id, invitee_id):
     url = f'/api/v1/workspaces/{workspace_id}/accept/{invitation_id}'
+
+    # ensure that we hadn't user in the workspace before
+    session = get_db_session()
+    user_workspace = session.query(UserWorkspace).filter_by(workspace_id=workspace_id,
+                                                            user_id=invitee_id).one_or_none()
+    assert not user_workspace, "UserWorkspace object should not be created at the start of this test"
 
     res = invitee_web_client.get(url)
     assert res.status_code == 200
 
-    session = get_db_session()
-
-    user_workspace = session.query(UserWorkspace).filter_by(workspace_id=workspace_id, user_id=invitee_id).one()
+    user_workspace = session.query(UserWorkspace).filter_by(workspace_id=workspace_id,
+                                                            user_id=invitee_id).one_or_none()
     assert user_workspace, "We should have one record of UserWorkspace created"
 
 
-@pytest.mark.xfail(reason='not implemented yet')
 def test_remove_user_from_workspace():
     pass
 
 
-@pytest.mark.xfail(reason='not implemented yet')
 def test_invite_again():
     pass
 
 
-
-def test_invite_youself():
+def test_invite_yourself():
     pass
