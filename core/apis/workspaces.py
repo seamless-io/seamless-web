@@ -48,7 +48,7 @@ def remove_user(workspace_id, user_email):
     return Response('OK', 200)
 
 
-@workspace_bp.route('/<workspace_id>/accept/<accept_key>')
+@workspaces_bp.route('/<workspace_id>/accept/<accept_key>')
 def accept_invintaion(workspace_id, accept_key):
     return Response('OK', 200)
 
