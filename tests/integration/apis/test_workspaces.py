@@ -139,7 +139,7 @@ def test_invite_accepted_wrong_user_or_workspace(web_client, intercepted_invitat
     assert not user_workspace, "We should have no UserWorkspace record created"
 
 
-def test_user_accept_invitation(invitee_web_client, invitation_id, workspace_id, invitee_id, invitee_email):
+def test_user_accept_invitation_twice(invitee_web_client, invitation_id, workspace_id, invitee_id, invitee_email):
     url = f'/api/v1/workspaces/{workspace_id}/accept/{invitation_id}'
 
     # ensure that we hadn't user in the workspace before
@@ -157,19 +157,8 @@ def test_user_accept_invitation(invitee_web_client, invitation_id, workspace_id,
                                                             user_id=invitee_id).one_or_none()
     assert user_workspace, "We should have one record of UserWorkspace created"
 
-
-def test_invite_existing(workspace_id, invitee_id, invitee_email, web_client):
-    """
-    User cannot invite users which exists in the workspace already
-    """
-    # ensure that we already had a user in the workspace
-    session = get_db_session()
-    user_workspace = session.query(UserWorkspace).filter_by(workspace_id=workspace_id,
-                                                            user_id=invitee_id).one_or_none()
-    assert user_workspace, "UserWorkspace object should exist at the start of this test"
-
-    url = f'/api/v1/workspaces/{workspace_id}/invite/{invitee_email}'
-    res = web_client.get(url)
+    # Now let's try to accept the invitation one more time
+    res = invitee_web_client.get(url)
     assert res.status_code == 400, \
         "User should receive 400 - Bad Request error code when inviting users already in the workspace"
 
