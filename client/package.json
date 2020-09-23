@@ -11,7 +11,7 @@
     "codemirror": "^5.57.0",
     "moment": "^2.27.0",
     "parsel": "^0.3.0",
-    "popper.js": "^1.16.1",
+    "popper.js": "1.16.1",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-bootstrap": "^1.1.1",
