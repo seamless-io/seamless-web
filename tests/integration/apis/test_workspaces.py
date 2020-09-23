@@ -128,7 +128,8 @@ def test_invite_accepted_wrong_user_or_workspace(web_client, intercepted_invitat
     wrong_workspace_id = '987654321'
     url = f'/api/v1/workspaces/{wrong_workspace_id}/accept/{intercepted_invitation_id}'
     res = invitee_web_client.get(url)  # we use the web client with the correct user, but we pass a wrong workspace_id
-    assert res.status_code == 400, "We should see error because the workspace_id does not match the invitation"
+    assert res.status_code == 404, "We should see error because the workspace_id does not exist"
+    # TODO add a scenario when workspace exists but does not match the one in the invitation
 
     invitation = session.query(Invitation).filter_by(workspace_id=workspace_id,
                                                      user_email=intercepted_invitee_email).one()
@@ -139,7 +140,7 @@ def test_invite_accepted_wrong_user_or_workspace(web_client, intercepted_invitat
     assert not user_workspace, "We should have no UserWorkspace record created"
 
 
-def test_user_accept_invitation_twice(invitee_web_client, invitation_id, workspace_id, invitee_id, invitee_email):
+def test_user_invitation_flow(web_client, invitee_web_client, invitation_id, workspace_id, invitee_id, invitee_email):
     url = f'/api/v1/workspaces/{workspace_id}/accept/{invitation_id}'
 
     # ensure that we hadn't user in the workspace before
@@ -162,15 +163,11 @@ def test_user_accept_invitation_twice(invitee_web_client, invitation_id, workspa
     assert res.status_code == 400, \
         "User should receive 400 - Bad Request error code when inviting users already in the workspace"
 
-
-def test_remove_user_from_workspace(web_client, workspace_id, invitee_email, invitee_id):
-    # previously in this module we already created a user and accepted an invitation (in `test_user_accept_invitation`)
-    url = f'/api/v1/workspaces/{workspace_id}/remove/{invitee_email}'
-
     # ensure that we have UserWorkspace entry created for `invitee_id` and `workspace_id`
     session = get_db_session()
     assert session.query(UserWorkspace).filter_by(user_id=invitee_id, workspace_id=workspace_id).one_or_none()
 
+    url = f'/api/v1/workspaces/{workspace_id}/remove/{invitee_email}'
     res = web_client.get(url)
     assert res.status_code == 200
 

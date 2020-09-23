@@ -46,6 +46,11 @@ def invite_user(workspace_id, user_email):
 
 @workspaces_bp.route('/<workspace_id>/remove/<user_email>')
 def remove_user(workspace_id, user_email):
+    initiator_id = str(session['profile']['user_id'])
+    try:
+        workspace_service.remove_user(user_email, workspace_id, initiator_id)
+    except workspace_service.CannotRemoveUserFromWorkspaceError as e:
+        return Response(str(e), 400)
     return Response('OK', 200)
 
 

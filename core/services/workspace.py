@@ -1,3 +1,5 @@
+import logging
+
 from core.models import Workspace, get_db_session, db_commit, User
 from core.models.users_workspaces import UserWorkspace
 from core.models.workspaces import Plan, Invitation, InvitationStatus
@@ -12,6 +14,10 @@ class PlanChangeError(Exception):
 
 
 class InvitationError(Exception):
+    pass
+
+
+class CannotRemoveUserFromWorkspaceError(Exception):
     pass
 
 
@@ -93,19 +99,40 @@ def invite_user(user_email: str, workspace_id: str):
     """
     When a user adding another one to his workspace
     """
+    session = get_db_session()
+
+    workspace = session.query(Workspace).filter(Workspace.id == workspace_id).one_or_none()
+    if not workspace:
+        raise WorkspaceNotFound(f'Workspace {workspace_id} not found')
+
     invitation = Invitation(user_email=user_email, workspace_id=workspace_id)
-    get_db_session().add(invitation)
+    session.add(invitation)
     db_commit()
     # TODO send email with a link that has invitation.id in it
+    logging.info(f"The user {user_email} was just invited {invitation.id} to the workspace {workspace_id}")
 
 
-def remove_user(user_email: str, workspace_id: str):
+def remove_user(user_email: str, workspace_id: str, remove_initiator_id: str):
     """
     Removes user from the workspace:
     * by owner
     * by the user itself
     """
-    pass
+    session = get_db_session()
+
+    workspace = session.query(Workspace).filter(Workspace.id == workspace_id).one_or_none()
+    if not workspace:
+        raise WorkspaceNotFound(f'Workspace {workspace_id} not found')
+
+    user = User.get_user_from_email(user_email, session)
+
+    if (remove_initiator_id != str(user.id)) and (remove_initiator_id != str(workspace.owner_id)):
+        raise CannotRemoveUserFromWorkspaceError("Only the owner of the workspace "
+                                                 "or the user can remove himself/herself from the workspace")
+
+    session.query(UserWorkspace).filter(UserWorkspace.user_id == user.id,
+                                        UserWorkspace.workspace_id == workspace_id).delete()
+    logging.info(f"The user {remove_initiator_id} has just removed use {user.id} from workspace {workspace_id}")
 
 
 def accept_invitation(user_email: str, workspace_id: str, accept_key: str):
@@ -113,6 +140,11 @@ def accept_invitation(user_email: str, workspace_id: str, accept_key: str):
     When user follows a link in the email with invitation to workspace
     """
     session = get_db_session()
+
+    workspace = session.query(Workspace).filter(Workspace.id == workspace_id).one_or_none()
+    if not workspace:
+        raise WorkspaceNotFound(f'Workspace {workspace_id} not found')
+
     invitation = session.query(Invitation).filter(Invitation.id == accept_key).one_or_none()
     if not invitation:
         raise InvitationError("Invitation code is wrong")
@@ -128,3 +160,4 @@ def accept_invitation(user_email: str, workspace_id: str, accept_key: str):
     session.add(user_workspace)
     invitation.status = InvitationStatus.accepted.value
     db_commit()
+    logging.info(f"The user {user.id} has just accepted the invitation {invitation.id} to the workspace {workspace_id}")
