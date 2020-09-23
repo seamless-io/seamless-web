@@ -40,9 +40,12 @@ def downgrade_workspace(workspace_id, plan):
 
 @workspaces_bp.route('/<workspace_id>/invite/<user_email>')
 def invite_user(workspace_id, user_email):
+    initiator_id = str(session['profile']['user_id'])
     try:
-        workspace_service.invite_user(user_email, workspace_id)
+        workspace_service.invite_user(user_email, workspace_id, initiator_id)
     except workspace_service.WrongPlan as e:
+        return Response(str(e), 400)
+    except workspace_service.InvitationError as e:
         return Response(str(e), 400)
     return Response('OK', 200)
 

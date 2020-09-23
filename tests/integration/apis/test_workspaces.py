@@ -6,7 +6,7 @@ from flask.testing import FlaskClient
 from application import application
 from core.models import get_db_session, db_commit
 from core.models.users_workspaces import UserWorkspace
-from core.models.workspaces import Invitation, InvitationStatus, Plan
+from core.models.workspaces import Invitation, InvitationStatus, Plan, Workspace
 from core.services import user as user_service
 from core.services import workspace as service
 
@@ -53,6 +53,20 @@ def personal_workspace_id(user_id):
 
 
 @mock.patch('core.services.workspace.send_email')
+def test_invite_user_by_not_owner(mock_send_email, invitee_web_client, workspace_id, invitee_email):
+    url = f'/api/v1/workspaces/{workspace_id}/invite/{invitee_email}'
+    res = invitee_web_client.get(url)
+    assert res.status_code == 400
+
+    session = get_db_session()
+
+    # There should be no invitation created and email sent
+    invitation = session.query(Invitation).filter_by(workspace_id=workspace_id, user_email=invitee_email).one_or_none()
+    assert not invitation
+    mock_send_email.assert_not_called()
+
+
+@mock.patch('core.services.workspace.send_email')
 def test_invite_user(mock_send_email, web_client, workspace_id, invitee_email):
     url = f'/api/v1/workspaces/{workspace_id}/invite/{invitee_email}'
     res = web_client.get(url)
@@ -65,9 +79,13 @@ def test_invite_user(mock_send_email, web_client, workspace_id, invitee_email):
     assert invitation.status == InvitationStatus.pending.value, \
         "Invitation object should be created with `pending` status"
 
+    workspace = session.query(Workspace).filter(Workspace.id == workspace_id).one()
+
     mock_send_email.assert_called_once_with(invitee_email,
-                                            'Seamless Cloud invitation',
-                                            f"You've been invited to join {workspace_id} workspace")
+                                            'You\'ve been invited to the workspace',
+                                            f"You've been invited to join {workspace.name} workspace by user {workspace.owner.email}.\n"
+                                            f"Please open this link to accept the invitation: "
+                                            f"https://app.seamlesscloud.io/api/v1/workspaces/{workspace_id}/accept/{str(workspace.id)}")
 
 
 def test_invite_to_personal_workspace(web_client, personal_workspace_id, invitee_email):

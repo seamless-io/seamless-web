@@ -100,7 +100,7 @@ def downgrade_workspace(user_id: str, workspace_id: str, plan: str):
         raise PlanChangeError(f"Cannot downgrade {workspace.plan} to {plan}")
 
 
-def invite_user(user_email: str, workspace_id: str):
+def invite_user(user_email: str, workspace_id: str, invite_initiator_id: str):
     """
     When a user adding another one to his workspace
     """
@@ -113,11 +113,18 @@ def invite_user(user_email: str, workspace_id: str):
     if workspace.plan == Plan.Personal.value:
         raise WrongPlan("You cannot invite users to Personal workspace")
 
+    if str(workspace.owner_id) != invite_initiator_id:
+        raise InvitationError('Only the workspace owner can invite people')
+
     invitation = Invitation(user_email=user_email, workspace_id=workspace_id)
     session.add(invitation)
     db_commit()
 
-    send_email(user_email, f"Seamless Cloud invitation", f"You've been invited to join {workspace_id} workspace")
+    send_email(user_email,
+               f"You've been invited to the workspace",
+               f"You've been invited to join {workspace.name} workspace by user {workspace.owner.email}.\n"
+               f"Please open this link to accept the invitation: "
+               f"https://app.seamlesscloud.io/api/v1/workspaces/{workspace_id}/accept/{str(workspace.id)}")
 
     logging.info(f"The user {user_email} was just invited {invitation.id} to the workspace {workspace_id}")
 
