@@ -99,21 +99,22 @@ def intercepted_invitation_id(intercepted_invitee_email, workspace_id):
     return invitation.id
 
 
-def test_invite_accepted_by_wrong_user(web_client, intercepted_invitation_id, workspace_id, intercepted_invitee_id,
-                                       intercepted_invitee_email):
+def test_invite_accepted_wrong_user_or_workspace(web_client, intercepted_invitation_id, workspace_id,
+                                                 intercepted_invitee_id, intercepted_invitee_email, invitee_web_client):
     """
     When request to `workspaces/accept` was made from a different user to whom invite was sent
     """
-    url = f'/api/v1/workspaces/{workspace_id}/accept/{intercepted_invitation_id}'
-
     # ensure that we hadn't user in the workspace before
     session = get_db_session()
     user_workspace = session.query(UserWorkspace).filter_by(workspace_id=workspace_id,
                                                             user_id=intercepted_invitee_id).one_or_none()
     assert not user_workspace, "UserWorkspace object should not be created at the start of this test"
 
+    # WRONG USER, CORRECT WORKSPACE_ID SCENARIO
+    url = f'/api/v1/workspaces/{workspace_id}/accept/{intercepted_invitation_id}'
     res = web_client.get(url)  # we use defailt `web_client` where `user_id` is used, but not `intercepted_invitee_id`
-    assert res.status_code == 403, "Different user should see 403 error if he is not the one to whom email was sent"
+    assert res.status_code == 400, "Different user should see 400 error " \
+                                   "because the user accepting is not the one the invitation was sent to"
 
     invitation = session.query(Invitation).filter_by(workspace_id=workspace_id,
                                                      user_email=intercepted_invitee_email).one()
@@ -121,7 +122,21 @@ def test_invite_accepted_by_wrong_user(web_client, intercepted_invitation_id, wo
 
     user_workspace = session.query(UserWorkspace).filter_by(workspace_id=workspace_id,
                                                             user_id=intercepted_invitee_id).one_or_none()
-    assert user_workspace, "We should have no UserWorkspace record created"
+    assert not user_workspace, "We should have no UserWorkspace record created"
+
+    # RIGHT USER, INCORRECT WORKSPACE_ID SCENARIO
+    wrong_workspace_id = '987654321'
+    url = f'/api/v1/workspaces/{wrong_workspace_id}/accept/{intercepted_invitation_id}'
+    res = invitee_web_client.get(url)  # we use the web client with the correct user, but we pass a wrong workspace_id
+    assert res.status_code == 400, "We should see error because the workspace_id does not match the invitation"
+
+    invitation = session.query(Invitation).filter_by(workspace_id=workspace_id,
+                                                     user_email=intercepted_invitee_email).one()
+    assert invitation.status == InvitationStatus.pending.value, "Invitation status should still be pending"
+
+    user_workspace = session.query(UserWorkspace).filter_by(workspace_id=workspace_id,
+                                                            user_id=intercepted_invitee_id).one_or_none()
+    assert not user_workspace, "We should have no UserWorkspace record created"
 
 
 def test_user_accept_invitation(invitee_web_client, invitation_id, workspace_id, invitee_id, invitee_email):
@@ -135,7 +150,6 @@ def test_user_accept_invitation(invitee_web_client, invitation_id, workspace_id,
 
     res = invitee_web_client.get(url)
     assert res.status_code == 200
-
     invitation = session.query(Invitation).filter_by(workspace_id=workspace_id, user_email=invitee_email).one()
     assert invitation.status == InvitationStatus.accepted.value, "Invitation status should be accepted"
 

@@ -1,6 +1,6 @@
 from core.models import Workspace, get_db_session, db_commit, User
 from core.models.users_workspaces import UserWorkspace
-from core.models.workspaces import Plan, Invitation
+from core.models.workspaces import Plan, Invitation, InvitationStatus
 
 
 class WorkspaceNotFound(Exception):
@@ -8,6 +8,10 @@ class WorkspaceNotFound(Exception):
 
 
 class PlanChangeError(Exception):
+    pass
+
+
+class InvitationError(Exception):
     pass
 
 
@@ -104,8 +108,23 @@ def remove_user(user_email: str, workspace_id: str):
     pass
 
 
-def accept_invintation(user_email: str, workspace_id: str):
+def accept_invitation(user_email: str, workspace_id: str, accept_key: str):
     """
-    When user follows a link in the email with invintation to workspace
+    When user follows a link in the email with invitation to workspace
     """
-    pass
+    session = get_db_session()
+    invitation = session.query(Invitation).filter(Invitation.id == accept_key).one_or_none()
+    if not invitation:
+        raise InvitationError("Invitation code is wrong")
+
+    if invitation.status != InvitationStatus.pending.value:
+        raise InvitationError("Invitation already accepted")
+
+    if invitation.user_email != user_email or str(invitation.workspace_id) != workspace_id:
+        raise InvitationError("User and/or workspace does not match the invitation code")
+
+    user = User.get_user_from_email(user_email, session)
+    user_workspace = UserWorkspace(user_id=user.id, workspace_id=workspace_id)
+    session.add(user_workspace)
+    invitation.status = InvitationStatus.accepted.value
+    db_commit()
