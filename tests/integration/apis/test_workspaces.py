@@ -55,7 +55,7 @@ def test_invite_user(web_client, workspace_id, invitee_email):
     session = get_db_session()
 
     invitation = session.query(Invitation).filter_by(workspace_id=workspace_id, user_email=invitee_email).one_or_none()
-    assert invitation, "We should have Invitation ojbect created"
+    assert invitation, "We should have Invitation object created"
     assert invitation.status == InvitationStatus.pending.value, \
         "Invitation object should be created with `pending` status"
 
@@ -160,7 +160,6 @@ def test_invite_existing(workspace_id, invitee_id, invitee_email, web_client):
         "User should receive 400 - Bad Request error code when inviting users already in the workspace"
 
 
-
 def test_remove_user_from_workspace(web_client, workspace_id, invitee_email, invitee_id):
     # previously in this module we already created a user and accepted an invitation (in `test_user_accept_invitation`)
     url = f'/api/v1/workspaces/{workspace_id}/remove/{invitee_email}'
@@ -174,7 +173,6 @@ def test_remove_user_from_workspace(web_client, workspace_id, invitee_email, inv
 
     assert not session.query(UserWorkspace).filter_by(user_id=invitee_id, workspace_id=workspace_id).one_or_none(), \
         "UserWorkspace entry should not exist after we removed user from the workspace"
-
 
 
 @pytest.mark.skip(reason='not implemented yet')

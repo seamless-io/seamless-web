@@ -1,6 +1,6 @@
 from core.models import Workspace, get_db_session, db_commit, User
 from core.models.users_workspaces import UserWorkspace
-from core.models.workspaces import Plan
+from core.models.workspaces import Plan, Invitation
 
 
 class WorkspaceNotFound(Exception):
@@ -85,14 +85,17 @@ def downgrade_workspace(user_id: str, workspace_id: str, plan: str):
         raise PlanChangeError(f"Cannot downgrade {workspace.plan} to {plan}")
 
 
-def invite_user(user_id: str, workspace_id: str):
+def invite_user(user_email: str, workspace_id: str):
     """
     When a user adding another one to his workspace
     """
-    pass
+    invitation = Invitation(user_email=user_email, workspace_id=workspace_id)
+    get_db_session().add(invitation)
+    db_commit()
+    # TODO send email with a link that has invitation.id in it
 
 
-def remove_user(user_id: str, workspace_id: str):
+def remove_user(user_email: str, workspace_id: str):
     """
     Removes user from the workspace:
     * by owner
@@ -101,7 +104,7 @@ def remove_user(user_id: str, workspace_id: str):
     pass
 
 
-def accept_invintation(user_id: str, workspace_id: str):
+def accept_invintation(user_email: str, workspace_id: str):
     """
     When user follows a link in the email with invintation to workspace
     """

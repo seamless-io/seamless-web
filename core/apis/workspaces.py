@@ -40,6 +40,7 @@ def downgrade_workspace(workspace_id, plan):
 
 @workspaces_bp.route('/<workspace_id>/invite/<user_email>')
 def invite_user(workspace_id, user_email):
+    workspace_service.invite_user(user_email, workspace_id)
     return Response('OK', 200)
 
 
