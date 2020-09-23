@@ -39,6 +39,7 @@ def downgrade_workspace(workspace_id, plan):
 
 
 @workspaces_bp.route('/<workspace_id>/invite/<user_email>')
+@requires_auth
 def invite_user(workspace_id, user_email):
     initiator_id = str(session['profile']['user_id'])
     try:
@@ -51,6 +52,7 @@ def invite_user(workspace_id, user_email):
 
 
 @workspaces_bp.route('/<workspace_id>/remove/<user_email>')
+@requires_auth
 def remove_user(workspace_id, user_email):
     initiator_id = str(session['profile']['user_id'])
     try:
@@ -63,7 +65,8 @@ def remove_user(workspace_id, user_email):
 
 
 @workspaces_bp.route('/<workspace_id>/accept/<accept_key>')
-def accept_invintaion(workspace_id, accept_key):
+@requires_auth
+def accept_invitaion(workspace_id, accept_key):
     user_email = session['profile']['email']
     try:
         workspace_service.accept_invitation(user_email, workspace_id, accept_key)
