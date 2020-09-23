@@ -7,7 +7,7 @@ from helpers import row2dict
 workspaces_bp = Blueprint('workspaces', __name__)
 
 
-@workspaces_bp.route('/', methods=['GET'])
+@workspaces_bp.route('', methods=['GET'])
 @requires_auth
 def get_workspaces():
     user_id = session['profile']['user_id']
