@@ -1,5 +1,6 @@
 import logging
 
+from core.email import send_email
 from core.models import Workspace, get_db_session, db_commit, User
 from core.models.users_workspaces import UserWorkspace
 from core.models.workspaces import Plan, Invitation, InvitationStatus
@@ -115,7 +116,9 @@ def invite_user(user_email: str, workspace_id: str):
     invitation = Invitation(user_email=user_email, workspace_id=workspace_id)
     session.add(invitation)
     db_commit()
-    # TODO send email with a link that has invitation.id in it
+
+    send_email(user_email, f"Seamless Cloud invitation", f"You've been invited to join {workspace_id} workspace")
+
     logging.info(f"The user {user_email} was just invited {invitation.id} to the workspace {workspace_id}")
 
 

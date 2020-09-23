@@ -1,14 +1,14 @@
+from unittest import mock
+
 import pytest
 from flask.testing import FlaskClient
 
-from core.models import get_db_session, db_commit
-from core.models.workspaces import Invitation, InvitationStatus, Plan
-from core.models.users_workspaces import UserWorkspace
-
-from core.services import workspace as service
-from core.services import user as user_service
-
 from application import application
+from core.models import get_db_session, db_commit
+from core.models.users_workspaces import UserWorkspace
+from core.models.workspaces import Invitation, InvitationStatus, Plan
+from core.services import user as user_service
+from core.services import workspace as service
 
 
 @pytest.fixture(scope='module')
@@ -52,7 +52,8 @@ def personal_workspace_id(user_id):
     return service.create_workspace(user_id, Plan.Personal)
 
 
-def test_invite_user(web_client, workspace_id, invitee_email):
+@mock.patch('core.services.workspace.send_email')
+def test_invite_user(mock_send_email, web_client, workspace_id, invitee_email):
     url = f'/api/v1/workspaces/{workspace_id}/invite/{invitee_email}'
     res = web_client.get(url)
     assert res.status_code == 200
@@ -64,6 +65,10 @@ def test_invite_user(web_client, workspace_id, invitee_email):
     assert invitation.status == InvitationStatus.pending.value, \
         "Invitation object should be created with `pending` status"
 
+    mock_send_email.assert_called_once_with(invitee_email,
+                                            'Seamless Cloud invitation',
+                                            f"You've been invited to join {workspace_id} workspace")
+
 
 def test_invite_to_personal_workspace(web_client, personal_workspace_id, invitee_email):
     url = f'/api/v1/workspaces/{personal_workspace_id}/invite/{invitee_email}'
@@ -72,7 +77,8 @@ def test_invite_to_personal_workspace(web_client, personal_workspace_id, invitee
 
     session = get_db_session()
 
-    invitation = session.query(Invitation).filter_by(workspace_id=personal_workspace_id, user_email=invitee_email).one_or_none()
+    invitation = session.query(Invitation).filter_by(workspace_id=personal_workspace_id,
+                                                     user_email=invitee_email).one_or_none()
     assert not invitation, "We should not have Invitation object created"
 
 
