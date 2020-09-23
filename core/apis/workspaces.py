@@ -40,7 +40,10 @@ def downgrade_workspace(workspace_id, plan):
 
 @workspaces_bp.route('/<workspace_id>/invite/<user_email>')
 def invite_user(workspace_id, user_email):
-    workspace_service.invite_user(user_email, workspace_id)
+    try:
+        workspace_service.invite_user(user_email, workspace_id)
+    except workspace_service.WrongPlan as e:
+        return Response(str(e), 400)
     return Response('OK', 200)
 
 
@@ -51,6 +54,8 @@ def remove_user(workspace_id, user_email):
         workspace_service.remove_user(user_email, workspace_id, initiator_id)
     except workspace_service.CannotRemoveUserFromWorkspaceError as e:
         return Response(str(e), 400)
+    except workspace_service.WrongPlan as e:
+        return Response(str(e), 400)
     return Response('OK', 200)
 
 
@@ -60,6 +65,8 @@ def accept_invintaion(workspace_id, accept_key):
     try:
         workspace_service.accept_invitation(user_email, workspace_id, accept_key)
     except workspace_service.InvitationError as e:
+        return Response(str(e), 400)
+    except workspace_service.WrongPlan as e:
         return Response(str(e), 400)
     return Response('OK', 200)
 

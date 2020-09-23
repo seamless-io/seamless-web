@@ -44,6 +44,11 @@ def invitee_web_client(postgres, invitee_id, invitee_email):
 
 @pytest.fixture
 def workspace_id(user_id):
+    return service.create_workspace(user_id, Plan.Startup)
+
+
+@pytest.fixture
+def personal_workspace_id(user_id):
     return service.create_workspace(user_id, Plan.Personal)
 
 
@@ -58,6 +63,17 @@ def test_invite_user(web_client, workspace_id, invitee_email):
     assert invitation, "We should have Invitation object created"
     assert invitation.status == InvitationStatus.pending.value, \
         "Invitation object should be created with `pending` status"
+
+
+def test_invite_to_personal_workspace(web_client, personal_workspace_id, invitee_email):
+    url = f'/api/v1/workspaces/{personal_workspace_id}/invite/{invitee_email}'
+    res = web_client.get(url)
+    assert res.status_code == 400  # You cannot invite users to Personal workspace
+
+    session = get_db_session()
+
+    invitation = session.query(Invitation).filter_by(workspace_id=personal_workspace_id, user_email=invitee_email).one_or_none()
+    assert not invitation, "We should not have Invitation object created"
 
 
 @pytest.fixture

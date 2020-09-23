@@ -21,6 +21,10 @@ class CannotRemoveUserFromWorkspaceError(Exception):
     pass
 
 
+class WrongPlan(Exception):
+    pass
+
+
 def create_workspace(user_id: str, plan: Plan):
     """
     Creates a workspace record in the database and assigns user as an owner
@@ -105,6 +109,9 @@ def invite_user(user_email: str, workspace_id: str):
     if not workspace:
         raise WorkspaceNotFound(f'Workspace {workspace_id} not found')
 
+    if workspace.plan == Plan.Personal.value:
+        raise WrongPlan("You cannot invite users to Personal workspace")
+
     invitation = Invitation(user_email=user_email, workspace_id=workspace_id)
     session.add(invitation)
     db_commit()
@@ -123,6 +130,9 @@ def remove_user(user_email: str, workspace_id: str, remove_initiator_id: str):
     workspace = session.query(Workspace).filter(Workspace.id == workspace_id).one_or_none()
     if not workspace:
         raise WorkspaceNotFound(f'Workspace {workspace_id} not found')
+
+    if workspace.plan == Plan.Personal.value:
+        raise WrongPlan("You cannot remove users from Personal workspace")
 
     user = User.get_user_from_email(user_email, session)
 
@@ -144,6 +154,9 @@ def accept_invitation(user_email: str, workspace_id: str, accept_key: str):
     workspace = session.query(Workspace).filter(Workspace.id == workspace_id).one_or_none()
     if not workspace:
         raise WorkspaceNotFound(f'Workspace {workspace_id} not found')
+
+    if workspace.plan == Plan.Personal.value:
+        raise WrongPlan("Users cannot be added to the Personal workspace")
 
     invitation = session.query(Invitation).filter(Invitation.id == accept_key).one_or_none()
     if not invitation:
