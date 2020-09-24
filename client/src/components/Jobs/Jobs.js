@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
+
 import { Row, Col, Spinner } from 'react-bootstrap';
+import { AiOutlineThunderbolt, AiOutlineCode } from 'react-icons/ai';
 
 import { getJobs, getUserInfo } from '../../api';
 import JobLine from './JobLine';
 import Notification from '../Notification/Notification';
 
 import './style.css';
-import jobsLogo from '../../images/lightning.svg';
-import terminal from '../../images/terminal.svg';
 
 const Jobs = () => {
   const [jobs, setjobs] = useState([]);
@@ -87,40 +87,18 @@ const Jobs = () => {
         <Row className="smls-no-jobs">
           <Col className="smls-no-jobs-icon-container">
             <div className="smls-no-jobs-icon blue">
-              <img src={jobsLogo} className="smls-jobs" alt="Jobs" />
+              <AiOutlineThunderbolt size={24} style={{ color: '#007bff' }} />
             </div>
             <div className="smls-no-jobs-message">
               <div>
                 <strong>You have no jobs</strong>
               </div>
-              <div>To proceed - install & configure seamless CLI.</div>
-            </div>
-          </Col>
-        </Row>
-        <Row className="smls-no-jobs">
-          <Col className="smls-no-jobs-icon-container">
-            <div className="smls-no-jobs-icon green">
-              <img src={terminal} className="smls-jobs" alt="Terminal" />
-            </div>
-            <div className="smls-no-jobs-message">
-              <p>
-                <strong>
-                  Installation Guide
-                  <sup>*</sup>
-                </strong>
-              </p>
-              <p>
-                Copy this into your terminal, run the command, and follow
-                further instructions:
-              </p>
               <div>
-                <code className="smls-jobs-code">pip install smls</code>
-                <code className="smls-jobs-code">{`smls auth ${apiKey}`}</code>
-                <code className="smls-jobs-code">smls example</code>
-              </div>
-              <p className="smls-jobs-python-requirement">
-                * Requires Python 3.6 or higher and 'pip' installed
-              </p>
+              Navigate to the Templates tab to add your first Job.
+               </div>
+               <div>
+               If you're new to Seamless Cloud, you should choose the "Example Job" template which is at the top of the list.
+               </div>
             </div>
           </Col>
         </Row>

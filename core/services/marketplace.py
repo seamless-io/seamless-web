@@ -57,14 +57,16 @@ def update_templates(templates_package):
                 existing_template.short_description = template_config['short_description']
                 existing_template.long_description_url = template_config['long_description_url']
                 existing_template.tags = ','.join(template_config['tags'])
+                existing_template.parameters = ','.join(template_config['parameters'])
                 template = existing_template
             else:
                 # create new record
                 new_template = JobTemplate(
-                        name=template_config['name'],
-                        short_description=template_config['short_description'],
-                        long_description_url=template_config['long_description_url'],
-                        tags=','.join(template_config['tags']))
+                    name=template_config['name'],
+                    short_description=template_config['short_description'],
+                    long_description_url=template_config['long_description_url'],
+                    tags=','.join(template_config['tags']),
+                    parameters=','.join(template_config['parameters']))
                 get_db_session().add(new_template)
                 template = new_template
             db_commit()

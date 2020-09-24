@@ -104,12 +104,15 @@ def _create_job_in_db(name, cron, entrypoint, requirements, user_id, schedule_is
     return job
 
 
-def delete(name: str, user: User):
-    job = user.jobs.filter_by(name=name).one_or_none()
+def get_job_by_name(name: str, user_id: str):
+    job = get_db_session().query(Job).filter_by(name=name, user_id=user_id).one_or_none()
     if not job:
         raise JobNotFoundException("Job Not Found")
+    return job
 
-    job_id = str(job.id)
+
+def delete(job_id: str, user_id: str):
+    job = get(job_id, user_id)
 
     remove_job_schedule(job_id)
     storage.delete(storage.Type.Job, job_id)
@@ -215,6 +218,20 @@ def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunL
     return job_run.logs
 
 
+def update_schedule(job_id: str, user_id: str, cron: str):
+    job = get(job_id, user_id)
+    job_had_no_schedule_before = job.cron is None
+
+    aws_cron, human_cron = parse_cron(cron)
+    job.cron = cron
+    job.aws_cron = aws_cron
+    job.human_cron = human_cron
+    db_commit()
+
+    if job_had_no_schedule_before:
+        job.schedule_job()
+
+
 def enable_schedule(job_id: str, user_id: str):
     job = get(job_id, user_id)
     enable_job_schedule(job_id)
@@ -239,7 +256,7 @@ def get_parameters_for_job(job_id: str, user_id: str) -> List[JobParameter]:
     return job.parameters
 
 
-def add_parameters_to_job(job_id: str, user_id: str, parameters: List[Tuple[str, str]]):
+def add_parameters_to_job(job_id: str, user_id: str, parameters: List[Tuple[str, Optional[str]]]):
     job = get(job_id, user_id)
     if len(list(job.parameters)) + len(parameters) > PARAMETERS_LIMIT_PER_JOB:
         raise JobsParametersLimitExceededException(f"You cannot have more than {PARAMETERS_LIMIT_PER_JOB} "
@@ -275,6 +292,11 @@ def delete_job_parameter(job_id: str, user_id: str, parameter_id: str):
     affected_rows = job.parameters.filter_by(id=parameter_id).delete()
     if affected_rows == 0:
         raise ParameterNotFoundException(f'Cannot delete parameter {parameter_id}: Not Found')
+    db_commit()
+
+
+def link_job_to_template(job: Job, template_id: str):
+    job.job_template_id = template_id
     db_commit()
 
 
