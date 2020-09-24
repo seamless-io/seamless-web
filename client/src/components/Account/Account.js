@@ -1,16 +1,32 @@
 import React, { useState, useEffect } from 'react';
+
 import { Row, Col, Spinner } from 'react-bootstrap';
+import { AiOutlineMail, AiOutlineApi } from 'react-icons/ai';
 
 import { getUserInfo } from '../../api';
+import Notification from '../Notification/Notification';
 
-import key from '../../images/key.svg';
-import atSign from '../../images/at-sign.svg';
 import './style.css';
 
 const Account = () => {
   const [apiKey, setApiKey] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(null);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState('');
+  const [notificationBody, setNotificationBody] = useState('');
+  const [notificationAlertType, setNotificationAlertType] = useState('');
+
+  const displayNotification = (show, title, body, alterType) => {
+    setShowNotification(show);
+    setNotificationTitle(title);
+    setNotificationBody(body);
+    setNotificationAlertType(alterType);
+  };
+
+  const closeNotification = () => {
+    setShowNotification(false);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -21,7 +37,12 @@ const Account = () => {
         setLoading(false);
       })
       .catch(() => {
-        alert('Error!');
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to get the account info :(',
+          'danger'
+        );
       });
   }, []);
 
@@ -49,7 +70,7 @@ const Account = () => {
           </Col>
           <Col sm={12}>
             <div className="smls-account-section-text">
-              <img src={key} className="smls-account-key" alt="Api key" />
+              <AiOutlineApi size={20} style={{ color: '#9299a3' }} />
               <span>{apiKey}</span>
             </div>
           </Col>
@@ -62,7 +83,7 @@ const Account = () => {
           </Col>
           <Col sm={12}>
             <div className="smls-account-section-text">
-              <img src={atSign} className="smls-account-key" alt="My email" />
+              <AiOutlineMail size={20} style={{ color: '#9299a3' }} />
               <span>{email}</span>
             </div>
           </Col>
@@ -75,16 +96,19 @@ const Account = () => {
           </Col>
           <Col sm={12}>
             <div className="smls-account-section-text">
-              <img
-                src={atSign}
-                className="smls-account-key"
-                alt="Contact support"
-              />
+              <AiOutlineMail size={20} style={{ color: '#9299a3' }} />
               <span>hello@seamlesscloud.io</span>
             </div>
           </Col>
         </Row>
       </div>
+      <Notification
+        show={showNotification}
+        closeNotification={closeNotification}
+        title={notificationTitle}
+        body={notificationBody}
+        alertType={notificationAlertType}
+      />
     </div>
   );
 };

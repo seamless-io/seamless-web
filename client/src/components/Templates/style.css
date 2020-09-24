@@ -1,0 +1,147 @@
+.card.smls-templates-card {
+  border: 0px;
+}
+
+.smls-templates-card {
+  box-shadow: 0 1px 4px 0 rgba(50, 50, 50, 0.05);
+  border-radius: 4px;
+  opacity: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: 0.5s ease;
+  backface-visibility: hidden;
+  height: 100%;
+}
+
+.smls-templates-card-footer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.smls-temaplates-tag {
+  margin-right: 5px;
+  background-color: #ede6ff;
+  font-size: 10px;
+  color: #5102ff;
+}
+
+.smls-tempaltes-action-text {
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  display: flex;
+  align-items: center;
+  color: #016bff;
+  cursor: pointer;
+}
+
+.smls-templates-short-description {
+  font-size: 14px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+}
+
+.card-title.smls-templates-title {
+  font-size: 18px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+
+.smls-templates-card-container {
+  position: relative;
+  height: 100%;
+}
+
+.smls-templates-card-container-inner {
+  height: 100%;
+}
+
+.smls-templates-card-container:hover .smls-templates-card-container-inner {
+  opacity: 0;
+}
+
+.smls-templates-card-overlay {
+  /* transition: 0.25s ease; */
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smls-templates-card-container:hover .smls-templates-card-overlay {
+  opacity: 1;
+}
+
+.smls-templates-card-overlay-inner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.smls-templates-card-button {
+  width: 100%;
+  height: 52px;
+  border-radius: 4px;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.045);
+}
+
+.use-template {
+  border-radius: 4px;
+  background-color: transparent;
+  width: 30%;
+  background-color: #016bff;
+  color: #fff;
+}
+
+.show-code {
+  border-radius: 4px;
+  border: solid 2px #dde0e5;
+  background-color: transparent;
+  width: 30%;
+}
+
+.how-to-use {
+  border-radius: 4px;
+  border: solid 2px #dde0e5;
+  width: 30%;
+  background-color: transparent;
+}
+
+.smls-temaplates-card-button-text {
+  font-size: 14px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+  pointer-events: none;
+}
+
+.smls-templates-card-body-div {
+  display: flex;
+  align-items: center;
+}

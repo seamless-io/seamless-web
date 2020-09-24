@@ -50,7 +50,7 @@ def disable_job_schedule(job_id: str):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     rule_name = _generate_cloudwatch_rule_name(job_id, os.getenv('STAGE', 'local'))
     events.disable_rule(Name=rule_name)
-    logging.info(f"Schedule rule {rule_name} enabled")
+    logging.info(f"Schedule rule {rule_name} disabled")
 
 
 def remove_job_schedule(job_id: str):

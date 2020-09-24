@@ -9,7 +9,7 @@ import Notification from '../Notification/Notification';
 
 import './style.css';
 
-const WebIde = ({ jobId }) => {
+const WebIde = ({ id, file_type }) => {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
@@ -34,7 +34,7 @@ const WebIde = ({ jobId }) => {
 
   useEffect(() => {
     setLoadingFolderTree(true);
-    getJobFolderStructure(jobId)
+    getJobFolderStructure(id, file_type)
       .then(payload => {
         setFolderStructure(payload);
         setLoadingFolderTree(false);
@@ -62,7 +62,7 @@ const WebIde = ({ jobId }) => {
     setLoadingCodeEditor(true);
     setFileExtension(defineFileExtension(name));
     setCurrentFile(name);
-    getFileContent(jobId, filePath)
+    getFileContent(id, file_type, filePath)
       .then(payload => {
         setFileContent(payload);
         setLoadingCodeEditor(false);

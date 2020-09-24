@@ -4,4 +4,8 @@ templates:
     path_to_files: template1
     long_description_url: template1
     tags:
-      - template1
+      - tag_1
+      - tag_2
+    parameters:
+      - PARAM_1
+      - PARAM_2

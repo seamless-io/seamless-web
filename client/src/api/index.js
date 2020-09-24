@@ -15,6 +15,11 @@ export const getJob = async job_id => {
   return response.data;
 };
 
+export const deleteJob = async job_id => {
+  let response = await axios.delete(`/api/v1/jobs/${job_id}/delete`);
+  return response.data;
+};
+
 export const updateJob = async (job_id, data) => {
   let response = await axios.put(`/api/v1/jobs/${job_id}`, data);
   return response.data;
@@ -49,15 +54,13 @@ export const getNextJobExecution = async job_id => {
   return response.data;
 };
 
-export const getJobFolderStructure = async job_id => {
-  let response = await axios.get(`/api/v1/jobs/${job_id}/folder`);
+export const getJobFolderStructure = async (id, file_type) => {
+  let response = await axios.get(`/api/v1/${file_type}/${id}/folder`);
   return response.data;
 };
 
-export const getFileContent = async (job_id, file_path) => {
-  let response = await axios.get(
-    `/api/v1/jobs/${job_id}/file?file_path=${file_path}`
-  );
+export const getFileContent = async (id, file_type, file_path) => {
+  let response = await axios.get(`/api/v1/${file_type}/${id}/file?file_path=${file_path}`);
   return response.data;
 };
 
@@ -89,5 +92,15 @@ export const updateJobParameter = async (job_id, parameter_id, key, value) => {
       value: value,
     }
   );
+  return response.data;
+};
+
+export const getTemlaptes = async () => {
+  let response = await axios.get('/api/v1/templates');
+  return response.data;
+};
+
+export const addTemplate = async templateId => {
+  let response = await axios.post(`/api/v1/templates/${templateId}/create_job`);
   return response.data;
 };
