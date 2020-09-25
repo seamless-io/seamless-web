@@ -61,11 +61,11 @@ const Templates = () => {
         setLoading(false);
         history.push(`jobs/${payload.job_id}`);
       })
-      .catch(() => {
+      .catch(err => {
         displayNotification(
           true,
           'Ooops!',
-          'Unable to add the template :(',
+          'Unable to add the template. ' + err.response['data'],
           'danger'
         );
         setLoading(false);

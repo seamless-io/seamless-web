@@ -286,6 +286,24 @@ def link_job_to_template(job: Job, template_id: str):
     db_commit()
 
 
+def make_job_name_unique(job_name: str, user_id: str):
+    """
+    If we can't find existing Job with the name provided - just return it, its unique.
+    If we can - add suffix to the name to make it unique.
+    "<Original Name> 2", if exists, "<Original Name> 3", etc
+    """
+    try:
+        name_suffix = ''
+        # Any big enough number is fine, just not too big, so we don't load our system accidentally
+        for i in range(2, 50):
+            result_name = job_name + name_suffix
+            get_job_by_name(result_name, user_id)
+            name_suffix = str(i)
+    except JobNotFoundException:
+        return result_name  # This is fine, that means there is no Job with the template name we're adding
+    raise Exception("Impossible Error: we have 49 Jobs with the same 'base' name. Something is fucked up bad.")
+
+
 def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]:
     job_run = JobRun(job_id=job.id, type=trigger_type)
     get_db_session().add(job_run)

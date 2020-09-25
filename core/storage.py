@@ -17,6 +17,7 @@ from typing import DefaultDict, Optional
 import boto3
 
 from constants import ARCHIVE_EXTENSION
+from job_executor.executor import DOCKER_FILE_NAME
 
 
 class Type(Enum):
@@ -88,9 +89,12 @@ def generate_project_structure(type_: Type, id_: str) -> list:
     Converts a folder into a list of nested dicts.
     """
     path_to_files = get_path_to_files(type_, id_)
-    project_dict = _file_tree_to_dict(path_to_files, id_)
+    project_dict = _file_tree_to_dict(path_to_files, id_)['children']
+    if type_ == Type.Job:
+        # In order to run Jobs we add Docker file to their files. We need to hide it for the user.
+        project_dict = [child for child in project_dict if child['name'] != DOCKER_FILE_NAME]
 
-    return project_dict['children']
+    return project_dict
 
 
 def get_file_content(type_: Type, id_: str, file_path: str) -> Optional[str]:
