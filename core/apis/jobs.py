@@ -60,10 +60,11 @@ def update_job_schedule(job_id):
             job_service.update_schedule(job_id, user_id, request.args['cron'])
         except helpers.InvalidCronException as e:
             return Response(str(e), 400)
-    if request.args.get('is_enabled') == 'true':
-        job_service.enable_schedule(job_id, user_id)
-    else:
-        job_service.disable_schedule(job_id, user_id)
+    if request.args.get('is_enabled'):
+        if request.args['is_enabled'] == 'true':
+            job_service.enable_schedule(job_id, user_id)
+        else:
+            job_service.disable_schedule(job_id, user_id)
     return jsonify(job_id), 200
 
 

@@ -49,6 +49,13 @@ export const enableJobSchedule = async (job_id, is_enabled) => {
   return response.data;
 };
 
+export const updateJobSchedule = async (job_id, cron) => {
+  let response = await axios.put(
+    `/api/v1/jobs/${job_id}/schedule?cron=${cron}`
+  );
+  return response.data;
+};
+
 export const getNextJobExecution = async job_id => {
   let response = await axios.get(`/api/v1/jobs/${job_id}/next_execution`);
   return response.data;

@@ -10,7 +10,11 @@ import {
   AiOutlineDelete,
   AiOutlineDownload,
   AiOutlineClockCircle,
+  AiOutlineEdit,
+  AiOutlineCheck
 } from 'react-icons/ai';
+
+import { isValidCron } from 'cron-validator'
 
 import { socket } from '../../socket';
 import {
@@ -18,6 +22,7 @@ import {
   deleteJob,
   triggerJobRun,
   enableJobSchedule,
+  updateJobSchedule,
   getLastExecutions,
   getNextJobExecution,
   getJobRunLogs,
@@ -77,6 +82,9 @@ const Job = () => {
   const [alert, setAlert] = useState(false);
   const [runButtonDisabled, setRunButtonDisabled] = useState(false);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [showCronEditor, setShowCronEditor] = useState(false);
+  const [cron, setCron] = useState('');
+  const [editedCron, setEditedCron] = useState('');
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -169,6 +177,7 @@ const Job = () => {
         setSchedule(
           payload.human_cron === 'None' ? 'Not scheduled' : payload.human_cron
         );
+        setCron(payload.cron);
         setIsTemplate(payload.job_template_id !== 'None');
 
         getJobParameters(job.id)
@@ -312,6 +321,59 @@ const Job = () => {
   const openJobParams = () => {
     setShowParams(!showParams);
   };
+
+  const openCronEditor = () => {
+    setEditedCron(cron);
+    setShowCronEditor(true);
+  };
+
+  const closeCronEditor = () => {
+    setShowCronEditor(false);
+  };
+
+  const cronValidationIndicator = (cronIsValid) => {
+    if (cronIsValid) {
+      return (
+        <AiOutlineCheck style={{ color: 'green' }}/>
+      );
+    } else {
+      return (
+        <p style={{ color: 'red' }}>Invalid expression</p>
+      );
+    }
+  };
+
+  const updateCron = () => {
+    closeCronEditor();
+    setLoading(true);
+    updateJobSchedule(job.id, editedCron)
+      .then(payload => {
+            getJob(job.id)
+              .then(payload => {;
+                setSchedule(
+                  payload.human_cron === 'None' ? 'Not scheduled' : payload.human_cron
+                );
+                setCron(payload.cron);
+                setLoading(false);
+              })
+              .catch(() => {
+                displayNotification(
+                  true,
+                  'Ooops!',
+                  "Unable to fetch job's details :(",
+                  'danger'
+                );
+              });
+          })
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to update the cron expression.',
+          'danger'
+        );
+      });
+  }
 
   const createParam = () => {
     if (!paramKey.trim() || !paramValue.trim()) {
@@ -559,6 +621,9 @@ const Job = () => {
             <span className={!isScheduleOn ? 'smls-muted' : ''}>
               {schedule} UTC
             </span>
+            <AiOutlineEdit
+                style={{ marginLeft: '10px', cursor: 'pointer'}}
+                onClick={openCronEditor} />
           </div>
           {loadToggleSwitch()}
         </Col>
@@ -708,6 +773,45 @@ const Job = () => {
               </Col>
             </Row>
           </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showCronEditor}
+        onHide={closeCronEditor}
+        dialogClassName="smls-cron-editor-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Edit schedule</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <Row>
+            <Col>
+                <p className="smls-job-params-guide">
+                You can use <a href="https://crontab.guru/" target="_blank">crontab.guru</a> as a reference for CRON expressions.
+                </p>
+            </Col>
+          </Row>
+          <Row style={{ paddingTop: '16px' }}>
+            <Col sm={4}>
+              <FormControl
+                value={editedCron}
+                onChange={e => setEditedCron(e.target.value)}
+              />
+            </Col>
+            <Col sm={4}>
+            {cronValidationIndicator(isValidCron(editedCron))}
+            </Col>
+            <Col sm={4}>
+              <button
+                className="smls-job-param-save-changes"
+                type="button"
+                onClick={updateCron}
+                disabled={isValidCron(editedCron) ? "" : "disabled"}
+              >
+                <span className="smls-job-param-button-text">Save changes</span>
+              </button>
+            </Col>
+          </Row>
         </Modal.Body>
       </Modal>
     </>

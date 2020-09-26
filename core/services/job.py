@@ -206,7 +206,6 @@ def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunL
 
 def update_schedule(job_id: str, user_id: str, cron: str):
     job = get(job_id, user_id)
-    job_had_no_schedule_before = job.cron is None
 
     aws_cron, human_cron = parse_cron(cron)
     job.cron = cron
@@ -214,8 +213,7 @@ def update_schedule(job_id: str, user_id: str, cron: str):
     job.human_cron = human_cron
     db_commit()
 
-    if job_had_no_schedule_before:
-        job.schedule_job()
+    job.schedule_job()
 
 
 def enable_schedule(job_id: str, user_id: str):
