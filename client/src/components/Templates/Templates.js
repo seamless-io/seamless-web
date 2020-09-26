@@ -105,7 +105,7 @@ const Templates = () => {
           <Modal.Title>{templateName}</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
-          <WebIde id={templateId} file_type="templates" />
+          <WebIde id={templateId} file_type="templates" readOnly={true} />
         </Modal.Body>
       </Modal>
       <Notification

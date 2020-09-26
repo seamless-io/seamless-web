@@ -76,6 +76,7 @@ const Job = () => {
   const [isTemplate, setIsTemplate] = useState(false);
   const [alert, setAlert] = useState(false);
   const [runButtonDisabled, setRunButtonDisabled] = useState(false);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -295,7 +296,17 @@ const Job = () => {
   };
 
   const openIde = () => {
-    setShowCode(!showCode);
+    setShowCode(true);
+  };
+
+  const closeIde = () => {
+    if (unsavedChanges) {
+        if (confirm('There are unsaved changes. Are you sure you don\'t want to save them?')) {
+            setShowCode(false);
+        }
+    } else {
+        setShowCode(false);
+    }
   };
 
   const openJobParams = () => {
@@ -497,7 +508,7 @@ const Job = () => {
               onClick={openIde}
             >
               <AiOutlineCode />
-              <span className="smls-job-web-ide-button-text">Show Code</span>
+              <span className="smls-job-web-ide-button-text">Edit Code</span>
             </button>
             <button
               className={
@@ -578,14 +589,15 @@ const Job = () => {
 
       <Modal
         show={showCode}
-        onHide={() => setShowCode(!showCode)}
+        onHide={() => closeIde()}
         dialogClassName="smls-web-ide-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>{name}</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
-          <WebIde id={job.id} file_type="jobs" />
+          <WebIde id={job.id} file_type="jobs" readOnly={false}
+           setUnsavedChangesFlag={setUnsavedChanges}/>
         </Modal.Body>
       </Modal>
       <Modal

@@ -36,7 +36,7 @@ current_file_version: DefaultDict[Type, DefaultDict[str, str]] = defaultdict(lam
 
 def get_path_to_files(type_: Type, id_: str):
     path = _get_path(type_, id_)
-    if not os.path.exists(path) or _local_files_are_outdated(type_, id_):
+    if (not os.path.exists(path)) or _local_files_are_outdated(type_, id_):
         _restore_file_from_s3(type_, path, id_)
         current_file_version[type_][id_] = _get_md5sum_from_s3(type_, id_)
     return path
@@ -107,6 +107,26 @@ def get_file_content(type_: Type, id_: str, file_path: str) -> Optional[str]:
         file_content = file.read()
 
     return file_content
+
+
+def update_file_contents(job_id: str, relative_file_path: str, contents: str) -> None:
+    """
+    This function works only with Job Type
+    """
+    path_to_files = get_path_to_files(Type.Job, job_id)
+    filepath = os.path.join(path_to_files, relative_file_path)
+    with open(filepath, 'w') as file_:
+        file_.write(contents)
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode='w:gz') as tar:
+        tar.add(path_to_files, arcname='.')
+        tar.close()
+
+    handler.seek(0)
+
+    _save_file_to_s3(handler, Type.Job, job_id)
+    current_file_version[Type.Job][job_id] = _get_md5sum_from_s3(Type.Job, job_id)
 
 
 def _get_path(type_: Type, id_: str):

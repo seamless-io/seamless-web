@@ -104,3 +104,15 @@ export const addTemplate = async templateId => {
   let response = await axios.post(`/api/v1/templates/${templateId}/create_job`);
   return response.data;
 };
+
+
+export const saveCode = async (job_id, filename, contents) => {
+  let response = await axios.put(
+    `/api/v1/jobs/${job_id}/source-code`,
+    {
+      filename: filename,
+      contents: contents
+    }
+  );
+  return response.data
+};
