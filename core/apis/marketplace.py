@@ -64,9 +64,12 @@ def get_template(template_id):
 def create_job_from_template(template_id):
     template = marketplace_service.get_template(template_id)
     template_file = marketplace_service.get_template_package(template_id)
+    user_id = session['profile']['internal_user_id']
+    new_job_name = job_service.make_job_name_unique(template.name, user_id)
+
     try:
         job, is_existing = job_service.publish(
-            template.name,  # TODO check if name already exists
+            new_job_name,
             DEFAULT_CRON_SCHEDULE,
             DEFAULT_ENTRYPOINT,
             DEFAULT_REQUIREMENTS,
@@ -76,7 +79,6 @@ def create_job_from_template(template_id):
         )
         job_service.link_job_to_template(job, template_id)
 
-        user_id = session['profile']['internal_user_id']
         if template.name == 'Example Job' and template.parameters == 'COMPANY_TICKER':
             # This template is special because it's used during the user onboarding,
             # and it would be easier to use it if it had a default parameter

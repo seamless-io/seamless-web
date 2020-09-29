@@ -337,6 +337,10 @@
   min-width: 70%;
 }
 
+.smls-cron-editor-modal {
+  min-width: 30%;
+}
+
 .smls-job-params-guide {
   font-size: 14px;
   font-weight: 500;

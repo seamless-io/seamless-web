@@ -61,11 +61,11 @@ const Templates = () => {
         setLoading(false);
         history.push(`jobs/${payload.job_id}`);
       })
-      .catch(() => {
+      .catch(err => {
         displayNotification(
           true,
           'Ooops!',
-          'Unable to add the template :(',
+          'Unable to add the template. ' + err.response['data'],
           'danger'
         );
         setLoading(false);
@@ -105,7 +105,7 @@ const Templates = () => {
           <Modal.Title>{templateName}</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
-          <WebIde id={templateId} file_type="templates" />
+          <WebIde id={templateId} file_type="templates" readOnly={true} />
         </Modal.Body>
       </Modal>
       <Notification

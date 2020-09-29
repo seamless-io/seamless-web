@@ -11,7 +11,7 @@ import constants
 import core.services.job as job_service
 import core.services.user as user_service
 import helpers
-from core.storage import generate_project_structure, Type, get_file_content
+from core.storage import generate_project_structure, Type, get_file_content, update_file_contents
 from core.web import requires_auth
 from helpers import row2dict
 
@@ -61,10 +61,11 @@ def update_job_schedule(job_id):
             job_service.update_schedule(job_id, user_id, request.args['cron'])
         except helpers.InvalidCronException as e:
             return Response(str(e), 400)
-    if request.args.get('is_enabled') == 'true':
-        job_service.enable_schedule(job_id, user_id)
-    else:
-        job_service.disable_schedule(job_id, user_id)
+    if request.args.get('is_enabled'):
+        if request.args['is_enabled'] == 'true':
+            job_service.enable_schedule(job_id, user_id)
+        else:
+            job_service.disable_schedule(job_id, user_id)
     return jsonify(job_id), 200
 
 
@@ -282,6 +283,26 @@ def get_project_structure(job_id: str):
 @requires_auth
 def get_job_file(job_id: str):
     file_path = str(request.args.get('file_path'))
+    # TODO: make the check explicit and apply it to all relevant endpoints
     job = job_service.get(job_id, session['profile']['user_id'])  # Checking permission for this job and user
     file_content = get_file_content(Type.Job, job_id, file_path)
     return jsonify(file_content), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/source-code', methods=['PUT'])
+@requires_auth
+def update_source_code(job_id: str):
+    """
+    Updating code of the job (job consist of several files)
+    Payload:
+    {
+        "filename": "path/to/filename.py",
+        "contents": "content of the file"
+    }
+    """
+    # TODO: make the check explicit and apply it to all relevant endpoints
+    job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
+    filename = request.json['filename']
+    contents = request.json['contents']
+    update_file_contents(job_id, filename, contents)
+    return Response('OK', 200)

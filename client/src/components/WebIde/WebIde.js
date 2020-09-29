@@ -9,7 +9,7 @@ import Notification from '../Notification/Notification';
 
 import './style.css';
 
-const WebIde = ({ id, file_type }) => {
+const WebIde = ({ id, file_type, readOnly, setUnsavedChangesFlag }) => {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
@@ -20,6 +20,7 @@ const WebIde = ({ id, file_type }) => {
   const [fileExtension, setFileExtension] = useState('');
   const [loadingFolderTree, setLoadingFolderTree] = useState(false);
   const [loadingCodeEditor, setLoadingCodeEditor] = useState(false);
+  const [currentFilePath, setCurrentFilePath] = useState('');
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -66,6 +67,7 @@ const WebIde = ({ id, file_type }) => {
       .then(payload => {
         setFileContent(payload);
         setLoadingCodeEditor(false);
+        setCurrentFilePath(filePath);
       })
       .catch(() => {
         setLoadingCodeEditor(false);
@@ -109,6 +111,10 @@ const WebIde = ({ id, file_type }) => {
               <CodeEditor
                 fileContent={fileContent}
                 fileExtension={fileExtension}
+                readOnly={readOnly}
+                id={id}
+                filePath={currentFilePath}
+                setUnsavedChangesFlag={setUnsavedChangesFlag}
               />
             </Col>
           </Row>
@@ -146,7 +152,7 @@ const WebIde = ({ id, file_type }) => {
               <div className="smls-job-executiontimeline-logs-header">
                 <h5 className="smls-web-ide-header">{currentFile}</h5>
                 <span className="smls-web-ide-header-read-only">
-                  {currentFile ? 'Read only' : ''}
+                  {(currentFile && readOnly) ? 'Read only' : ''}
                 </span>
               </div>
             </Col>

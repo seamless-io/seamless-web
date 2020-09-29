@@ -220,7 +220,6 @@ def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunL
 
 def update_schedule(job_id: str, user_id: str, cron: str):
     job = get(job_id, user_id)
-    job_had_no_schedule_before = job.cron is None
 
     aws_cron, human_cron = parse_cron(cron)
     job.cron = cron
@@ -228,8 +227,7 @@ def update_schedule(job_id: str, user_id: str, cron: str):
     job.human_cron = human_cron
     db_commit()
 
-    if job_had_no_schedule_before:
-        job.schedule_job()
+    job.schedule_job()
 
 
 def enable_schedule(job_id: str, user_id: str):
@@ -298,6 +296,24 @@ def delete_job_parameter(job_id: str, user_id: str, parameter_id: str):
 def link_job_to_template(job: Job, template_id: str):
     job.job_template_id = template_id
     db_commit()
+
+
+def make_job_name_unique(job_name: str, user_id: str):
+    """
+    If we can't find existing Job with the name provided - just return it, its unique.
+    If we can - add suffix to the name to make it unique.
+    "<Original Name> 2", if exists, "<Original Name> 3", etc
+    """
+    try:
+        name_suffix = ''
+        # Any big enough number is fine, just not too big, so we don't load our system accidentally
+        for i in range(2, 50):
+            result_name = job_name + name_suffix
+            get_job_by_name(result_name, user_id)
+            name_suffix = str(i)
+    except JobNotFoundException:
+        return result_name  # This is fine, that means there is no Job with the template name we're adding
+    raise Exception("Impossible Error: we have 49 Jobs with the same 'base' name. Something is fucked up bad.")
 
 
 def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]:
