@@ -41,6 +41,14 @@ def create_workspace(user_id: str, plan: Plan):
     return workspace.id
 
 
+def get_workspace_by_id(workspace_id):
+    workspace = get_db_session().query(Workspace).filter_by(id=workspace_id).one_or_none()
+
+    if workspace is None:
+        raise WorkspaceNotFound("Job Not Found")
+    return workspace
+
+
 def get_user_personal_workspace(user_id: str):
     """
     Every user has a Personal workspace - this is the logic to get it

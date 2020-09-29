@@ -3,7 +3,10 @@ import os
 
 import stripe
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
+import core.services.user as user_service
+import core.services.workspace as workspace_service
+import core.services.stripe as stripe_service
 
 stripe_bp = Blueprint('stripe', __name__)
 
@@ -61,3 +64,11 @@ def webhook_received():
         print(data)
 
     return jsonify({'status': 'success'})
+
+
+@stripe_bp.route('/checkout-session', methods=['POST'])
+def create_checkout_session():
+    user = user_service.get_by_id(session['profile']['user_id'])
+    workspace = workspace_service.get_workspace_by_id(session['profile']['workspace_id'])
+    checkout_session = stripe_service.create_checkout_session(user, workspace)
+    return jsonify({'session_id': checkout_session['id']})

@@ -17,7 +17,6 @@ from core.services.workspace import get_user_personal_workspace
 
 CLIENT_API = '/api/v1'
 AUTH_API = '/auth'
-STRIPE_API = '/stripe'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, '../static/')
 CLIENT_DIR = os.path.join(APP_DIR, '../static/')
@@ -66,7 +65,7 @@ def create_app():
     app.register_blueprint(auth_users_bp, url_prefix=AUTH_API)
 
     from core.apis.stripe import stripe_bp
-    app.register_blueprint(stripe_bp, url_prefix=STRIPE_API)
+    app.register_blueprint(stripe_bp, url_prefix=CLIENT_API + '/stripe')
 
     oauth = OAuth(app)
 

@@ -123,3 +123,8 @@ export const saveCode = async (job_id, filename, contents) => {
   );
   return response.data
 };
+
+export const createStripeCheckoutSession = async () => {
+  let response = await axios.post('/api/v1/stripe/checkout-session');
+  return response.data;
+};

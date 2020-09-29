@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 import { Row, Col, Spinner } from 'react-bootstrap';
 import { AiOutlineMail, AiOutlineApi } from 'react-icons/ai';
+import { loadStripe } from '@stripe/stripe-js';
 
-import { getUserInfo } from '../../api';
+import { getUserInfo, createStripeCheckoutSession } from '../../api';
 import Notification from '../Notification/Notification';
 
 import './style.css';
+
+const stripePromise = loadStripe('pk_test_51HNZJpJgB05uRN01mxmJDdn7yjEdR2RONjc8SGYbHsip7CuHd2alN6ufPrJPK1qBipDk7Dm4CFle5w5eSke7sxrQ003bQiBndI');
 
 const Account = () => {
   const [apiKey, setApiKey] = useState('');
@@ -26,6 +29,28 @@ const Account = () => {
 
   const closeNotification = () => {
     setShowNotification(false);
+  };
+
+  const checkout = async (event) => {
+    createStripeCheckoutSession()
+      .then(payload => {
+        setLoading(true);
+        stripePromise.then(stripe => {
+            console.log({'sessionId': payload['session_id']});
+            stripe.redirectToCheckout({'sessionId': payload['session_id']});
+            // If `redirectToCheckout` fails due to a browser or network
+            // error, display the localized error message to your customer
+            // using `error.message`.
+        })
+      })
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to create checkout session',
+          'danger'
+        );
+      });
   };
 
   useEffect(() => {
@@ -101,6 +126,14 @@ const Account = () => {
             </div>
           </Col>
         </Row>
+      </div>
+      <div className="smls-card">
+      <button
+          type="button"
+          onClick={checkout}
+        >
+        <span> Checkout </span>
+      </button>
       </div>
       <Notification
         show={showNotification}
