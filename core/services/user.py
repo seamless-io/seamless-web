@@ -63,14 +63,16 @@ def sign_up(email, pricing_plan=Plan.Personal):
     user = _create(email)
     user_id = str(user.id)
     # We create Personal workspace for all accounts disregarding of the chosen plan
-    personal_workspace_id = workspace_service.create_workspace(str(user_id), plan=Plan.Personal)
+    personal_workspace_id = workspace_service.create_workspace(str(user_id), plan=Plan.Personal).id
     workspace_service.add_user_to_workspace(user_id, personal_workspace_id)
 
     paid_workspace_id = None
     if pricing_plan != Plan.Personal.value:
-        paid_workspace_id = workspace_service.create_workspace(str(user_id), plan=Plan(pricing_plan))
+        paid_workspace = workspace_service.create_workspace(str(user_id), plan=Plan(pricing_plan))
+        paid_workspace_id = str(paid_workspace.id)
         workspace_service.add_user_to_workspace(user_id, paid_workspace_id)
         stripe_service.create_customer(user)
+        stripe_service.create_subscription(user, paid_workspace)
 
     logging.info(f"Created user {user_id}, with personal workspace {personal_workspace_id} "
                  f"{'' if not paid_workspace_id else f'and {pricing_plan} workspace {paid_workspace_id}'}")

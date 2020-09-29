@@ -32,9 +32,9 @@ const Account = () => {
   };
 
   const checkout = async (event) => {
+    setLoading(true);
     createStripeCheckoutSession()
       .then(payload => {
-        setLoading(true);
         stripePromise.then(stripe => {
             console.log({'sessionId': payload['session_id']});
             stripe.redirectToCheckout({'sessionId': payload['session_id']});
@@ -132,7 +132,7 @@ const Account = () => {
           type="button"
           onClick={checkout}
         >
-        <span> Checkout </span>
+        <span> Update Billing Info </span>
       </button>
       </div>
       <Notification

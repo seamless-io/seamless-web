@@ -69,6 +69,5 @@ def webhook_received():
 @stripe_bp.route('/checkout-session', methods=['POST'])
 def create_checkout_session():
     user = user_service.get_by_id(session['profile']['user_id'])
-    workspace = workspace_service.get_workspace_by_id(session['profile']['workspace_id'])
-    checkout_session = stripe_service.create_checkout_session(user, workspace)
-    return jsonify({'session_id': checkout_session['id']})
+    billing_info_update_session = stripe_service.create_billing_info_update_session(user)
+    return jsonify({'session_id': billing_info_update_session['id']})

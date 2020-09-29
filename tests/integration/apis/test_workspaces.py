@@ -44,12 +44,12 @@ def invitee_web_client(postgres, invitee_id, invitee_email):
 
 @pytest.fixture
 def workspace_id(user_id):
-    return service.create_workspace(user_id, Plan.Startup)
+    return service.create_workspace(user_id, Plan.Startup).id
 
 
 @pytest.fixture
 def personal_workspace_id(user_id):
-    return service.create_workspace(user_id, Plan.Personal)
+    return service.create_workspace(user_id, Plan.Personal).id
 
 
 @mock.patch('core.services.workspace.send_email')

@@ -40,6 +40,8 @@ class Workspace(base):
     name = Column(Text, nullable=False)
     plan = Column(Text, nullable=False)
     subscription_is_active = Column(Boolean, nullable=False)
+    subscription_end_date = Column(DateTime)
+    stripe_subscription_id = Column(Text)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
