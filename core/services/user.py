@@ -8,9 +8,10 @@ from core.emails.client import send_welcome_email
 from core.models import db_commit
 from core.models.users import User
 from core.models.workspaces import Plan
-from core.services.workspace import create_workspace, add_user_to_workspace
 from core.telegram.client import notify_about_new_user
 from core.web import get_db_session
+import core.services.stripe as stripe_service
+import core.services.workspace as workspace_service
 
 
 class UserNotFoundException(Exception):
@@ -44,7 +45,7 @@ def _create(email: str):
     db_session = get_db_session()
     db_session.add(user)
     db_commit()
-    return user.id
+    return user
 
 
 def sign_up(email, pricing_plan=Plan.Personal):
@@ -59,15 +60,17 @@ def sign_up(email, pricing_plan=Plan.Personal):
     if existing_user:
         raise UserAlreadyExists(f'The user {email} already exists in the database')
 
-    user_id = _create(email)
+    user = _create(email)
+    user_id = str(user.id)
     # We create Personal workspace for all accounts disregarding of the chosen plan
-    personal_workspace_id = create_workspace(str(user_id), plan=Plan.Personal)
-    add_user_to_workspace(user_id, personal_workspace_id)
+    personal_workspace_id = workspace_service.create_workspace(str(user_id), plan=Plan.Personal)
+    workspace_service.add_user_to_workspace(user_id, personal_workspace_id)
 
     paid_workspace_id = None
     if pricing_plan != Plan.Personal.value:
-        paid_workspace_id = create_workspace(str(user_id), plan=Plan(pricing_plan))
-        add_user_to_workspace(user_id, paid_workspace_id)
+        paid_workspace_id = workspace_service.create_workspace(str(user_id), plan=Plan(pricing_plan))
+        workspace_service.add_user_to_workspace(user_id, paid_workspace_id)
+        stripe_service.create_customer(user)
 
     logging.info(f"Created user {user_id}, with personal workspace {personal_workspace_id} "
                  f"{'' if not paid_workspace_id else f'and {pricing_plan} workspace {paid_workspace_id}'}")

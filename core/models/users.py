@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from core.api_key import API_KEY_LENGTH
@@ -18,6 +18,7 @@ class User(base):
                                     lazy='dynamic')
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
+    stripe_id = Column(Text)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     @staticmethod

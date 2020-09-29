@@ -20,3 +20,4 @@ croniter~=0.3.34
 flask_sqlalchemy_session~=1.1
 timeloop~=1.0.2
 pyyaml~=5.3.1
+stripe>=2.48.0,<3.0
