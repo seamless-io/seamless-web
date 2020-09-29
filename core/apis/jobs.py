@@ -195,7 +195,7 @@ def delete_job_cli(job_name):
 @jobs_bp.route('/jobs/<job_id>/delete', methods=['DELETE'])
 @requires_auth
 def delete_job_web(job_id):
-    user_id = session['profile']['internal_user_id']
+    user_id = session['profile']['user_id']
     job_service.delete(str(job_id), user_id)
 
     logging.info(f"Deleted job {job_id} from the database")
@@ -301,7 +301,7 @@ def update_source_code(job_id: str):
     }
     """
     # TODO: make the check explicit and apply it to all relevant endpoints
-    job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
+    job = job_service.get(job_id, session['profile']['user_id'])  # Checking permission for this job and user
     filename = request.json['filename']
     contents = request.json['contents']
     update_file_contents(job_id, filename, contents)

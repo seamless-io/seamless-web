@@ -64,7 +64,7 @@ def get_template(template_id):
 def create_job_from_template(template_id):
     template = marketplace_service.get_template(template_id)
     template_file = marketplace_service.get_template_package(template_id)
-    user_id = session['profile']['internal_user_id']
+    user_id = session['profile']['user_id']
     new_job_name = job_service.make_job_name_unique(template.name, user_id)
 
     try:
