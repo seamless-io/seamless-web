@@ -5,10 +5,12 @@ from datetime import datetime, timedelta
 import stripe
 
 from constants import SUBSCRIPTION_TRIAL_DAYS
-from core.models import User, db_commit, Workspace
+from core.models import User, db_commit, Workspace, get_db_session
 
 # Set your secret key. Remember to switch to your live secret key in production!
 # See your keys here: https://dashboard.stripe.com/account/apikeys
+from core.models.subscriptions import Subscription
+
 stripe.api_key = os.getenv('STRIPE_API_KEY')
 
 
@@ -23,24 +25,27 @@ def create_customer(user: User):
     logging.info(f"Created stripe customer with id {customer['id']}")
 
 
-def create_subscription(user: User, workspace: Workspace):
+def create_subscription(user: User):
     products = stripe.Product.list()
     product_id_by_name = _get_product_id_by_name(products)
-    workspace_product_id = product_id_by_name['Startup']
-    prices = stripe.Price.list(product=workspace_product_id, limit=1)
+    product_id = product_id_by_name['Startup']
+    prices = stripe.Price.list(product=product_id, limit=1)
     if prices['has_more']:
-        raise MultiplePricesOfProductError(f"The product {workspace_product_id} has multiple prices,"
+        raise MultiplePricesOfProductError(f"The product {product_id} has multiple prices,"
                                            f" we do not support that currently.")
     price = prices['data'][0]
     trial_end_date = datetime.utcnow() + timedelta(days=SUBSCRIPTION_TRIAL_DAYS)
-    subscription = stripe.Subscription.create(
+    stripe_subscription = stripe.Subscription.create(
         customer=user.stripe_id,
         items=[{'price': price['id']}],
         trial_end=round(trial_end_date.timestamp())
     )
-    workspace.subscription_end_date = trial_end_date
-    workspace.stripe_subscription_id = subscription['id']
+    subscription = Subscription(stripe_subscription_id=stripe_subscription['id'],
+                                trial_end=trial_end_date,
+                                paid_until=trial_end_date)
+    get_db_session().add(subscription)
     db_commit()
+    return subscription
 
 
 def create_billing_info_update_session(user: User):

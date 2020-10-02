@@ -16,6 +16,8 @@ class User(base):
                                     back_populates="owner",
                                     order_by="desc(Workspace.created_at)",
                                     lazy='dynamic')
+    subscriptions = relationship("Subscription", back_populates="user")
+
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
     stripe_id = Column(Text)

@@ -3,7 +3,7 @@ import logging
 from core.email import send_email
 from core.models import Workspace, get_db_session, db_commit, User
 from core.models.users_workspaces import UserWorkspace
-from core.models.workspaces import Plan, Invitation, InvitationStatus
+from core.models.workspaces import Invitation, InvitationStatus
 
 
 class WorkspaceNotFound(Exception):
@@ -26,14 +26,12 @@ class WrongPlan(Exception):
     pass
 
 
-def create_workspace(user_id: str, plan: Plan):
+def create_workspace(user_id: str, workspace_name: str):
     """
     Creates a workspace record in the database and assigns user as an owner
     """
     workspace = Workspace(owner_id=user_id,
-                          name=plan.value,  # TODO later we will let the user choose the name
-                          plan=plan.value,
-                          subscription_is_active=True)
+                          name=workspace_name)  # TODO later we will let the user choose the name
     db_session = get_db_session()
     db_session.add(workspace)
     db_commit()

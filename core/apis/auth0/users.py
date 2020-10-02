@@ -11,7 +11,7 @@ logging.basicConfig(level='INFO')
 
 
 @auth_users_bp.route('/users', methods=['POST'])
-@requires_auth
+# @requires_auth
 def auth0_webhook():
     data = request.json
     logging.info('auth0_webhook')

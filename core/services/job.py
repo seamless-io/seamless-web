@@ -13,8 +13,8 @@ from core.models.job_parameters import PARAMETERS_LIMIT_PER_JOB
 from core.models.job_run_logs import JobRunLog
 from core.models.job_runs import JobRun, JobRunStatus, JobRunType
 from core.models.jobs import Job, JobStatus
+from core.models.plans import PLAN_LIMITS_BY_TYPE, WorkspacePlan
 from core.models.users import User
-from core.models.workspaces import PLAN_LIMITS_BY_TYPE, Plan
 from core.socket_signals import send_update
 from core.web import get_db_session
 from helpers import get_cron_next_execution, parse_cron, get_random_string
@@ -60,7 +60,7 @@ def _check_workspace_quotas_for_job_creation(workspace: Workspace):
 
     Returns the existing job or raising JobsQuotaExceededException exception otherwise
     """
-    plan_limits = PLAN_LIMITS_BY_TYPE[Plan(workspace.plan)]
+    plan_limits = PLAN_LIMITS_BY_TYPE[WorkspacePlan(workspace.plan.size)]
     jobs_limit = plan_limits.jobs
     if len(list(workspace.jobs)) >= jobs_limit:
         raise JobsQuotaExceededException(f'You have reached the limit of jobs for your workspace {workspace.name}')

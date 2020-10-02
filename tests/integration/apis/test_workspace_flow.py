@@ -2,8 +2,9 @@ from flask.testing import FlaskClient
 
 from application import application
 from core.models import get_db_session, User
+from core.models.subscriptions import SubscriptionName
 from core.models.users_workspaces import UserWorkspace
-from core.models.workspaces import Plan
+from core.services.plan import SUBSCRIPTION_TO_WORKSPACE_PLAN_MAP
 from core.services.user import sign_up
 
 
@@ -33,16 +34,20 @@ def test_personal(postgres):
     * Personal Workspace should be created
     * Registered user should be a part of workspace created
     """
-    plan = Plan.Personal.value
-    email = f"sign_up_{plan}_test@test.com"
-    sign_up(email, plan)
+    subscription_name = SubscriptionName.Personal.value
+    email = f"sign_up_{subscription_name}_test@test.com"
+    sign_up(email, subscription_name)
 
     user = User.get_user_from_email(email, get_db_session())
     assert len(list(user.owned_workspaces)) == 1
 
     workspace = user.owned_workspaces[0]
-    assert workspace.plan == plan
-    assert workspace.subscription_is_active is True
+    workspace_plan = workspace.plan
+    subscription = workspace_plan.subscription
+    assert subscription.name == subscription_name
+    assert subscription.paid_until is None
+    assert subscription.trial_end is None
+    assert workspace_plan.size == SUBSCRIPTION_TO_WORKSPACE_PLAN_MAP[subscription.name].value
 
     # Let's also check that the user is added to the Workspace
     get_db_session().query(UserWorkspace).filter(
@@ -55,8 +60,6 @@ def test_personal(postgres):
     assert len(resp.json) == 1
 
     assert resp.json[0]['owner_id'] == str(user.id)
-    assert resp.json[0]['plan'] == plan
-    assert resp.json[0]['subscription_is_active'] == 'True'
 
     # We should not be able to upgrade or downgrade Personal workspace
     resp = client.post(f'/api/v1/workspaces/{str(workspace.id)}/upgrade/Startup')

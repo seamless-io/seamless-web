@@ -5,8 +5,7 @@ import stripe
 
 from flask import Blueprint, request, jsonify, session
 import core.services.user as user_service
-import core.services.workspace as workspace_service
-import core.services.stripe as stripe_service
+import core.services.subscription as stripe_service
 
 stripe_bp = Blueprint('stripe', __name__)
 

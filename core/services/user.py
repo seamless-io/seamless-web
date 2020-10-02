@@ -6,12 +6,13 @@ from sqlalchemy.orm.exc import NoResultFound
 from core.api_key import generate_api_key
 from core.emails.client import send_welcome_email
 from core.models import db_commit
+from core.models.subscriptions import SubscriptionName
 from core.models.users import User
-from core.models.workspaces import Plan
 from core.telegram.client import notify_about_new_user
 from core.web import get_db_session
-import core.services.stripe as stripe_service
+import core.services.subscription as subscription_service
 import core.services.workspace as workspace_service
+import core.services.plan as plan_service
 
 
 class UserNotFoundException(Exception):
@@ -48,9 +49,9 @@ def _create(email: str):
     return user
 
 
-def sign_up(email, pricing_plan=Plan.Personal):
+def sign_up(email, subscription_name=SubscriptionName.Personal.value):
     """
-    Creates a user record in the database and workspace(s) according to the pricing plan
+    Creates a user record in the database all necessary records according to the pricing plan
     """
     try:
         existing_user = User.get_user_from_email(email, get_db_session())
@@ -63,21 +64,22 @@ def sign_up(email, pricing_plan=Plan.Personal):
     user = _create(email)
     user_id = str(user.id)
     # We create Personal workspace for all accounts disregarding of the chosen plan
-    personal_workspace_id = workspace_service.create_workspace(str(user_id), plan=Plan.Personal).id
+    personal_workspace_id = workspace_service.create_workspace(str(user_id), SubscriptionName.Personal.value).id
     workspace_service.add_user_to_workspace(user_id, personal_workspace_id)
 
     paid_workspace_id = None
-    if pricing_plan != Plan.Personal.value:
-        paid_workspace = workspace_service.create_workspace(str(user_id), plan=Plan(pricing_plan))
+    if subscription_name != SubscriptionName.Personal.value:
+        paid_workspace = workspace_service.create_workspace(str(user_id), subscription_name)
         paid_workspace_id = str(paid_workspace.id)
         workspace_service.add_user_to_workspace(user_id, paid_workspace_id)
-        stripe_service.create_customer(user)
-        stripe_service.create_subscription(user, paid_workspace)
+        subscription_service.create_customer(user)
+        subscription = subscription_service.create_subscription(user)
+        plan_service.create_workspace_plan(subscription, paid_workspace)
 
     logging.info(f"Created user {user_id}, with personal workspace {personal_workspace_id} "
-                 f"{'' if not paid_workspace_id else f'and {pricing_plan} workspace {paid_workspace_id}'}")
+                 f"{'' if not paid_workspace_id else f'and {subscription_name} workspace {paid_workspace_id}'}")
     if os.getenv('STAGE', 'local') == 'prod':
-        notify_about_new_user(email, pricing_plan)
+        notify_about_new_user(email, subscription_name)
         send_welcome_email(email)
 
     return user_id
