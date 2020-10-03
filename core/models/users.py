@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
 from core.api_key import API_KEY_LENGTH
@@ -16,7 +16,8 @@ class User(base):
                                     back_populates="owner",
                                     order_by="desc(Workspace.created_at)",
                                     lazy='dynamic')
-    subscriptions = relationship("Subscription", back_populates="user")
+    subscription_id = Column(Integer, ForeignKey('subscriptions.id'), nullable=True)
+    subscription = relationship("Subscription", back_populates="user")
 
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)

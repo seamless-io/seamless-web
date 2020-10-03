@@ -7,24 +7,19 @@ from sqlalchemy.orm import relationship
 from core.models.base import base
 
 
-class SubscriptionName(enum.Enum):
-    Personal = "Personal"
-    Startup = "Startup"
-    Business = "Business"
-
-
 class Subscription(base):
+    """
+    This model is keeping the payment information for a user
+    """
     __tablename__ = 'subscriptions'
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
 
-    user = relationship("User", back_populates="subscriptions")
+    user = relationship("User", back_populates="subscription")
 
-    name = Column(Text, nullable=False)  # Use only SubscriptionName values
     stripe_subscription_id = Column(Text)
     paid_until = Column(DateTime)
-    trial_end = Column(DateTime)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 

@@ -2,7 +2,7 @@ import datetime
 import enum
 import uuid
 
-from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -13,13 +13,17 @@ class Workspace(base):
     __tablename__ = 'workspaces'
 
     id = Column(Integer, primary_key=True)
-    owner_id = Column(Integer, ForeignKey('users.id'))
 
+    owner_id = Column(Integer, ForeignKey('users.id'))
     owner = relationship("User", back_populates="owned_workspaces")
+
+    plan_id = Column(Integer, ForeignKey('workspace_plans.id'))
     plan = relationship("WorkspacePlan", back_populates="workspace")
+
     jobs = relationship("Job", back_populates="workspace", lazy='dynamic')
 
     name = Column(Text, nullable=False)
+    personal = Column(Boolean)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
