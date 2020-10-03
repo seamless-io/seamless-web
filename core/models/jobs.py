@@ -27,6 +27,10 @@ class Job(base):
                       )
 
     id = Column(Integer, primary_key=True)
+
+    plan_id = Column(Integer, ForeignKey('job_plans.id'))
+    plan = relationship("JobPlan", back_populates='job')
+
     user_id = Column(Integer, ForeignKey('users.id'))
     workspace_id = Column(Integer, ForeignKey('workspaces.id'))
     job_template_id = Column(Integer, ForeignKey('job_templates.id', name='jobs_job_template_id_fkey'), nullable=True)
