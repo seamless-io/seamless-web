@@ -69,7 +69,7 @@ class JobPlan(base):
     job = relationship("Job")
 
     # we use this field to decide if we need to disable a job or not
-    active = True
+    active = Column(Boolean, default=True)
     charges = relationship('JobCharge', back_populates='plan')
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

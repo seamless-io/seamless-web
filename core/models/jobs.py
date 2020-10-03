@@ -28,7 +28,7 @@ class Job(base):
 
     id = Column(Integer, primary_key=True)
 
-    plan_id = Column(Integer, ForeignKey('job_plans.id'))
+    plan_id = Column(Integer, ForeignKey('job_plans.id'), nullable=True)
     plan = relationship("JobPlan", back_populates='job')
 
     user_id = Column(Integer, ForeignKey('users.id'))
