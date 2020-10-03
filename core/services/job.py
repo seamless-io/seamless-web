@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 import constants
 import core.storage as storage
+from core.services.plans import job as job_plan
 from core.models import JobParameter, db_commit
 from core.models import Workspace
 from core.models.job_parameters import PARAMETERS_LIMIT_PER_JOB
@@ -101,6 +102,9 @@ def _create_job_in_db(name, cron, entrypoint, requirements, user_id, schedule_is
 
     job = Job(**job_attributes)
     get_db_session().add(job)
+    db_commit()
+
+    job_plan.create_plan(job)
     return job
 
 
