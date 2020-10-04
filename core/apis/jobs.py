@@ -10,6 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import constants
 import core.services.job as job_service
 import core.services.user as user_service
+import core.services.workspace as workspace_service
 import helpers
 from core.storage import generate_project_structure, Type, get_file_content, update_file_contents
 from core.web import requires_auth
@@ -111,6 +112,7 @@ def create_job():
     cron_schedule = request.args.get('schedule')
     entrypoint = request.args.get('entrypoint')
     requirements = request.args.get('requirements')
+    workspace_id = request.args.get('workspace_id') or workspace_service.get_default_workspace(1).id
 
     logging.info(
         f"Received 'publish': job_name={job_name}, schedule={cron_schedule}, "
@@ -121,14 +123,8 @@ def create_job():
         if project_file.filename and not project_file.filename.endswith(constants.ARCHIVE_EXTENSION):
             return Response('File extension is not supported', 400)
         file = io.BytesIO(project_file.read())
-        job, is_existing = job_service.publish(
-            job_name,
-            cron_schedule,
-            entrypoint,
-            requirements,
-            user,
-            file
-        )
+        job, is_existing = job_service.publish(job_name, cron_schedule, entrypoint, requirements, user, file, 1,
+                                               workspace_id)
     except job_service.JobsQuotaExceededException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except helpers.InvalidCronException as e:

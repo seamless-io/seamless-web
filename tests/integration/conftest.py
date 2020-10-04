@@ -12,7 +12,7 @@ import pytest
 import pytest_localstack
 
 from constants import DEFAULT_ENTRYPOINT, DEFAULT_REQUIREMENTS
-from core.models import get_db_session, db_commit, User
+from core.models import get_db_session, db_commit, User, Workspace
 from core.storage import Type, _get_s3_bucket_name
 
 SECOND = 1000000000

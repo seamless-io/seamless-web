@@ -77,12 +77,13 @@ def _update_job(job, cron, entrypoint, requirements):
     return job
 
 
-def _create_job_in_db(name, cron, entrypoint, requirements, user_id, schedule_is_active):
+def _create_job_in_db(name, cron, entrypoint, requirements, user_id, schedule_is_active, workspace_id):
     job_attributes = {
         'name': name,
         'user_id': user_id,
         'entrypoint': entrypoint,
-        'requirements': requirements
+        'requirements': requirements,
+        'workspace_id': workspace_id
     }
     if cron:
         aws_cron, human_cron = parse_cron(cron)
@@ -115,19 +116,14 @@ def delete(job_id: str, user_id: str):
     return job_id
 
 
-def publish(name: str,
-            cron: str,
-            entrypoint: str,
-            requirements: str,
-            user: User,
-            project_file: io.BytesIO,
-            schedule_is_active=True):
+def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: io.BytesIO,
+            workspace_id: str, schedule_is_active=True):
     existing_job = get_db_session().query(Job).filter_by(name=name, user_id=user.id).one_or_none()
     if existing_job:
         job = _update_job(existing_job, cron, entrypoint, requirements)
     else:
         _check_user_quotas_for_job_creation(user)
-        job = _create_job_in_db(name, cron, entrypoint, requirements, user.id, schedule_is_active)
+        job = _create_job_in_db(name, cron, entrypoint, requirements, user.id, schedule_is_active, workspace_id)
 
     db_commit()
     job.schedule_job()

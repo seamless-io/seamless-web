@@ -7,6 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import constants
 import core.services.job as job_service
+import core.services.workspace as workspace_service
 import core.services.marketplace as marketplace_service
 import core.services.user as user_service
 import helpers
@@ -62,21 +63,19 @@ def get_template(template_id):
 @marketplace_bp.route('/templates/<template_id>/create_job', methods=['POST'])
 @requires_auth
 def create_job_from_template(template_id):
+    user_id = session['profile']['internal_user_id']
+
+    workspace_id = request.json.get('workspace_id') or workspace_service.get_default_workspace(1).id
+
     template = marketplace_service.get_template(template_id)
     template_file = marketplace_service.get_template_package(template_id)
-    user_id = session['profile']['internal_user_id']
     new_job_name = job_service.make_job_name_unique(template.name, user_id)
 
     try:
-        job, is_existing = job_service.publish(
-            new_job_name,
-            DEFAULT_CRON_SCHEDULE,
-            DEFAULT_ENTRYPOINT,
-            DEFAULT_REQUIREMENTS,
-            user_service.get_by_id(session['profile']['internal_user_id']),
-            template_file,
-            schedule_is_active=False
-        )
+        job, is_existing = job_service.publish(new_job_name, DEFAULT_CRON_SCHEDULE, DEFAULT_ENTRYPOINT,
+                                               DEFAULT_REQUIREMENTS,
+                                               user_service.get_by_id(session['profile']['internal_user_id']),
+                                               template_file, 1, workspace_id)
         job_service.link_job_to_template(job, template_id)
 
         if template.name == 'Example Job' and template.parameters == 'COMPANY_TICKER':
