@@ -31,11 +31,12 @@ class User(base):
     id = Column(Integer, primary_key=True)
 
     jobs = relationship("Job", back_populates="user", lazy='dynamic')
-    workspaces = relationship("Workspace", back_populates='jobs')
+    workspaces = relationship("Workspace", back_populates='owner')
 
     email = Column(String(64), unique=True, index=True)
     api_key = Column(String(API_KEY_LENGTH), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    account_type = Column(Text, nullable=False, default=UserAccountType.Free.value)
 
     @staticmethod
     def get_user_from_id(user_id, session):
