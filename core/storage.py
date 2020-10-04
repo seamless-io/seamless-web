@@ -12,11 +12,12 @@ import tarfile
 from collections import defaultdict
 from enum import Enum
 from pathlib import Path
-from typing import DefaultDict
+from typing import DefaultDict, Optional
 
 import boto3
 
 from constants import ARCHIVE_EXTENSION
+from job_executor.executor import DOCKER_FILE_NAME
 
 
 class Type(Enum):
@@ -35,7 +36,7 @@ current_file_version: DefaultDict[Type, DefaultDict[str, str]] = defaultdict(lam
 
 def get_path_to_files(type_: Type, id_: str):
     path = _get_path(type_, id_)
-    if not os.path.exists(path) or _local_files_are_outdated(type_, id_):
+    if (not os.path.exists(path)) or _local_files_are_outdated(type_, id_):
         _restore_file_from_s3(type_, path, id_)
         current_file_version[type_][id_] = _get_md5sum_from_s3(type_, id_)
     return path
@@ -81,6 +82,51 @@ def init():
         path_to_files = os.path.abspath(_get_folder_name(t))
         if os.path.exists(path_to_files):
             shutil.rmtree(path_to_files)
+
+
+def generate_project_structure(type_: Type, id_: str) -> list:
+    """
+    Converts a folder into a list of nested dicts.
+    """
+    path_to_files = get_path_to_files(type_, id_)
+    project_dict = _file_tree_to_dict(path_to_files, id_)['children']
+    if type_ == Type.Job:
+        # In order to run Jobs we add Docker file to their files. We need to hide it for the user.
+        project_dict = [child for child in project_dict if child['name'] != DOCKER_FILE_NAME]
+
+    return project_dict
+
+
+def get_file_content(type_: Type, id_: str, file_path: str) -> Optional[str]:
+    """
+    Reads a content of a file as a string.
+    """
+    path_to_job_files = get_path_to_files(type_, id_)
+    path_to_file = f'{path_to_job_files}/{file_path}'
+    with open(path_to_file, 'r') as file:
+        file_content = file.read()
+
+    return file_content
+
+
+def update_file_contents(job_id: str, relative_file_path: str, contents: str) -> None:
+    """
+    This function works only with Job Type
+    """
+    path_to_files = get_path_to_files(Type.Job, job_id)
+    filepath = os.path.join(path_to_files, relative_file_path)
+    with open(filepath, 'w') as file_:
+        file_.write(contents)
+
+    handler = io.BytesIO()
+    with tarfile.open(fileobj=handler, mode='w:gz') as tar:
+        tar.add(path_to_files, arcname='.')
+        tar.close()
+
+    handler.seek(0)
+
+    _save_file_to_s3(handler, Type.Job, job_id)
+    current_file_version[Type.Job][job_id] = _get_md5sum_from_s3(Type.Job, job_id)
 
 
 def _get_path(type_: Type, id_: str):
@@ -136,4 +182,56 @@ def _get_md5sum_from_s3(type_: Type, id_: str):
 
 
 def _local_files_are_outdated(type_: Type, id_: str):
-    return current_file_version[type_][id_] != _get_md5sum_from_s3(type_, id_)
+    if current_file_version.get(type_):
+        if current_file_version[type_].get(id_):
+            return current_file_version[type_][id_] != _get_md5sum_from_s3(type_, id_)
+    return True
+
+
+def _extract_file_path(path: str, id_: str) -> str:
+    """
+    To be able to get a file content that is in a subfolder, we need to have a file path inside a job project folder.
+    For example, if the absolute path is '/var/seamless-web/user_projects/published/930a3944b22b16e9c170/53/some-folder/test.py',
+    then the file path should be 'some-folder/test.py'.
+    """
+    # TODO: you're are welcome to refactor it, if you know a simpler solution.
+
+    sep = f'{id_}'
+    return path[path.find(sep) + len(sep) + 1:]
+
+
+def _file_tree_to_dict(path, id_: str):
+    """
+    Represents a repository tree as a dictionary. It does recursive descending into directories and build a dict.
+
+    Returns:
+        [
+            {
+                "content": "smls",
+                "name": "requirements.txt",
+                "type": "file"
+            },
+            {
+                "name": "my-folder",
+                "type": "folder",
+                "children": [
+                    {
+                        "content": "print('Hello World!')",
+                        "name": "test.py",
+                        "type": "file"
+                    },
+                    ...
+                ]
+            }
+        ]
+
+    """
+    d = {'name': os.path.basename(path)}
+    if os.path.isdir(path):
+        d['type'] = 'folder'
+        d['children'] = [_file_tree_to_dict(str(os.path.join(path, x)), id_)
+                         for x in os.listdir(path)]
+    else:
+        d['type'] = 'file'
+        d['path'] = _extract_file_path(path, id_)
+    return d

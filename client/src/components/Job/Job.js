@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 
 import { Row, Col, Spinner, Modal, FormControl } from 'react-bootstrap';
 import Toggle from 'react-toggle';
 import moment from 'moment';
-import { AiOutlineCode, AiOutlineSetting } from 'react-icons/ai';
+import {
+  AiOutlineCode,
+  AiOutlineSetting,
+  AiOutlineDelete,
+  AiOutlineDownload,
+  AiOutlineClockCircle,
+  AiOutlineEdit,
+  AiOutlineCheck
+} from 'react-icons/ai';
+
+import { isValidCron } from 'cron-validator'
 
 import { socket } from '../../socket';
 import {
   getJob,
+  deleteJob,
   triggerJobRun,
   enableJobSchedule,
+  updateJobSchedule,
   getLastExecutions,
   getNextJobExecution,
   getJobRunLogs,
@@ -26,10 +38,9 @@ import Notification from '../Notification/Notification';
 
 import './style.css';
 import '../Jobs/toggle.css';
-import download from '../../images/cloud-download.svg';
-import timeHistory from '../../images/time-history.svg';
 
 const Job = () => {
+  const history = useHistory();
   const job = useParams();
   const downloadJobLink = `/api/v1/jobs/${job.id}/code`;
   const [name, setName] = useState('');
@@ -67,6 +78,13 @@ const Job = () => {
   const [borderColor, setBorderColor] = useState('#ced4da');
   const [loadingJobParams, setLoadingJobParams] = useState(false);
   const [showFaqParams, setShowFaqParams] = useState(false);
+  const [isTemplate, setIsTemplate] = useState(false);
+  const [alert, setAlert] = useState(false);
+  const [runButtonDisabled, setRunButtonDisabled] = useState(false);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [showCronEditor, setShowCronEditor] = useState(false);
+  const [cron, setCron] = useState('');
+  const [editedCron, setEditedCron] = useState('');
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -130,6 +148,21 @@ const Job = () => {
     }
   };
 
+  const isParameteresConfigured = (template, parameters) => {
+    if (
+      template &&
+      parameters.filter(param => param.value === 'None').length !== 0
+    ) {
+      setAlert(true);
+      setRunButtonDisabled(true);
+      setIsToggleDisabled(true);
+    } else {
+      setAlert(false);
+      setRunButtonDisabled(false);
+      setIsToggleDisabled(false);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     getJob(job.id)
@@ -144,6 +177,26 @@ const Job = () => {
         setSchedule(
           payload.human_cron === 'None' ? 'Not scheduled' : payload.human_cron
         );
+        setCron(payload.cron);
+        setIsTemplate(payload.job_template_id !== 'None');
+
+        getJobParameters(job.id)
+          .then(parameters => {
+            setJobParameters(parameters);
+            isParameteresConfigured(
+              payload.job_template_id !== 'None',
+              parameters
+            );
+          })
+          .catch(() => {
+            displayNotification(
+              true,
+              'Ooops!',
+              'Unable to fetch job parameters :(',
+              'danger'
+            );
+          });
+
         setLoading(false);
       })
       .catch(() => {
@@ -183,21 +236,6 @@ const Job = () => {
           true,
           'Ooops!',
           'Unable to fetch the next execution details :(',
-          'danger'
-        );
-      });
-  }, []);
-
-  useEffect(() => {
-    getJobParameters(job.id)
-      .then(payload => {
-        setJobParameters(payload);
-      })
-      .catch(() => {
-        displayNotification(
-          true,
-          'Ooops!',
-          'Unable to fetch job parameters :(',
           'danger'
         );
       });
@@ -267,12 +305,75 @@ const Job = () => {
   };
 
   const openIde = () => {
-    setShowCode(!showCode);
+    setShowCode(true);
+  };
+
+  const closeIde = () => {
+    if (unsavedChanges) {
+        if (confirm('There are unsaved changes. Are you sure you don\'t want to save them?')) {
+            setShowCode(false);
+        }
+    } else {
+        setShowCode(false);
+    }
   };
 
   const openJobParams = () => {
     setShowParams(!showParams);
   };
+
+  const openCronEditor = () => {
+    setEditedCron(cron);
+    setShowCronEditor(true);
+  };
+
+  const closeCronEditor = () => {
+    setShowCronEditor(false);
+  };
+
+  const cronValidationIndicator = (cronIsValid) => {
+    if (cronIsValid) {
+      return (
+        <AiOutlineCheck style={{ color: 'green' }}/>
+      );
+    } else {
+      return (
+        <p style={{ color: 'red' }}>Invalid expression</p>
+      );
+    }
+  };
+
+  const updateCron = () => {
+    closeCronEditor();
+    setLoading(true);
+    updateJobSchedule(job.id, editedCron)
+      .then(payload => {
+            getJob(job.id)
+              .then(payload => {;
+                setSchedule(
+                  payload.human_cron === 'None' ? 'Not scheduled' : payload.human_cron
+                );
+                setCron(payload.cron);
+                setLoading(false);
+              })
+              .catch(() => {
+                displayNotification(
+                  true,
+                  'Ooops!',
+                  "Unable to fetch job's details :(",
+                  'danger'
+                );
+              });
+          })
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to update the cron expression.',
+          'danger'
+        );
+      });
+  }
 
   const createParam = () => {
     if (!paramKey.trim() || !paramValue.trim()) {
@@ -378,9 +479,10 @@ const Job = () => {
     updateJobParameter(job.id, editedParamId, editedParamKey, editedParamValue)
       .then(() => {
         getJobParameters(job.id)
-          .then(payload => {
+          .then(parameters => {
             setLoadingJobParams(false);
-            setJobParameters(payload);
+            setJobParameters(parameters);
+            isParameteresConfigured(isTemplate, parameters);
           })
           .catch(() => {
             displayNotification(
@@ -405,6 +507,37 @@ const Job = () => {
       });
   };
 
+  const parametersAlert = () => {
+    if (alert) {
+      return (
+        <Col sm={12} style={{ paddingLeft: '0px', paddingRight: '0px' }}>
+          <div className="smls-job-parameters-alert">
+            Set up parameters to be able to run this job.
+          </div>
+        </Col>
+      );
+    }
+  };
+
+  const tryToDeleteJob = () => {
+    if (confirm('Are you sure you want to delete this Job?')) {
+      setLoading(true);
+      deleteJob(job.id)
+        .then(() => {
+          history.push('/');
+        })
+        .catch(() => {
+          displayNotification(
+            true,
+            'Ooops!',
+            'Unable to delete the job :(',
+            'danger'
+          );
+          setLoading(false);
+        });
+    }
+  };
+
   if (loading) {
     return (
       <div className="smls-jobs-spinner-container">
@@ -426,7 +559,7 @@ const Job = () => {
             <button
               className="smls-job-run-button"
               type="button"
-              disabled={statusValue === 'EXECUTING'}
+              disabled={statusValue === 'EXECUTING' || runButtonDisabled}
               onClick={runJob}
             >
               {runButtonContent()}
@@ -437,10 +570,14 @@ const Job = () => {
               onClick={openIde}
             >
               <AiOutlineCode />
-              <span className="smls-job-web-ide-button-text">Show Code</span>
+              <span className="smls-job-web-ide-button-text">Edit Code</span>
             </button>
             <button
-              className="smls-job-web-ide-button"
+              className={
+                alert
+                  ? 'smls-job-web-ide-button alert-border'
+                  : 'smls-job-web-ide-button'
+              }
               type="button"
               onClick={openJobParams}
             >
@@ -451,14 +588,23 @@ const Job = () => {
             </button>
             <a href={downloadJobLink}>
               <button className="smls-job-download-code-button" type="button">
-                <img src={download} alt="Download code" />
+                <AiOutlineDownload />
                 <span className="smls-job-download-code-button-text">
                   Download Code
                 </span>
               </button>
             </a>
+            <button
+              className="smls-job-delete-button"
+              type="button"
+              onClick={tryToDeleteJob}
+            >
+              <AiOutlineDelete />
+              <span className="smls-job-delete-button-text">Delete Job</span>
+            </button>
           </div>
         </Col>
+        {parametersAlert()}
       </Row>
       <Row className="smls-job-extra-info">
         <Col style={{ paddingLeft: '0px' }}>
@@ -475,12 +621,15 @@ const Job = () => {
             <span className={!isScheduleOn ? 'smls-muted' : ''}>
               {schedule} UTC
             </span>
+            <AiOutlineEdit
+                style={{ marginLeft: '10px', cursor: 'pointer'}}
+                onClick={openCronEditor} />
           </div>
           {loadToggleSwitch()}
         </Col>
         <Col style={{ paddingRight: '0px' }}>
           <div className="smls-job-extra-info-section">
-            <img src={timeHistory} alt="Updated at" />
+            <AiOutlineClockCircle />
             <span>{`Code updated on ${updatedAt} UTC`}</span>
           </div>
         </Col>
@@ -505,14 +654,15 @@ const Job = () => {
 
       <Modal
         show={showCode}
-        onHide={() => setShowCode(!showCode)}
+        onHide={() => closeIde()}
         dialogClassName="smls-web-ide-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>{name}</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ paddingTop: '0px' }}>
-          <WebIde jobId={job.id} />
+          <WebIde id={job.id} file_type="jobs" readOnly={false}
+           setUnsavedChangesFlag={setUnsavedChanges}/>
         </Modal.Body>
       </Modal>
       <Modal
@@ -623,6 +773,45 @@ const Job = () => {
               </Col>
             </Row>
           </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showCronEditor}
+        onHide={closeCronEditor}
+        dialogClassName="smls-cron-editor-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Edit schedule</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ paddingTop: '0px' }}>
+          <Row>
+            <Col>
+                <p className="smls-job-params-guide">
+                You can use <a href="https://crontab.guru/" target="_blank">crontab.guru</a> as a reference for CRON expressions.
+                </p>
+            </Col>
+          </Row>
+          <Row style={{ paddingTop: '16px' }}>
+            <Col sm={4}>
+              <FormControl
+                value={editedCron}
+                onChange={e => setEditedCron(e.target.value)}
+              />
+            </Col>
+            <Col sm={4}>
+            {cronValidationIndicator(isValidCron(editedCron))}
+            </Col>
+            <Col sm={4}>
+              <button
+                className="smls-job-param-save-changes"
+                type="button"
+                onClick={updateCron}
+                disabled={isValidCron(editedCron) ? "" : "disabled"}
+              >
+                <span className="smls-job-param-button-text">Save changes</span>
+              </button>
+            </Col>
+          </Row>
         </Modal.Body>
       </Modal>
     </>

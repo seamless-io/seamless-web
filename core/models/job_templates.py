@@ -16,6 +16,7 @@ class JobTemplate(base):
     short_description = Column(Text, nullable=False)
     long_description_url = Column(Text, nullable=False)
     tags = Column(Text, nullable=False)
+    parameters = Column(Text, nullable=False)
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 

@@ -10,7 +10,9 @@ import ApplicationHeader from './ApplicationHeader';
 import Jobs from '../Jobs/Jobs';
 import Account from '../Account/Account';
 import Job from '../Job/Job';
-import Guide from '../Guide/Guide';
+import CLI from '../FAQ/CLI';
+import JobTemplates from '../FAQ/JobTemplates';
+import Templates from '../Templates/Templates';
 
 import './style.css';
 
@@ -28,10 +30,16 @@ const ApplicationRoot = () => {
             <Route path="/account">
               <Account />
             </Route>
-            <Route exact path="/jobs/:id" component={Job}></Route>
-            <Route path="/guide">
-              <Guide />
+            <Route path="/templates">
+              <Templates />
             </Route>
+            <Route path="/faq/cli">
+              <CLI />
+            </Route>
+            <Route path="/faq/templates">
+              <JobTemplates />
+            </Route>
+            <Route exact path="/jobs/:id" component={Job}></Route>
           </Switch>
         </div>
       </Container>

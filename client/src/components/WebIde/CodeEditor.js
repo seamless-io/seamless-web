@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+import { Row, Col } from 'react-bootstrap';
 
 import { UnControlled as CodeMirror } from 'react-codemirror2';
 
@@ -11,6 +13,8 @@ require('codemirror/mode/markdown/markdown.js');
 require('codemirror/mode/css/css.js');
 require('codemirror/mode/dockerfile/dockerfile.js');
 
+import {saveCode} from '../../api';
+
 const FILE_MODE = {
   py: 'python',
   js: 'javascript',
@@ -20,11 +24,54 @@ const FILE_MODE = {
   dockerfile: 'dockerfile',
 };
 
-const CodeEditor = ({ fileContent, fileExtension }) => {
+const CodeEditor = ({ fileContent, fileExtension, readOnly, id, filePath, setUnsavedChangesFlag }) => {
+  const [unsavedContent, setUnsavedContent] = useState('');
+
+  const renderSaveButton = () => {
+    if (!readOnly) {
+        if (unsavedContent) {
+          return (
+              <button
+                className="smls-ide-save-button"
+                type="button"
+                onClick={saveFile}>
+                      <span className="smls-ide-save-button-text">Save</span>
+              </button>
+          );
+        } else {
+        return (
+              <button
+                className="smls-ide-save-button"
+                type="button"
+                onClick={saveFile}
+                disabled="disabled">
+                      <span className="smls-ide-save-button-text">Save</span>
+              </button>
+          );
+        }
+    }
+  };
+
+  const saveFile = () => {
+      saveCode(id, filePath, unsavedContent)
+      .then(() => {})
+      .catch(() => {
+        displayNotification(
+          true,
+          'Ooops!',
+          'Unable to save file',
+          'danger'
+        );
+      });
+      setUnsavedChangesFlag(false);
+      setUnsavedContent('');
+  };
+
   if (FILE_MODE[fileExtension] || fileExtension === 'txt') {
     return (
       <>
-        {
+        <Row>
+        <Col>
           <CodeMirror
             className="smls-code-editor-window"
             value={fileContent}
@@ -32,10 +79,20 @@ const CodeEditor = ({ fileContent, fileExtension }) => {
               mode: FILE_MODE[fileExtension],
               theme: 'neo',
               lineNumbers: true,
-              readOnly: true,
+              readOnly: readOnly,
+            }}
+            onChange={(editor, data, value) => {
+              setUnsavedContent(value);
+              setUnsavedChangesFlag(true);
             }}
           />
-        }
+         </Col>
+         </Row>
+         <Row>
+         <Col>
+             {renderSaveButton()}
+         </Col>
+         </Row>
       </>
     );
   }

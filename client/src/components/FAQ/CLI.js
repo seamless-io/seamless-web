@@ -5,7 +5,7 @@ import { getUserInfo } from '../../api';
 
 import './style.css';
 
-const Guide = () => {
+const CLI = () => {
   const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(null);
 
@@ -34,7 +34,7 @@ const Guide = () => {
       <div className="smls-account-header-container">
         <Row>
           <Col>
-            <h1 className="smls-account-header">Quick Start Guide</h1>
+            <h1 className="smls-account-header">CLI (Command Line Interface)</h1>
           </Col>
         </Row>
       </div>
@@ -42,23 +42,17 @@ const Guide = () => {
         <Row>
           <Col sm={12}>
             <div className="smls-guide-requiremets">
+            <p>If you want to develop Jobs locally on your machine - you can use our CLI. It is called <code>smls</code>.</p>
               <p>
-                <code>smls</code> client requires Python 3.6 or higher and pip
-                installed.
+                 Requirements are <a href="https://www.python.org/downloads/">Python 3.6</a> or higher and <a href="https://pip.pypa.io/en/stable/installing/">pip</a> installed.
               </p>
-              <p>
-                If you have any questions don't hesitate to email us at
-                <strong> hello@seamlesscloud.io</strong>.
-              </p>
+              <p>Below you can see step-by-step instructions on how to get started.</p>
             </div>
           </Col>
           <Col sm={12}>
             <div className="smls-guide-code-section">
               <code className="smls-code-comment"># install smls library</code>
               <code>pip install smls</code>
-              <br />
-              <code className="smls-code-comment"># check smls version</code>
-              <code>pip list | grep smls</code>
               <br />
               <code className="smls-code-comment">
                 # authenticate smls client
@@ -85,10 +79,17 @@ const Guide = () => {
               <code>smls remove --name "Stock Price Monitoring"</code>
             </div>
           </Col>
+          <Col sm={12}>
+          <br />
+          <p>
+            If you have any questions don't hesitate to email us at
+            <strong> hello@seamlesscloud.io</strong>.
+          </p>
+          </Col>
         </Row>
       </div>
     </div>
   );
 };
 
-export default Guide;
+export default CLI;

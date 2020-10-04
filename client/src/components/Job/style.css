@@ -30,11 +30,32 @@
   border: solid 2px #dde0e5;
   background-color: transparent;
   margin-right: 15px;
-  width: 25%;
+  width: 20%;
   float: right;
 }
 
 .smls-job-download-code-button-text {
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+  padding-left: 10px;
+}
+
+.smls-job-delete-button {
+  height: 36px;
+  border-radius: 4px;
+  border: solid 2px #dde0e5;
+  background-color: transparent;
+  margin-right: 15px;
+  width: 20%;
+  float: right;
+}
+
+.smls-job-delete-button-text {
   font-size: 14px;
   font-weight: 600;
   font-stretch: normal;
@@ -51,7 +72,7 @@
   border: solid 2px #dde0e5;
   background-color: transparent;
   margin-right: 15px;
-  width: 25%;
+  width: 20%;
   float: right;
 }
 
@@ -67,7 +88,7 @@
 }
 
 .smls-job-run-button {
-  width: 15%;
+  width: 10%;
   height: 36px;
   border-radius: 4px;
   border: 0px;
@@ -316,6 +337,10 @@
   min-width: 70%;
 }
 
+.smls-cron-editor-modal {
+  min-width: 30%;
+}
+
 .smls-job-params-guide {
   font-size: 14px;
   font-weight: 500;
@@ -331,4 +356,32 @@
   min-height: 320px;
   max-height: 320px;
   overflow: auto;
+}
+
+.smls-job-parameters-alert {
+  border-radius: 4px;
+  box-shadow: 0 2px 10px 0 rgba(245, 147, 0, 0.15);
+  border: solid 2px #f59300;
+  background-color: #fef4e5;
+  height: 48px;
+  font-size: 14px;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.43;
+  letter-spacing: normal;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+}
+
+button:disabled,
+button[disabled] {
+  background-color: #cccccc;
+  color: #666666;
+}
+
+.alert-border {
+  border: solid 2px #f59300;
 }

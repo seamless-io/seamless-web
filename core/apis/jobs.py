@@ -11,9 +11,9 @@ import constants
 import core.services.job as job_service
 import core.services.user as user_service
 import helpers
+from core.storage import generate_project_structure, Type, get_file_content, update_file_contents
 from core.web import requires_auth
 from helpers import row2dict
-from core.code_editor import generate_project_structure, get_file_content
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -51,15 +51,21 @@ def get_job(job_id):
 
 @jobs_bp.route('/jobs/<job_id>/schedule', methods=['PUT'])
 @requires_auth
-def enable_job(job_id):
+def update_job_schedule(job_id):
     """
     If job is scheduled - enables schedule
     """
-    user_id = session['profile']['user_id']
-    if request.args.get('is_enabled') == 'true':
-        job_service.enable_schedule(job_id, user_id)
-    else:
-        job_service.disable_schedule(job_id, user_id)
+    user_id = session['profile']['internal_user_id']
+    if request.args.get('cron'):
+        try:
+            job_service.update_schedule(job_id, user_id, request.args['cron'])
+        except helpers.InvalidCronException as e:
+            return Response(str(e), 400)
+    if request.args.get('is_enabled'):
+        if request.args['is_enabled'] == 'true':
+            job_service.enable_schedule(job_id, user_id)
+        else:
+            job_service.disable_schedule(job_id, user_id)
     return jsonify(job_id), 200
 
 
@@ -114,7 +120,7 @@ def create_job():
 
     try:
         if project_file.filename and not project_file.filename.endswith(constants.ARCHIVE_EXTENSION):
-            Response('File extension is not supported', 400)
+            return Response('File extension is not supported', 400)
         file = io.BytesIO(project_file.read())
         job, is_existing = job_service.publish(
             job_name,
@@ -168,7 +174,7 @@ def run_job(job_id):
 
 
 @jobs_bp.route('/jobs/<job_name>', methods=['DELETE'])
-def delete_job(job_name):
+def delete_job_cli(job_name):
     api_key = request.headers.get('Authorization')
     if not api_key:
         return Response('Not authorized request', 401)
@@ -178,7 +184,19 @@ def delete_job(job_name):
     except user_service.UserNotFoundException as e:
         return Response(str(e), 400)
 
-    job_id = job_service.delete(job_name, user)
+    job = job_service.get_job_by_name(job_name, str(user.id))
+    job_id = job_service.delete(str(job.id), str(user.id))
+
+    logging.info(f"Deleted job {job_id} from the database")
+    return f"Successfully deleted job {job_id}", 200
+
+
+# Adding '/delete' at the end is not very REST, but the other endpoint (above) is taken by CLI
+@jobs_bp.route('/jobs/<job_id>/delete', methods=['DELETE'])
+@requires_auth
+def delete_job_web(job_id):
+    user_id = session['profile']['internal_user_id']
+    job_service.delete(str(job_id), user_id)
 
     logging.info(f"Deleted job {job_id} from the database")
     return f"Successfully deleted job {job_id}", 200
@@ -256,8 +274,8 @@ def handle_error(e):
 @jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 @requires_auth
 def get_project_structure(job_id: str):
-    job = job_service.get(job_id, session['profile']['user_id'])  # Checking permission for this job and user
-    project_structure = generate_project_structure(job_id)
+    job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
+    project_structure = generate_project_structure(Type.Job, job_id)
     return jsonify(project_structure), 200
 
 
@@ -265,6 +283,26 @@ def get_project_structure(job_id: str):
 @requires_auth
 def get_job_file(job_id: str):
     file_path = str(request.args.get('file_path'))
-    job = job_service.get(job_id, session['profile']['user_id'])  # Checking permission for this job and user
-    file_content = get_file_content(job_id,  file_path)
+    # TODO: make the check explicit and apply it to all relevant endpoints
+    job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
+    file_content = get_file_content(Type.Job, job_id, file_path)
     return jsonify(file_content), 200
+
+
+@jobs_bp.route('/jobs/<job_id>/source-code', methods=['PUT'])
+@requires_auth
+def update_source_code(job_id: str):
+    """
+    Updating code of the job (job consist of several files)
+    Payload:
+    {
+        "filename": "path/to/filename.py",
+        "contents": "content of the file"
+    }
+    """
+    # TODO: make the check explicit and apply it to all relevant endpoints
+    job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
+    filename = request.json['filename']
+    contents = request.json['contents']
+    update_file_contents(job_id, filename, contents)
+    return Response('OK', 200)
