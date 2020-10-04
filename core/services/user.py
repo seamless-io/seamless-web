@@ -4,6 +4,7 @@ from core.api_key import generate_api_key
 from core.models import get_db_session, db_commit
 
 from core.models.users import User
+from core.models.workspaces import Workspace
 
 
 class UserNotFoundException(Exception):
@@ -32,5 +33,9 @@ def create(email):
     user = User(email=email,
                 api_key=generate_api_key())
     db_session.add(user)
+    db_commit()
+
+    workspace = Workspace(owner_id=user.id)
+    db_session.add(workspace)
     db_commit()
     return user.id
