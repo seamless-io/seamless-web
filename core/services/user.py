@@ -1,7 +1,9 @@
 from sqlalchemy.orm.exc import NoResultFound
 
+from core.api_key import generate_api_key
+from core.models import get_db_session, db_commit
+
 from core.models.users import User
-from core.web import get_db_session
 
 
 class UserNotFoundException(Exception):
@@ -23,3 +25,12 @@ def get_by_id(user_id: str):
     except NoResultFound:
         raise UserNotFoundException(f'Cannot find a user with id: {user_id}')
     return user
+
+
+def create(email):
+    db_session = get_db_session()
+    user = User(email=email,
+                api_key=generate_api_key())
+    db_session.add(user)
+    db_commit()
+    return user.id

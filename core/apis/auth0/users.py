@@ -4,26 +4,14 @@ import os
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError
 
-from core.api_key import generate_api_key
 from core.apis.auth0.auth import requires_auth
 from core.emails.client import send_welcome_email
-from core.models import db_commit
-from core.models.users import User
+from core.services import user as user_service
 from core.telegram.client import notify_about_new_user
-from core.web import get_db_session
 
 auth_users_bp = Blueprint('auth_users', __name__)
 
 logging.basicConfig(level='INFO')
-
-
-def add_user_to_db(email):
-    user = User(email=email,
-                api_key=generate_api_key())
-    db_session = get_db_session()
-    db_session.add(user)
-    db_commit()
-    return user.id
 
 
 @auth_users_bp.route('/users', methods=['POST'])
@@ -41,7 +29,7 @@ def auth0_webhook():
         message = f'The user {email} signed in'
     else:
         try:
-            user_id = add_user_to_db(email)
+            user_id = user_service.create(email)
             message = f'New user {email} (id: {user_id}) signed up!'
             pricing_plan = context['request']['query'].get('pricing_plan')
             if os.getenv('STAGE', 'local') == 'prod':
