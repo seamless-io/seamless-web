@@ -37,7 +37,7 @@ def verify_password(username, password):
 @requires_auth
 def get_jobs():
     user_id = session['profile']['internal_user_id']
-    jobs = job_service.get_jobs_for_user(user_id)
+    jobs = workspace_service.get_default_workspace(user_id).jobs
     rv = [row2dict(job) for job in jobs]
     return jsonify(rv), 200
 

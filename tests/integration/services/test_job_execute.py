@@ -26,7 +26,7 @@ def test_execution_flow(get_path, send_update, session_id, user_id, workspace_id
     get_db_session().add(job)
     db_commit()
 
-    job_service.execute(job.id, JobRunType.RunButton.value, user_id)
+    job_service.execute(job.id, JobRunType.RunButton.value, user_id, workspace_id)
 
     assert send_update.called
 

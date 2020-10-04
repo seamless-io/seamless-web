@@ -13,6 +13,7 @@ from core.models.job_run_logs import JobRunLog
 from core.models.job_runs import JobRun, JobRunStatus, JobRunType
 from core.models.jobs import Job, JobStatus
 from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
+from core.services import workspace as workspace_service
 from core.socket_signals import send_update
 from core.web import get_db_session
 from helpers import get_cron_next_execution, parse_cron, get_random_string
@@ -98,15 +99,17 @@ def _create_job_in_db(name, cron, entrypoint, requirements, user_id, schedule_is
     return job
 
 
-def get_job_by_name(name: str, user_id: str):
-    job = get_db_session().query(Job).filter_by(name=name, user_id=user_id).one_or_none()
+def get_job_by_name(name: str, user_id: int, workspace_id: Optional[int] = None):
+    if not workspace_id:
+        workspace_id = workspace_service.get_default_workspace(user_id).id
+    job = get_db_session().query(Job).filter_by(name=name, user_id=user_id, workspace_id=workspace_id).one_or_none()
     if not job:
         raise JobNotFoundException("Job Not Found")
     return job
 
 
-def delete(job_id: str, user_id: str):
-    job = get(job_id, user_id)
+def delete(job_id: str, user_id: int, workspace_id: Optional[int] = None):
+    job = get(job_id, user_id, workspace_id)
 
     remove_job_schedule(job_id)
     storage.delete(storage.Type.Job, job_id)
@@ -133,8 +136,10 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
     return job, bool(existing_job)
 
 
-def get(job_id: str, user_id: str) -> Job:
-    job = get_db_session().query(Job).filter_by(id=job_id, user_id=user_id).one_or_none()
+def get(job_id: str, user_id: str, workspace_id: Optional[int] = None) -> Job:
+    if not workspace_id:
+        workspace_id = workspace_service.get_default_workspace(user_id).id
+    job = get_db_session().query(Job).filter_by(id=job_id, user_id=user_id, workspace_id=workspace_id).one_or_none()
 
     if job is None:
         raise JobNotFoundException("Job Not Found")
@@ -158,11 +163,11 @@ def execute_by_button(job_id: str, user_id: str):
     return execute(job_id, JobRunType.RunButton.value, user_id)
 
 
-def execute(job_id: str, trigger_type: str, user_id: str):
+def execute(job_id: str, trigger_type: str, user_id: str, workspace_id: Optional[int] = None):
     """
     Implementing the logic of Job execution
     """
-    job = get(job_id, user_id)
+    job = get(job_id, user_id, workspace_id)
     job.status = JobStatus.Executing.value
 
     exit_code = _trigger_job_run(job, trigger_type, user_id)
@@ -219,16 +224,11 @@ def enable_schedule(job_id: str, user_id: str):
     db_commit()
 
 
-def disable_schedule(job_id: str, user_id: str):
+def disable_schedule(job_id: int, user_id: int):
     job = get(job_id, user_id)
     disable_job_schedule(job_id)
     job.schedule_is_active = False
     db_commit()
-
-
-def get_jobs_for_user(user_id: str):
-    user = User.get_user_from_id(user_id, get_db_session())
-    return user.jobs
 
 
 def get_parameters_for_job(job_id: str, user_id: str) -> List[JobParameter]:

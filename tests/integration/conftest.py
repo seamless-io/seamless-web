@@ -153,7 +153,7 @@ def user_id(postgres, user_email, user_api_key):
 
 @pytest.fixture
 def workspace_id(user_id):
-    workspace_id = workspace_service.create(user_id, 'test workspace')
+    workspace_id = workspace_service.create(user_id, 'test workspace', personal=False)
 
     yield workspace_id
 
