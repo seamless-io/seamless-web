@@ -28,14 +28,20 @@ def get_by_id(user_id: str):
     return user
 
 
-def create(email):
-    db_session = get_db_session()
+def create(email: str, api_key: str = None):
+    session = get_db_session()
     user = User(email=email,
-                api_key=generate_api_key())
-    db_session.add(user)
+                api_key=api_key or generate_api_key())
+    session.add(user)
     db_commit()
 
     workspace = Workspace(owner_id=user.id)
-    db_session.add(workspace)
+    session.add(workspace)
     db_commit()
     return user.id
+
+
+def delete(user_id: int):
+    session = get_db_session()
+    session.query(User).filter_by(id=user_id).delete()
+    db_commit()

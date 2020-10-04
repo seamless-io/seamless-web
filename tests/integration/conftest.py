@@ -12,7 +12,7 @@ import pytest
 import pytest_localstack
 
 from constants import DEFAULT_ENTRYPOINT, DEFAULT_REQUIREMENTS
-from core.models import get_db_session, db_commit, User, Workspace
+from core.services import user as user_service
 from core.storage import Type, _get_s3_bucket_name
 
 SECOND = 1000000000
@@ -143,14 +143,11 @@ def user_api_key():
 
 @pytest.fixture
 def user_id(postgres, user_email, user_api_key):
-    user = User(email=user_email, api_key=user_api_key)
-    get_db_session().add(user)
-    db_commit()
+    user_id = user_service.create(user_email, user_api_key)
 
-    yield user.id
+    yield user_id
 
-    get_db_session().delete(user)
-    db_commit()
+    user_service.delete(user_id)
 
 
 @pytest.fixture
