@@ -112,7 +112,7 @@ def create_job():
     cron_schedule = request.args.get('schedule')
     entrypoint = request.args.get('entrypoint')
     requirements = request.args.get('requirements')
-    workspace_id = request.args.get('workspace_id') or workspace_service.get_default_workspace(1).id
+    workspace_id = request.args.get('workspace_id') or workspace_service.get_default_workspace(user.id).id
 
     logging.info(
         f"Received 'publish': job_name={job_name}, schedule={cron_schedule}, "
@@ -123,7 +123,7 @@ def create_job():
         if project_file.filename and not project_file.filename.endswith(constants.ARCHIVE_EXTENSION):
             return Response('File extension is not supported', 400)
         file = io.BytesIO(project_file.read())
-        job, is_existing = job_service.publish(job_name, cron_schedule, entrypoint, requirements, user, file, 1,
+        job, is_existing = job_service.publish(job_name, cron_schedule, entrypoint, requirements, user, file,
                                                workspace_id)
     except job_service.JobsQuotaExceededException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct

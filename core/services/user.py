@@ -2,7 +2,6 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from core.api_key import generate_api_key
 from core.models import get_db_session, db_commit
-
 from core.models.users import User
 from core.models.workspaces import Workspace
 
@@ -43,5 +42,11 @@ def create(email: str, api_key: str = None):
 
 def delete(user_id: int):
     session = get_db_session()
-    session.query(User).filter_by(id=user_id).delete()
+
+    user = session.query(User).filter_by(id=user_id).one()
+    personal_workspace = user.workspaces.filter_by(personal=True).one()
+
+    session.delete(personal_workspace)
+    session.delete(user)
+
     db_commit()

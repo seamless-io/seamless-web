@@ -65,7 +65,11 @@ def get_template(template_id):
 def create_job_from_template(template_id):
     user_id = session['profile']['internal_user_id']
 
-    workspace_id = request.json.get('workspace_id') or workspace_service.get_default_workspace(1).id
+    workspace_id = None
+    if request.json:
+        workspace_id = request.json.get('workspace_id')
+    if workspace_id is None:
+        workspace_id = workspace_service.get_default_workspace(user_id).id
 
     template = marketplace_service.get_template(template_id)
     template_file = marketplace_service.get_template_package(template_id)
@@ -75,7 +79,7 @@ def create_job_from_template(template_id):
         job, is_existing = job_service.publish(new_job_name, DEFAULT_CRON_SCHEDULE, DEFAULT_ENTRYPOINT,
                                                DEFAULT_REQUIREMENTS,
                                                user_service.get_by_id(session['profile']['internal_user_id']),
-                                               template_file, 1, workspace_id)
+                                               template_file, workspace_id)
         job_service.link_job_to_template(job, template_id)
 
         if template.name == 'Example Job' and template.parameters == 'COMPANY_TICKER':

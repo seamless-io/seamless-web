@@ -13,6 +13,7 @@ import pytest_localstack
 
 from constants import DEFAULT_ENTRYPOINT, DEFAULT_REQUIREMENTS
 from core.services import user as user_service
+from core.services import workspace as workspace_service
 from core.storage import Type, _get_s3_bucket_name
 
 SECOND = 1000000000
@@ -149,6 +150,14 @@ def user_id(postgres, user_email, user_api_key):
 
     user_service.delete(user_id)
 
+
+@pytest.fixture
+def workspace_id(user_id):
+    workspace_id = workspace_service.create(user_id, 'test workspace')
+
+    yield workspace_id
+
+    workspace_service.delete(workspace_id)
 
 @pytest.fixture
 def job_name():
