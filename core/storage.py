@@ -31,10 +31,10 @@ s3 = boto3.client('s3', region_name=os.getenv('AWS_REGION_NAME'))
 # Each time files are requested we need to fetch md5 sum from s3
 # And if it's different - we need to update local files
 # The structure of the dict below is {Type : {id : md5}}
-current_file_version: DefaultDict[Type, DefaultDict[str, str]] = defaultdict(lambda: defaultdict())
+current_file_version: DefaultDict[Type, DefaultDict[int, str]] = defaultdict(lambda: defaultdict())
 
 
-def get_path_to_files(type_: Type, id_: str):
+def get_path_to_files(type_: Type, id_: int):
     path = _get_path(type_, id_)
     if (not os.path.exists(path)) or _local_files_are_outdated(type_, id_):
         _restore_file_from_s3(type_, path, id_)
@@ -42,7 +42,7 @@ def get_path_to_files(type_: Type, id_: str):
     return path
 
 
-def save(file: io.BytesIO, type_: Type, id_: str):
+def save(file: io.BytesIO, type_: Type, id_: int):
     path = _get_path(type_, id_)
     if os.path.exists(path):
         shutil.rmtree(path)  # Remove previously created project
@@ -58,7 +58,7 @@ def save(file: io.BytesIO, type_: Type, id_: str):
     return path
 
 
-def delete(type_: Type, id_: str):
+def delete(type_: Type, id_: int):
     path_to_files = _get_path(type_, id_)
     if os.path.exists(path_to_files):
         shutil.rmtree(path_to_files)
@@ -70,7 +70,7 @@ def delete(type_: Type, id_: str):
             del current_file_version[type_][id_]
 
 
-def get_archive(type_: Type, id_: str):
+def get_archive(type_: Type, id_: int):
     return _fetch_file_from_s3(type_, id_)
 
 
@@ -84,7 +84,7 @@ def init():
             shutil.rmtree(path_to_files)
 
 
-def generate_project_structure(type_: Type, id_: str) -> list:
+def generate_project_structure(type_: Type, id_: int) -> list:
     """
     Converts a folder into a list of nested dicts.
     """
@@ -97,7 +97,7 @@ def generate_project_structure(type_: Type, id_: str) -> list:
     return project_dict
 
 
-def get_file_content(type_: Type, id_: str, file_path: str) -> Optional[str]:
+def get_file_content(type_: Type, id_: int, file_path: str) -> Optional[str]:
     """
     Reads a content of a file as a string.
     """
@@ -109,7 +109,7 @@ def get_file_content(type_: Type, id_: str, file_path: str) -> Optional[str]:
     return file_content
 
 
-def update_file_contents(job_id: str, relative_file_path: str, contents: str) -> None:
+def update_file_contents(job_id: int, relative_file_path: str, contents: str) -> None:
     """
     This function works only with Job Type
     """
@@ -129,8 +129,8 @@ def update_file_contents(job_id: str, relative_file_path: str, contents: str) ->
     current_file_version[Type.Job][job_id] = _get_md5sum_from_s3(Type.Job, job_id)
 
 
-def _get_path(type_: Type, id_: str):
-    return os.path.abspath(str(os.path.join(_get_folder_name(type_), id_)))
+def _get_path(type_: Type, id_: int):
+    return os.path.abspath(str(os.path.join(_get_folder_name(type_), str(id_))))
 
 
 def _get_s3_bucket_name(type_: Type):
@@ -141,27 +141,27 @@ def _get_folder_name(type_: Type):
     return _get_s3_bucket_name(type_)  # Same name for folder as for s3 bucket (for simplicity)
 
 
-def _restore_file_from_s3(type_: Type, path: str, id_: str):
+def _restore_file_from_s3(type_: Type, path: str, id_: int):
     Path(path).mkdir(parents=True, exist_ok=True)
     io_bytes = _fetch_file_from_s3(type_, id_)
     _extract_archive_into_folder(io_bytes, path)
     logging.info(f"Restored {type_.value} {id_} files from s3")
 
 
-def _fetch_file_from_s3(type_: Type, id_: str) -> io.BytesIO:
+def _fetch_file_from_s3(type_: Type, id_: int) -> io.BytesIO:
     s3_response_object = s3.get_object(Bucket=_get_s3_bucket_name(type_),
                                        Key=f"{id_}.{ARCHIVE_EXTENSION}")
     return io.BytesIO(s3_response_object['Body'].read())
 
 
-def _save_file_to_s3(fileobj: io.BytesIO, type_: Type, id_: str):
+def _save_file_to_s3(fileobj: io.BytesIO, type_: Type, id_: int):
     s3.upload_fileobj(Fileobj=fileobj,
                       Bucket=_get_s3_bucket_name(type_),
                       Key=f"{id_}.{ARCHIVE_EXTENSION}")
     logging.info(f"{type_.value} file saved to {_get_s3_bucket_name(type_)} s3 bucket under id {id_} ")
 
 
-def _remove_file_from_s3(type_: Type, id_: str):
+def _remove_file_from_s3(type_: Type, id_: int):
     s3.delete_object(Bucket=_get_s3_bucket_name(type_),
                      Key=f"{id_}.{ARCHIVE_EXTENSION}")
     logging.info(f"{type_.value} file removed from {_get_s3_bucket_name(type_)} s3 bucket under id {id_} ")
@@ -173,7 +173,7 @@ def _extract_archive_into_folder(archive: io.BytesIO, path: str):
     tar.close()
 
 
-def _get_md5sum_from_s3(type_: Type, id_: str):
+def _get_md5sum_from_s3(type_: Type, id_: int):
     """
     https://stackoverflow.com/questions/26415923/boto-get-md5-s3-file
     """
@@ -181,14 +181,14 @@ def _get_md5sum_from_s3(type_: Type, id_: str):
                           Key=f"{id_}.{ARCHIVE_EXTENSION}")['ETag'][1:-1]
 
 
-def _local_files_are_outdated(type_: Type, id_: str):
+def _local_files_are_outdated(type_: Type, id_: int):
     if current_file_version.get(type_):
         if current_file_version[type_].get(id_):
             return current_file_version[type_][id_] != _get_md5sum_from_s3(type_, id_)
     return True
 
 
-def _extract_file_path(path: str, id_: str) -> str:
+def _extract_file_path(path: str, id_: int) -> str:
     """
     To be able to get a file content that is in a subfolder, we need to have a file path inside a job project folder.
     For example, if the absolute path is '/var/seamless-web/user_projects/published/930a3944b22b16e9c170/53/some-folder/test.py',
@@ -200,7 +200,7 @@ def _extract_file_path(path: str, id_: str) -> str:
     return path[path.find(sep) + len(sep) + 1:]
 
 
-def _file_tree_to_dict(path, id_: str):
+def _file_tree_to_dict(path, id_: int):
     """
     Represents a repository tree as a dictionary. It does recursive descending into directories and build a dict.
 

@@ -108,7 +108,7 @@ def get_job_by_name(name: str, user_id: int, workspace_id: Optional[int] = None)
     return job
 
 
-def delete(job_id: str, user_id: int, workspace_id: Optional[int] = None):
+def delete(job_id: int, user_id: int, workspace_id: Optional[int] = None):
     job = get(job_id, user_id, workspace_id)
 
     remove_job_schedule(job_id)
@@ -136,7 +136,7 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
     return job, bool(existing_job)
 
 
-def get(job_id: str, user_id: str, workspace_id: Optional[int] = None) -> Job:
+def get(job_id: int, user_id: int, workspace_id: Optional[int] = None) -> Job:
     if not workspace_id:
         workspace_id = workspace_service.get_default_workspace(user_id).id
     job = get_db_session().query(Job).filter_by(id=job_id, user_id=user_id, workspace_id=workspace_id).one_or_none()
@@ -146,7 +146,7 @@ def get(job_id: str, user_id: str, workspace_id: Optional[int] = None) -> Job:
     return job
 
 
-def get_user_id_from_job(job_id: str):
+def get_user_id_from_job(job_id: int):
     job = get_db_session().query(Job).filter_by(id=job_id).one_or_none()
 
     if job is None:
@@ -155,15 +155,15 @@ def get_user_id_from_job(job_id: str):
         return job.user_id
 
 
-def execute_by_schedule(job_id: str, user_id: str):
+def execute_by_schedule(job_id: int, user_id: int):
     return execute(job_id, JobRunType.Schedule.value, user_id)
 
 
-def execute_by_button(job_id: str, user_id: str):
+def execute_by_button(job_id: int, user_id: int):
     return execute(job_id, JobRunType.RunButton.value, user_id)
 
 
-def execute(job_id: str, trigger_type: str, user_id: str, workspace_id: Optional[int] = None):
+def execute(job_id: int, trigger_type: str, user_id: int, workspace_id: Optional[int] = None):
     """
     Implementing the logic of Job execution
     """
@@ -180,32 +180,32 @@ def execute(job_id: str, trigger_type: str, user_id: str, workspace_id: Optional
     db_commit()
 
 
-def get_next_executions(job_id: str, user_id: str) -> Optional[str]:
+def get_next_executions(job_id: int, user_id: int) -> Optional[str]:
     job = get(job_id, user_id)
     if not job.schedule_is_active:
         return None
     return get_cron_next_execution(job.cron)
 
 
-def get_prev_executions(job_id: str, user_id: str) -> List[JobRun]:
+def get_prev_executions(job_id: int, user_id: int) -> List[JobRun]:
     job = get(job_id, user_id)
     return job.runs.limit(EXECUTION_TIMELINE_HISTORY_LIMIT)
 
 
 # TODO: add return notation
-def get_code(job_id: str, user_id: str):
+def get_code(job_id: int, user_id: int):
     get(job_id, user_id)  # Basically checking access rights for this user to this job
     code = storage.get_archive(storage.Type.Job, job_id)
     return code
 
 
-def get_logs_for_run(job_id: str, user_id: str, job_run_id: str) -> List[JobRunLog]:
+def get_logs_for_run(job_id: int, user_id: int, job_run_id: int) -> List[JobRunLog]:
     job = get(job_id, user_id)
     job_run = job.runs.filter_by(id=job_run_id).first()
     return job_run.logs
 
 
-def update_schedule(job_id: str, user_id: str, cron: str):
+def update_schedule(job_id: int, user_id: int, cron: str):
     job = get(job_id, user_id)
 
     aws_cron, human_cron = parse_cron(cron)
@@ -217,7 +217,7 @@ def update_schedule(job_id: str, user_id: str, cron: str):
     job.schedule_job()
 
 
-def enable_schedule(job_id: str, user_id: str):
+def enable_schedule(job_id: int, user_id: int):
     job = get(job_id, user_id)
     enable_job_schedule(job_id)
     job.schedule_is_active = True
@@ -231,12 +231,12 @@ def disable_schedule(job_id: int, user_id: int):
     db_commit()
 
 
-def get_parameters_for_job(job_id: str, user_id: str) -> List[JobParameter]:
+def get_parameters_for_job(job_id: int, user_id: int) -> List[JobParameter]:
     job = get(job_id, user_id)
     return job.parameters
 
 
-def add_parameters_to_job(job_id: str, user_id: str, parameters: List[Tuple[str, Optional[str]]]):
+def add_parameters_to_job(job_id: int, user_id: int, parameters: List[Tuple[str, Optional[str]]]):
     job = get(job_id, user_id)
     if len(list(job.parameters)) + len(parameters) > PARAMETERS_LIMIT_PER_JOB:
         raise JobsParametersLimitExceededException(f"You cannot have more than {PARAMETERS_LIMIT_PER_JOB} "
@@ -257,7 +257,7 @@ def add_parameters_to_job(job_id: str, user_id: str, parameters: List[Tuple[str,
             raise e
 
 
-def update_job_parameter(job_id: str, user_id: str, parameter_id: str, param_key: str, param_value: str):
+def update_job_parameter(job_id: int, user_id: int, parameter_id: int, param_key: str, param_value: str):
     job = get(job_id, user_id)
     found_parameter = job.parameters.filter_by(id=parameter_id).one_or_none()
     if not found_parameter:
@@ -267,7 +267,7 @@ def update_job_parameter(job_id: str, user_id: str, parameter_id: str, param_key
     db_commit()
 
 
-def delete_job_parameter(job_id: str, user_id: str, parameter_id: str):
+def delete_job_parameter(job_id: int, user_id: int, parameter_id: int):
     job = get(job_id, user_id)
     affected_rows = job.parameters.filter_by(id=parameter_id).delete()
     if affected_rows == 0:
@@ -275,12 +275,12 @@ def delete_job_parameter(job_id: str, user_id: str, parameter_id: str):
     db_commit()
 
 
-def link_job_to_template(job: Job, template_id: str):
+def link_job_to_template(job: Job, template_id: int):
     job.job_template_id = template_id
     db_commit()
 
 
-def make_job_name_unique(job_name: str, user_id: str):
+def make_job_name_unique(job_name: str, user_id: int):
     """
     If we can't find existing Job with the name provided - just return it, its unique.
     If we can - add suffix to the name to make it unique.
@@ -298,7 +298,7 @@ def make_job_name_unique(job_name: str, user_id: str):
     raise Exception("Impossible Error: we have 49 Jobs with the same 'base' name. Something is fucked up bad.")
 
 
-def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]:
+def _trigger_job_run(job: Job, trigger_type: str, user_id: int) -> Optional[int]:
     job_run = JobRun(job_id=job.id, type=trigger_type)
     get_db_session().add(job_run)
     db_commit()  # we need to have an id generated before we start writing logs
@@ -326,12 +326,12 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
                               _generate_container_name(str(job.id), user_id)) as executor_result:
             logs, get_exit_code = executor_result.output, executor_result.get_exit_code
             for line in logs:
-                _create_log_entry(line, str(job.id), str(job_run.id), user_id)
+                _create_log_entry(line, job.id, job_run.id, user_id)
             exit_code = get_exit_code()
     except ExecutorBuildException as exc:
         logs, get_exit_code = (el for el in [str(exc)]), lambda: 1
         for line in logs:
-            _create_log_entry(line, str(job.id), str(job_run.id), user_id)
+            _create_log_entry(line, job.id, job_run.id, user_id)
         exit_code = get_exit_code()
 
     if exit_code == 0:
@@ -353,15 +353,15 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: str) -> Optional[int]
     return exit_code
 
 
-def _create_log_entry(log_msg: str, job_id: str, job_run_id: str, user_id: str):
+def _create_log_entry(log_msg: str, job_id: int, job_run_id: int, user_id: int):
     now = datetime.utcnow()
     job_run_log = JobRunLog(job_run_id=job_run_id, timestamp=now, message=log_msg)
 
     send_update(
         'logs',
         {
-            'job_id': job_id,
-            'job_run_id': job_run_id,
+            'job_id': str(job_id),
+            'job_run_id': str(job_run_id),
             'message': log_msg,
             'timestamp': str(now)
         },
