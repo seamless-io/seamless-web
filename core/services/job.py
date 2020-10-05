@@ -316,7 +316,7 @@ def _trigger_job_run(job: Job, trigger_type: str, user_id: int) -> Optional[int]
     job_entrypoint = job.entrypoint or constants.DEFAULT_ENTRYPOINT
     job_requirements = job.requirements or constants.DEFAULT_REQUIREMENTS
 
-    path_to_job_files = storage.get_path_to_files(storage.Type.Job, str(job.id))
+    path_to_job_files = storage.get_path_to_files(storage.Type.Job, job.id)
 
     try:
         with executor.execute(path_to_job_files,

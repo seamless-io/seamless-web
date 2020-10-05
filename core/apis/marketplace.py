@@ -102,14 +102,14 @@ def create_job_from_template(template_id):
 
 @marketplace_bp.route('/templates/<template_id>/folder', methods=['GET'])
 @requires_auth
-def get_template_structure(template_id: str):
+def get_template_structure(template_id: int):
     project_structure = generate_project_structure(Type.Template, template_id)
     return jsonify(project_structure), 200
 
 
 @marketplace_bp.route('/templates/<template_id>/file', methods=['GET'])
 @requires_auth
-def get_template_file(template_id: str):
+def get_template_file(template_id: int):
     file_path = str(request.args.get('file_path'))
     file_content = get_file_content(Type.Template, template_id, file_path)
     return jsonify(file_content), 200
