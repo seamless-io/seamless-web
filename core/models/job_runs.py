@@ -27,9 +27,10 @@ class JobRun(base):
     __tablename__ = 'job_runs'
 
     id = Column(Integer, primary_key=True)
-    job_id = Column(Integer, ForeignKey('jobs.id'), nullable=False)
+    job_id = Column(Integer, ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False)
     job = relationship("Job", back_populates="runs")
-    logs = relationship("JobRunLog", cascade="all,delete", back_populates="job_run", lazy='dynamic')
+    logs = relationship("JobRunLog", cascade="all,delete", back_populates="job_run", lazy='dynamic',
+                        passive_deletes=True)
 
     type = Column(Text, nullable=False)
     status = Column(Text, default=JobRunStatus.Executing.value, nullable=False)

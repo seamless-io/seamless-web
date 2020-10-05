@@ -1,7 +1,9 @@
 from sqlalchemy.orm.exc import NoResultFound
 
+from core.api_key import generate_api_key
+from core.models import get_db_session, db_commit
 from core.models.users import User
-from core.web import get_db_session
+from core.models.workspaces import Workspace
 
 
 class UserNotFoundException(Exception):
@@ -23,3 +25,28 @@ def get_by_id(user_id: str):
     except NoResultFound:
         raise UserNotFoundException(f'Cannot find a user with id: {user_id}')
     return user
+
+
+def create(email: str, api_key: str = None):
+    session = get_db_session()
+    user = User(email=email,
+                api_key=api_key or generate_api_key())
+    session.add(user)
+    db_commit()
+
+    workspace = Workspace(owner_id=user.id)
+    session.add(workspace)
+    db_commit()
+    return user.id
+
+
+def delete(user_id: int):
+    session = get_db_session()
+
+    user = session.query(User).filter_by(id=user_id).one()
+    personal_workspace = user.workspaces.filter_by(personal=True).one()
+
+    session.delete(personal_workspace)
+    session.delete(user)
+
+    db_commit()

@@ -16,7 +16,7 @@ class JobParameter(base):
     )
 
     id = Column(Integer, primary_key=True)
-    job_id = Column(Integer, ForeignKey('jobs.id'), nullable=False)
+    job_id = Column(Integer, ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False)
     job = relationship("Job", back_populates="parameters")
 
     key = Column(Text, nullable=False)
