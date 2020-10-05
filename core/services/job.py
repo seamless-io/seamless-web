@@ -131,7 +131,7 @@ def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User
     db_commit()
     job.schedule_job()
 
-    storage.save(project_file, storage.Type.Job, str(job.id))
+    storage.save(project_file, storage.Type.Job, job.id)
 
     return job, bool(existing_job)
 
