@@ -8,7 +8,7 @@ class JobRunLog(base):
     __tablename__ = 'job_run_logs'
 
     id = Column(Integer, primary_key=True)
-    job_run_id = Column(Integer, ForeignKey('job_runs.id'), nullable=False)
+    job_run_id = Column(Integer, ForeignKey('job_runs.id', ondelete='CASCADE'), nullable=False)
     job_run = relationship("JobRun", back_populates="logs")
 
     timestamp = Column(DateTime, nullable=False, index=True)

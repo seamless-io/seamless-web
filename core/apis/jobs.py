@@ -10,6 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import constants
 import core.services.job as job_service
 import core.services.user as user_service
+import core.services.workspace as workspace_service
 import helpers
 from core.storage import generate_project_structure, Type, get_file_content, update_file_contents
 from core.web import requires_auth
@@ -36,7 +37,7 @@ def verify_password(username, password):
 @requires_auth
 def get_jobs():
     user_id = session['profile']['internal_user_id']
-    jobs = job_service.get_jobs_for_user(user_id)
+    jobs = workspace_service.get_default_workspace(user_id).jobs
     rv = [row2dict(job) for job in jobs]
     return jsonify(rv), 200
 
@@ -50,7 +51,7 @@ def get_job(job_id):
 
 @jobs_bp.route('/jobs/<job_id>/schedule', methods=['PUT'])
 @requires_auth
-def update_job_schedule(job_id):
+def update_job_schedule(job_id: int):
     """
     If job is scheduled - enables schedule
     """
@@ -70,7 +71,7 @@ def update_job_schedule(job_id):
 
 @jobs_bp.route('/jobs/<job_id>/runs/<job_run_id>/logs', methods=['GET'])
 @requires_auth
-def get_job_logs(job_id: str, job_run_id: str):
+def get_job_logs(job_id: int, job_run_id: int):
     job_run_logs = job_service.get_logs_for_run(job_id, session['profile']['internal_user_id'], job_run_id)
     logs = [row2dict(log_record) for log_record in job_run_logs]
     return jsonify(logs), 200
@@ -78,14 +79,14 @@ def get_job_logs(job_id: str, job_run_id: str):
 
 @jobs_bp.route('/jobs/<job_id>/code', methods=['GET'])
 @requires_auth
-def get_job_code(job_id: str):
+def get_job_code(job_id: int):
     code = job_service.get_code(job_id, session['profile']['internal_user_id'])
     return send_file(code, attachment_filename=f'job_{job_id}.tar.gz'), 200
 
 
 @jobs_bp.route('/jobs/<job_id>/executions', methods=['GET'])
 @requires_auth
-def get_job_executions_history(job_id: str):
+def get_job_executions_history(job_id: int):
     prev_executions = job_service.get_prev_executions(job_id, session['profile']['internal_user_id'])
     return jsonify({'last_executions': [{'status': run.status,
                                          'created_at': run.created_at,
@@ -111,6 +112,7 @@ def create_job():
     cron_schedule = request.args.get('schedule')
     entrypoint = request.args.get('entrypoint')
     requirements = request.args.get('requirements')
+    workspace_id = request.args.get('workspace_id') or workspace_service.get_default_workspace(user.id).id
 
     logging.info(
         f"Received 'publish': job_name={job_name}, schedule={cron_schedule}, "
@@ -121,14 +123,8 @@ def create_job():
         if project_file.filename and not project_file.filename.endswith(constants.ARCHIVE_EXTENSION):
             return Response('File extension is not supported', 400)
         file = io.BytesIO(project_file.read())
-        job, is_existing = job_service.publish(
-            job_name,
-            cron_schedule,
-            entrypoint,
-            requirements,
-            user,
-            file
-        )
+        job, is_existing = job_service.publish(job_name, cron_schedule, entrypoint, requirements, user, file,
+                                               workspace_id)
     except job_service.JobsQuotaExceededException as e:
         return Response(str(e), 400)  # TODO: ensure that error code is correct
     except helpers.InvalidCronException as e:
@@ -214,7 +210,7 @@ def get_next_job_execution(job_id):
 
 @jobs_bp.route('/jobs/<job_id>/parameters', methods=['GET'])
 @requires_auth
-def get_job_parameters(job_id: str):
+def get_job_parameters(job_id: int):
     parameters = job_service.get_parameters_for_job(job_id, session['profile']['internal_user_id'])
     parameters = [row2dict(parameter) for parameter in parameters]
     return jsonify(parameters), 200
@@ -222,7 +218,7 @@ def get_job_parameters(job_id: str):
 
 @jobs_bp.route('/jobs/<job_id>/parameters', methods=['POST'])
 @requires_auth
-def add_job_parameter(job_id: str):
+def add_job_parameter(job_id: int):
     data = request.json
     if not data:
         return Response('There is no payload', 400)
@@ -241,7 +237,7 @@ def add_job_parameter(job_id: str):
 
 @jobs_bp.route('/jobs/<job_id>/parameters/<parameter_id>', methods=['DELETE'])
 @requires_auth
-def delete_job_parameter(job_id: str, parameter_id: str):
+def delete_job_parameter(job_id: int, parameter_id: int):
     try:
         job_service.delete_job_parameter(job_id, session['profile']['internal_user_id'], parameter_id)
     except job_service.ParameterNotFoundException as e:
@@ -251,7 +247,7 @@ def delete_job_parameter(job_id: str, parameter_id: str):
 
 @jobs_bp.route('/jobs/<job_id>/parameters/<parameter_id>', methods=['PUT'])
 @requires_auth
-def update_job_parameter(job_id: str, parameter_id: str):
+def update_job_parameter(job_id: int, parameter_id: int):
     data = request.json
     key = data.get('key')
     value = data.get('value')
@@ -272,7 +268,7 @@ def handle_error(e):
 
 @jobs_bp.route('/jobs/<job_id>/folder', methods=['GET'])
 @requires_auth
-def get_project_structure(job_id: str):
+def get_project_structure(job_id: int):
     job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
     project_structure = generate_project_structure(Type.Job, job_id)
     return jsonify(project_structure), 200
@@ -280,7 +276,7 @@ def get_project_structure(job_id: str):
 
 @jobs_bp.route('/jobs/<job_id>/file', methods=['GET'])
 @requires_auth
-def get_job_file(job_id: str):
+def get_job_file(job_id: int):
     file_path = str(request.args.get('file_path'))
     # TODO: make the check explicit and apply it to all relevant endpoints
     job = job_service.get(job_id, session['profile']['internal_user_id'])  # Checking permission for this job and user
@@ -290,7 +286,7 @@ def get_job_file(job_id: str):
 
 @jobs_bp.route('/jobs/<job_id>/source-code', methods=['PUT'])
 @requires_auth
-def update_source_code(job_id: str):
+def update_source_code(job_id: int):
     """
     Updating code of the job (job consist of several files)
     Payload:

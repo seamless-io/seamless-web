@@ -17,16 +17,16 @@ def get_path_to_files():
 @mock.patch('core.services.job.send_update')
 @mock.patch('core.services.job.storage.get_path_to_files', return_value=get_path_to_files())
 @pytest.mark.usefixtures('postgres')
-def test_execution_flow(get_path, send_update, session_id, user_id):
+def test_execution_flow(get_path, send_update, session_id, user_id, workspace_id):
     job_runs_count_initial = get_db_session().query(JobRun).count()
 
     # create job we want to execute later
     job = Job(user_id=user_id, name=f'another_test_name_{session_id}',
-              entrypoint='main_module.read_news', requirements='custom_requirements.txt')
+              entrypoint='main_module.read_news', requirements='custom_requirements.txt', workspace_id=workspace_id)
     get_db_session().add(job)
     db_commit()
 
-    job_service.execute(job.id, JobRunType.RunButton.value, user_id)
+    job_service.execute(job.id, JobRunType.RunButton.value, user_id, workspace_id)
 
     assert send_update.called
 

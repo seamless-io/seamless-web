@@ -6,11 +6,11 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def _generate_cloudwatch_rule_name(job_id: str, stage: str) -> str:
+def _generate_cloudwatch_rule_name(job_id: int, stage: str) -> str:
     return f"{stage}-job-{job_id}"
 
 
-def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
+def schedule(cron_schedule: str, job_id: int, is_active: bool) -> str:
     """
     TODO: do not use project_path as an identifier for events
     """
@@ -39,21 +39,21 @@ def schedule(cron_schedule: str, job_id: str, is_active: bool) -> str:
     return rule_arn  # TODO: store it somewhere
 
 
-def enable_job_schedule(job_id: str):
+def enable_job_schedule(job_id: int):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     rule_name = _generate_cloudwatch_rule_name(job_id, os.getenv('STAGE', 'local'))
     events.enable_rule(Name=rule_name)
     logging.info(f"Schedule rule {rule_name} enabled")
 
 
-def disable_job_schedule(job_id: str):
+def disable_job_schedule(job_id: int):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     rule_name = _generate_cloudwatch_rule_name(job_id, os.getenv('STAGE', 'local'))
     events.disable_rule(Name=rule_name)
     logging.info(f"Schedule rule {rule_name} disabled")
 
 
-def remove_job_schedule(job_id: str):
+def remove_job_schedule(job_id: int):
     events = boto3.client('events', region_name=os.getenv('AWS_REGION_NAME'))
     cloudwatch_rule_name = _generate_cloudwatch_rule_name(job_id, os.getenv('STAGE', 'local'))
     try:

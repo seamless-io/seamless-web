@@ -27,14 +27,21 @@ class Job(base):
                       )
 
     id = Column(Integer, primary_key=True)
+
     user_id = Column(Integer, ForeignKey('users.id'))
-    job_template_id = Column(Integer, ForeignKey('job_templates.id', name='jobs_job_template_id_fkey'), nullable=True)
     user = relationship("User", back_populates="jobs")
-    runs = relationship("JobRun", cascade="all,delete", back_populates="job",
-                        order_by="desc(JobRun.created_at)", lazy='dynamic')
-    parameters = relationship("JobParameter", cascade="all,delete",
-                              back_populates="job", lazy='dynamic')
+
+    job_template_id = Column(Integer, ForeignKey('job_templates.id', name='jobs_job_template_id_fkey'), nullable=True)
     template = relationship("JobTemplate", back_populates="jobs")
+
+    workspace_id = Column(Integer, ForeignKey('workspaces.id', ondelete='CASCADE'), nullable=False)
+    workspace = relationship('Workspace', back_populates='jobs')
+
+    runs = relationship("JobRun", cascade="all,delete", back_populates="job",
+                        order_by="desc(JobRun.created_at)", lazy='dynamic', passive_deletes=True)
+
+    parameters = relationship("JobParameter", cascade="all,delete",
+                              back_populates="job", lazy='dynamic', passive_deletes=True)
 
     name = Column(Text, nullable=False)
     # Alembic does not work very well with native postgres Enum type so the status column is Text
