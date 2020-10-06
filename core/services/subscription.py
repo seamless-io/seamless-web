@@ -3,7 +3,7 @@ import enum
 import logging
 import json
 
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import stripe
 
@@ -77,7 +77,7 @@ def create_billing_update_session(customer_id: str, success_url: str, cancel_url
     When user creates/updates payment method
     """
     stripe.api_key = os.getenv('STRIPE_API_KEY')
-    session_payload = {
+    session_payload: Dict[str, Any] = {
         'payment_method_types': ['card'],
         'mode': 'setup',
         'customer': customer_id,
