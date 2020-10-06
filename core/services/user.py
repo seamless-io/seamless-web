@@ -40,7 +40,8 @@ def create(email: str, api_key: str = None):
     session.add(workspace)
     db_commit()
 
-    subscription_service.create_customer(user.email)
+    user.customer_id = subscription_service.create_customer(user.email)
+    db_commit()
 
     return user.id
 

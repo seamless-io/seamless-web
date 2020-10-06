@@ -144,11 +144,15 @@ def user_api_key():
 
 @pytest.fixture
 def user_id(postgres, user_email, user_api_key):
+    env_back = os.environ
+    key = 'sk_test_51HNZJpJgB05uRN01jqGiSVW4y3vJW4ayHCpoMADhb6Sf3DEXz1U9AabWNy4n0tiviyC3p4AbMolPx0YgMFIz6eg800sfz2ss7O'
+    os.environ['STRIPE_API_KEY'] = key
     user_id = user_service.create(user_email, user_api_key)
 
     yield user_id
 
     user_service.delete(user_id)
+    os.environ = env_back
 
 
 @pytest.fixture
