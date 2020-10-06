@@ -38,6 +38,8 @@ class User(base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     account_type = Column(Text, nullable=False, default=UserAccountType.Free.value)
 
+    customer_id = Column(Text, nullable=True)
+
     @staticmethod
     def get_user_from_id(user_id, session):
         return session.query(User).filter(User.id == user_id).one()

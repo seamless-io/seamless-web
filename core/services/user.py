@@ -5,6 +5,8 @@ from core.models import get_db_session, db_commit
 from core.models.users import User
 from core.models.workspaces import Workspace
 
+from core.services import subscription as subscription_service
+
 
 class UserNotFoundException(Exception):
     pass
@@ -37,6 +39,9 @@ def create(email: str, api_key: str = None):
     workspace = Workspace(owner_id=user.id)
     session.add(workspace)
     db_commit()
+
+    subscription_service.create_customer(user.email)
+
     return user.id
 
 
@@ -45,6 +50,8 @@ def delete(user_id: int):
 
     user = session.query(User).filter_by(id=user_id).one()
     personal_workspace = user.workspaces.filter_by(personal=True).one()
+
+    subscription_service.delete_customer(user.customer_id)
 
     session.delete(personal_workspace)
     session.delete(user)

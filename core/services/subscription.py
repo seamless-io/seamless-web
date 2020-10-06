@@ -1,4 +1,12 @@
+import os
 import enum
+import logging
+import json
+
+import stripe
+
+from core.models import db_commit, get_db_session
+from core.models.subscriptions import Subscription
 
 
 class Product(enum.Enum):
@@ -8,12 +16,28 @@ class Product(enum.Enum):
     JOB = 'jobs'
 
 
-def create_customer(user_id: int):
+def create_customer(user_email: str) -> str:
     """
-    Creating customer
     Should be called when user enters his credit card info
     """
-    pass
+    stripe.api_key = os.getenv('STRIPE_API_KEY')
+    customer = stripe.Customer.create(email=user_email)
+    customer_id = customer['id']
+    db_commit()
+    logging.info(f"Created customer in stripe with id {customer_id}")
+    return customer_id
+
+
+def delete_customer(customer_id: str) -> bool:
+    """
+    Should be called on user deletion
+    """
+    stripe.api_key = os.getenv('STRIPE_API_KEY')
+    rv = stripe.Customer.delete(customer_id)
+    db_commit()
+    logging.info(f'Customer {customer_id} was deleted from stripe')
+    return rv['deleted']
+
 
 
 def _create(customer_id: int, product: Product):
