@@ -20,7 +20,7 @@ class Product(enum.Enum):
 
 def create_customer(user_email: str) -> str:
     """
-    Should be called when user enters his credit card info
+    Should be called on user's registration
     """
     stripe.api_key = os.getenv('STRIPE_API_KEY')
     customer = stripe.Customer.create(email=user_email)
