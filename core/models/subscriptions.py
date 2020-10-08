@@ -1,6 +1,6 @@
 from core.models.base import base
 
-from sqlalchemy import Column, Integer, Text, ForeignKey
+from sqlalchemy import Column, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
 
@@ -12,7 +12,8 @@ class Subscription(base):
 
     id = Column(Text, primary_key=True)
 
-    user_id = Column(Integer, ForeignKey('users.id', name='fk_subscriptions_user_id_users_id'), nullable=False)
+    customer_id = Column(Text, ForeignKey('users.customer_id',
+                                          name='fk_subscriptions_customer_id_users_customer_id'), nullable=False)
     user = relationship('User', back_populates='subscription')
 
     def __repr__(self):

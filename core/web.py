@@ -49,11 +49,11 @@ def create_app():
     from core.apis.marketplace import marketplace_bp
     app.register_blueprint(marketplace_bp, url_prefix=CLIENT_API)
 
+    from core.apis.subscriptions import subscription_bp
+    app.register_blueprint(subscription_bp, url_prefix=CLIENT_API + '/subscription')
+
     from core.apis.auth0.users import auth_users_bp
     app.register_blueprint(auth_users_bp, url_prefix=AUTH_API)
-
-    from core.apis.subscriptions import subscription_bp
-    app.register_blueprint(subscription_bp, url_prefix=AUTH_API + '/subscription')
 
     oauth = OAuth(app)
 

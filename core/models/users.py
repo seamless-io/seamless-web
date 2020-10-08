@@ -38,7 +38,7 @@ class User(base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     account_type = Column(Text, nullable=False, default=UserAccountType.Free.value)
 
-    customer_id = Column(Text, nullable=True)
+    customer_id = Column(Text, nullable=True, unique=True)
 
     subscription = relationship('Subscription', uselist=False, back_populates='user')
 

@@ -94,26 +94,25 @@ def create_billing_update_session(customer_id: str, success_url: str, cancel_url
     return session['id']
 
 
-def process_event(request_body, user_id):
+def process_event(request_body):
     """
     Processing stipe webhook event
     """
     stripe.api_key = os.getenv('STRIPE_API_KEY')
-    event = stripe.Webhook.construct_from(json.loads(request_body), os.getenv('STRIPE_API_KEY'))
+    event = stripe.Event.construct_from(json.loads(request_body), os.getenv('STRIPE_API_KEY'))
 
     if event.type == 'checkout.session.completed':
-        stripe_session_obj = event.data.object
-        setup_intent_id = stripe_session_obj['data']['object']['setup_intent']
-        intent = stripe.SetupIntent.retrieve(setup_intent_id)
+        subscription_id = event.data.object.subscription
+        setup_intent_id = event.data.object.setup_intent
+        setup_intent = stripe.SetupIntent.retrieve(setup_intent_id)
 
-        payment_method_id = intent['payment_method']
-        subscription_id = intent['subscription']
+        payment_method_id = setup_intent.payment_method
+        customer_id = setup_intent.customer
 
         stripe.Subscription.modify(subscription_id, default_payment_method=payment_method_id)
 
         session = get_db_session()
-        session.add(Subscription(id=subscription_id, user_id=user_id))
+        session.add(Subscription(id=subscription_id, customer_id=customer_id))
         db_commit()
 
         return True
-
