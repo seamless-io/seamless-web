@@ -66,7 +66,7 @@ def process_event(request_body):
 
     if event.type == 'checkout.session.completed':
         _handle_session_completed(event)
-        return True
+    return True
 
 
 def _handle_session_completed(event: stripe.Event):
