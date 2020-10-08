@@ -2,7 +2,7 @@ import datetime
 import enum
 from dataclasses import dataclass
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from core.api_key import API_KEY_LENGTH
@@ -39,8 +39,7 @@ class User(base):
     account_type = Column(Text, nullable=False, default=UserAccountType.Free.value)
 
     customer_id = Column(Text, nullable=True, unique=True)
-
-    subscription = relationship('Subscription', uselist=False, back_populates='user')
+    payment_method_id = Column(Text)
 
     @staticmethod
     def get_user_from_id(user_id, session):

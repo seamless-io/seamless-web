@@ -12,7 +12,6 @@ from .job_run_logs import JobRunLog
 from .job_parameters import JobParameter
 from .job_templates import JobTemplate
 from .workspaces import Workspace
-from .subscriptions import Subscription
 
 DB_PREFIX = 'SEAMLESS'
 EXISTING_DB = ('SEAMLESS', 'INTEGRATION_TEST')

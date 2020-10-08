@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any
 import stripe
 
 from core.models import db_commit, get_db_session
-from core.models.subscriptions import Subscription
+from core.models.users import User
 
 
 class Product(enum.Enum):
@@ -41,38 +41,7 @@ def delete_customer(customer_id: str) -> bool:
     return rv['deleted']
 
 
-
-def _create(customer_id: int, product: Product):
-    """
-    Creates a subscription for user for chosen products
-    Calls when user buy something for a first time
-    """
-    pass
-
-
-def add_product(subscription_id: int, product: Product):
-    """
-    Adds a product to subscription
-    """
-    pass
-
-
-def remove_product(subscription_id: int, product: Product):
-    """
-    Removes a product from subscription
-    """
-    pass
-
-
-def update_subscription(user_id: int):
-    """
-    Updates a subscription for a user
-    """
-    pass
-
-
-def create_billing_update_session(customer_id: str, success_url: str, cancel_url: str,
-                                  existing_subscription_id: Optional[str] = None) -> str:
+def create_billing_update_session(customer_id: str, success_url: str, cancel_url: str) -> str:
     """
     When user creates/updates payment method
     """
@@ -84,12 +53,6 @@ def create_billing_update_session(customer_id: str, success_url: str, cancel_url
         'success_url': success_url + '?session_id={CHECKOUT_SESSION_ID}',
         'cancel_url': cancel_url
     }
-    if existing_subscription_id:
-        session_payload.update({
-            'setup_intent_data': {
-                'metadata': {'subscription_id': existing_subscription_id}
-            }
-        })
     session = stripe.checkout.Session.create(**session_payload)
     return session['id']
 
@@ -107,15 +70,14 @@ def process_event(request_body):
 
 
 def _handle_session_completed(event: stripe.Event):
-    subscription_id = event.data.object.subscription
     setup_intent_id = event.data.object.setup_intent
     setup_intent = stripe.SetupIntent.retrieve(setup_intent_id)
 
-    payment_method_id = setup_intent.payment_method
     customer_id = setup_intent.customer
 
-    stripe.Subscription.modify(subscription_id, default_payment_method=payment_method_id)
+    logging.info(f"Customer '{customer_id}' configured payment")
 
     session = get_db_session()
-    session.add(Subscription(id=subscription_id, customer_id=customer_id))
+    user = session.query(User).filter_by(customer_id=customer_id).one()
+    user.payment_method_id = setup_intent.payment_method
     db_commit()
