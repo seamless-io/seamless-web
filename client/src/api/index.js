@@ -123,3 +123,9 @@ export const saveCode = async (job_id, filename, contents) => {
   );
   return response.data
 };
+
+
+export const fetchCheckoutSession = async () => {
+  let response = await axios.post(`/api/v1/subscription`);
+  return response.data
+};

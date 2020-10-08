@@ -3,8 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Spinner } from 'react-bootstrap';
 import { AiOutlineMail, AiOutlineApi } from 'react-icons/ai';
 
-import { getUserInfo } from '../../api';
+import { getUserInfo, fetchCheckoutSession } from '../../api';
 import Notification from '../Notification/Notification';
+
+import { loadStripe } from '@stripe/stripe-js';
 
 import './style.css';
 
@@ -16,6 +18,7 @@ const Account = () => {
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
   const [notificationAlertType, setNotificationAlertType] = useState('');
+//  const [sessionId, setStripeSessionId] = useState('');
 
   const displayNotification = (show, title, body, alterType) => {
     setShowNotification(show);
@@ -27,6 +30,18 @@ const Account = () => {
   const closeNotification = () => {
     setShowNotification(false);
   };
+
+  const stripePromise = loadStripe('pk_test_51HNZJpJgB05uRN01mxmJDdn7yjEdR2RONjc8SGYbHsip7CuHd2alN6ufPrJPK1qBipDk7Dm4CFle5w5eSke7sxrQ003bQiBndI');
+
+  const handleBillingClick = async (event) => {
+    const stripe = await stripePromise;
+    fetchCheckoutSession()
+      .then(payload => {
+        console.log(payload.session_id);
+        const sessionId = payload.session_id;
+        stripe.redirectToCheckout({sessionId});
+      });
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -100,6 +115,13 @@ const Account = () => {
               <span>hello@seamlesscloud.io</span>
             </div>
           </Col>
+        </Row>
+      </div>
+      <div className="smls-card">
+        <Row>
+            <button role='link' onClick={handleBillingClick}>
+                Billing
+            </button>
         </Row>
       </div>
       <Notification
