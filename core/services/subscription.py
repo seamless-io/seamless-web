@@ -3,19 +3,62 @@ import enum
 import logging
 import json
 
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 import stripe
 
 from core.models import db_commit, get_db_session
 from core.models.users import User
+from core.models.subscriptions import Subscription, SubscriptionItem, SubscriptionItemType, PRICES_FOR_TYPE
 
 
-class Product(enum.Enum):
+class NoBillingInfo(Exception):
+    pass
+
+
+def upsert_subscription(user: User, subscription_item_type: SubscriptionItemType):
     """
-    Product names created in stripe
+    Checks if subscription item exists. If not - creates a new one and updates subscription in stripe
     """
-    JOB = 'jobs'
+    if not user.payment_method_id:
+        raise NoBillingInfo
+
+    stripe.api_key = os.getenv('STRIPE_API_KEY')
+    price_id = PRICES_FOR_TYPE[subscription_item_type]
+    customer_id = user.customer_id
+
+    session = get_db_session()
+    subscription = session.query(Subscription).filter_by(customer_id=customer_id).one_or_none()
+    if subscription:
+        subscription_item = session.query(SubscriptionItem).filter_by(subscription_id=subscription.id,
+                                                                      type=subscription_item_type.value).one_or_none()
+        if subscription_item:
+            # if subscription and subscription item exist - do nothing
+            return
+        else:
+            # update existing subscription
+            subscription_item_res = stripe.SubscriptionItem.create(
+                subscription=subscription.id,
+                price=price_id,
+            )
+            session.add(SubscriptionItem(id=subscription_item_res.id, subscription_id=subscription.id, price=price_id,
+                                         type=subscription_item_type.value))
+    else:
+        # create session with subscription item
+        subscription_res = stripe.Subscription.create(
+            customer=customer_id,
+            items=[
+                {'price': price_id}
+            ]
+        )
+        subscription = Subscription(id=subscription_res.id, customer_id=customer_id)
+        session.add(subscription)
+        subscription_item_res = subscription_res['items']['data'][0]  # there will be only one subscription item created
+        subscription_item = SubscriptionItem(id=subscription_item_res['id'], subscription_id=subscription_res.id,
+                                             price=price_id, type=subscription_item_type.value)
+        session.add(subscription_item)
+
+    db_commit()
 
 
 def create_customer(user_email: str) -> str:

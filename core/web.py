@@ -13,6 +13,7 @@ from app_config import Config
 from core.apis.auth0.auth import CoreAuthError
 from core.models import get_db_session
 from core.models.users import User
+from core.services.subscription import NoBillingInfo
 
 CLIENT_API = '/api/v1'
 AUTH_API = '/auth'
@@ -123,6 +124,10 @@ def create_app():
         response = jsonify(ex.error)
         response.status_code = ex.status_code
         return response
+
+    @app.errorhandler(NoBillingInfo)
+    def handle_no_billing_info_error(exc):
+        return jsonify({'error': 'No Billing Info provided'}), 400
 
     # Catch all to serve the react app
     @app.route('/', methods=['GET'])

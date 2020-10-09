@@ -41,6 +41,8 @@ class User(base):
     customer_id = Column(Text, nullable=True, unique=True)
     payment_method_id = Column(Text)
 
+    subscription = relationship('Subscription', uselist=False, back_populates='user')
+
     @staticmethod
     def get_user_from_id(user_id, session):
         return session.query(User).filter(User.id == user_id).one()

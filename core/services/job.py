@@ -13,7 +13,9 @@ from core.models.job_run_logs import JobRunLog
 from core.models.job_runs import JobRun, JobRunStatus, JobRunType
 from core.models.jobs import Job, JobStatus
 from core.models.users import User, UserAccountType, ACCOUNT_LIMITS_BY_TYPE
+from core.models.subscriptions import SubscriptionItemType
 from core.services import workspace as workspace_service
+from core.services import subscription as subscription_service
 from core.socket_signals import send_update
 from core.web import get_db_session
 from helpers import get_cron_next_execution, parse_cron, get_random_string
@@ -121,6 +123,7 @@ def delete(job_id: int, user_id: int, workspace_id: Optional[int] = None):
 
 def publish(name: str, cron: str, entrypoint: str, requirements: str, user: User, project_file: io.BytesIO,
             workspace_id: str, schedule_is_active=True):
+    subscription_service.upsert_subscription(user, SubscriptionItemType.JOB)
     existing_job = get_db_session().query(Job).filter_by(name=name, user_id=user.id).one_or_none()
     if existing_job:
         job = _update_job(existing_job, cron, entrypoint, requirements)
