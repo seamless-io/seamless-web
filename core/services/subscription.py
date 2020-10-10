@@ -1,24 +1,85 @@
 import os
-import enum
 import logging
+import datetime
 import json
+import time
 
 from typing import Dict, Any
 
 import stripe
 
 from core.models import db_commit, get_db_session
+from core.models.jobs import Job
 from core.models.users import User
-from core.models.subscriptions import Subscription, SubscriptionItem, SubscriptionItemType, PRICES_FOR_TYPE
+from core.models.workspaces import Workspace
+from core.models.subscriptions import Subscription, SubscriptionItem, SubscriptionItemType, JobUsage, PRICES_FOR_TYPE
 
 
 class NoBillingInfo(Exception):
     pass
 
 
+def calculate_job_usages():
+    session = get_db_session()
+    jobs = session.query(Job).filter(
+        Job.chargeable == True,  # noqa: E712
+        # we charge only jobs for 1 full day
+        Job.became_chargeable <= datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    )
+    for job in jobs:
+        report_job_usage(job)
+
+
+def report_job_usage(job: Job):
+    """
+    :job: job which was created more then 1 day ago
+    """
+    stripe.api_key = os.getenv('STRIPE_API_KEY')
+    now_ts = time.time()
+    now = datetime.datetime.utcfromtimestamp(now_ts)
+    session = get_db_session()
+    workspace = session.query(Workspace).filter_by(id=job.workspace_id).one()
+    user = session.query(User).filter_by(id=workspace.owner_id).one()
+    subscription = session.query(Subscription).filter_by(customer_id=user.customer_id).one()
+    subscription_item = session.query(SubscriptionItem).filter_by(subscription_id=subscription.id,
+                                                                  type=SubscriptionItemType.JOB.value).one()
+    usage = session.query(JobUsage).filter_by(
+        subscription_item_id=subscription_item.id,
+        job_id=job.id
+    ).order_by(
+        JobUsage.created_at.desc()
+    ).limit(1).first()
+    if usage:
+        if (now - usage.created_at).days >= 1:
+            # we are using previous usage date and replacing date to avoid minute drifts
+            stripe.SubscriptionItem.create_usage_record(
+                subscription_item.id,
+                quantity=1,
+                timestamp=int(now_ts)
+            )
+            session.add(JobUsage(subscription_item_id=subscription_item.id, job_id=job.id, created_at=now))
+            logging.info(f"Reported usage for job '{job.id}'. SubscriptionItem: {subscription_item.id}")
+        else:
+            # 24h from the previous usage didn't pass
+            return
+    else:
+        stripe.SubscriptionItem.create_usage_record(
+            subscription_item.id,
+            quantity=1,
+            timestamp=int(now_ts)
+        )
+        session.add(JobUsage(subscription_item_id=subscription_item.id, job_id=job.id, created_at=now))
+        logging.info(f"Reported usage for job '{job.id}'. SubscriptionItem: {subscription_item.id}")
+    db_commit()
+
+
 def upsert_subscription(user: User, subscription_item_type: SubscriptionItemType):
     """
     Checks if subscription item exists. If not - creates a new one and updates subscription in stripe
+
+    WARNING:
+        If pricing changes - only new subscriptions will be updated. For updating existing ones - another function
+        should be created
     """
     if not user.payment_method_id:
         raise NoBillingInfo

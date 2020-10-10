@@ -3,8 +3,9 @@ import enum
 import logging
 import constants
 
-from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, DateTime, Text, Boolean, ForeignKey, UniqueConstraint, cast
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from core.models.base import base
 
@@ -43,6 +44,8 @@ class Job(base):
     parameters = relationship("JobParameter", cascade="all,delete",
                               back_populates="job", lazy='dynamic', passive_deletes=True)
 
+    usages = relationship('JobUsage', back_populates='job')
+
     name = Column(Text, nullable=False)
     # Alembic does not work very well with native postgres Enum type so the status column is Text
     status = Column(Text, default=JobStatus.New.value, nullable=False)
@@ -57,6 +60,23 @@ class Job(base):
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    became_chargeable = Column(DateTime)
+
+    @hybrid_property
+    def chargeable(self):
+        return bool(self.became_chargeable)
+
+    @chargeable.setter
+    def chargeable(self, value):
+        if value is True:
+            self.became_chargeable = datetime.datetime.utcnow()
+        else:
+            self.became_chargeable = None
+
+    @chargeable.expression
+    def chargeable(cls):
+        return cls.became_chargeable.isnot(None)
 
     def schedule_job(self):
         if self.aws_cron:
