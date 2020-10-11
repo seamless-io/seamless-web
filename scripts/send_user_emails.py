@@ -9,7 +9,8 @@ from core.models import get_db_session, User
 unsubscribed_list = ['ctapbiu.spb@gmail.com',
                      'hubermar4@gmail.com',
                      'sktplogzlboyrqptlp@twzhhq.online',
-                     'guyheidemann@gmail.con']
+                     'guyheidemann@gmail.con',
+                     'roullet.antonin@gmail.com']
 
 load_dotenv()
 
