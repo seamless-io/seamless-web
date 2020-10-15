@@ -19,6 +19,13 @@ class NoBillingInfo(Exception):
     pass
 
 
+class VerificationError(Exception):
+    """
+    Raises when signature from the webhook request is invalid
+    """
+    pass
+
+
 def calculate_job_usages():
     session = get_db_session()
     jobs = session.query(Job).filter(
@@ -166,7 +173,10 @@ def process_event(request_body, signature):
     Processing stripe webhook event
     """
     stripe.api_key = os.getenv('STRIPE_API_KEY')
-    event = stripe.Webhook.construct_event(json.loads(request_body), signature, os.getenv('STRIPE_WEBHOOK_SECRET'))
+    try:
+        event = stripe.Webhook.construct_event(json.loads(request_body), signature, os.getenv('STRIPE_WEBHOOK_SECRET'))
+    except stripe.error.SignatureVerificationError:
+        raise VerificationError("Invalid signature")
 
     if event.type == 'checkout.session.completed':
         _handle_session_completed(event)

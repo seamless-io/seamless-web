@@ -42,6 +42,9 @@ def webhook():
         is_success = subscription_service.process_event(request.data, signature)
     except ValueError as exc:
         return Response(status=400)
+    except subscription_service.VerificationError:
+        # invalid signature
+        return Response(status=400)
 
     if is_success:
         return Response(status=200)
