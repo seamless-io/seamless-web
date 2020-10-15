@@ -161,12 +161,12 @@ def create_billing_update_session(customer_id: str, success_url: str, cancel_url
     return session['id']
 
 
-def process_event(request_body):
+def process_event(request_body, signature):
     """
     Processing stripe webhook event
     """
     stripe.api_key = os.getenv('STRIPE_API_KEY')
-    event = stripe.Event.construct_from(json.loads(request_body), os.getenv('STRIPE_API_KEY'))
+    event = stripe.Webhook.construct_event(json.loads(request_body), signature, os.getenv('STRIPE_WEBHOOK_SECRET'))
 
     if event.type == 'checkout.session.completed':
         _handle_session_completed(event)

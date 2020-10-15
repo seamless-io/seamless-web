@@ -37,8 +37,9 @@ def cancel():
 
 @subscription_bp.route('/webhook', methods=['POST'])
 def webhook():
+    signature = request.headers['stripe-signature']
     try:
-        is_success = subscription_service.process_event(request.data)
+        is_success = subscription_service.process_event(request.data, signature)
     except ValueError as exc:
         return Response(status=400)
 
