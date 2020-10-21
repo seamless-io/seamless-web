@@ -23,5 +23,5 @@ def send_email(recipient, subject, body):
 def send_welcome_email(recipient):
     with open('core/emails/welcome.html', 'r') as file:
         send_email(recipient,
-                   'Welcome to Seamless Cloud community',
+                   'Welcome to Seamless Cloud',
                    file.read())
