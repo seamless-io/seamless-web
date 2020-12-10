@@ -9,5 +9,5 @@ There is a managed cloud version of the platform, you can sign up for free and t
 
 ## Contributing
 
-In order to contribute please submit a Pull Request. If you don't know where to start - please check out Issues. 
+In order to contribute please submit a Pull Request. If you don't know where to start - please check out [Issues](https://github.com/seamless-io/seamless-web/issues). 
 
