@@ -7,6 +7,12 @@ Seamless Cloud is a serverless compute platform to run Python script on schedule
 
 There is a managed cloud version of the platform, you can sign up for free and try it out here -> https://app.seamlesscloud.io/.
 
+![parameters](images/1.png)
+
+![parameters](images/2.png)
+
+![parameters](images/3.png)
+
 ## Seamless Templates
 
 Seamless Templates are templates of Python code that are available for you in the Seamless Cloud application that can help you to get started.
